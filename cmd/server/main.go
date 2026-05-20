@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -13,23 +14,33 @@ import (
 )
 
 func main() {
+	cfg := configs.LoadConfig()
 
-	// Logger
-	logger.InitLogger()
+	logger.InitLogger(cfg.LogLevel, cfg.LogEncoding)
 	defer logger.Sync()
 
 	logger.Log.Info("Starting SecureTalk server")
 
-	// Config
-	cfg := configs.LoadConfig()
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
+	)
 
-	// DB
+	// Сначала миграции
+	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
+		logger.Log.Fatal("Failed to run migrations", zap.Error(err))
+	}
+
+	// Потом создаем pool
 	db := repository.NewPostgresDB(cfg, logger.Log)
 	defer db.Close()
 
-	logger.Log.Info("Database connected")
+	logger.Log.Info("Database connected and migrations applied")
 
-	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
@@ -40,6 +51,5 @@ func main() {
 	logger.Log.Info("Service started", zap.String("port", cfg.ServerPort))
 
 	<-ctx.Done()
-
 	logger.Log.Info("Shutting down...")
 }
