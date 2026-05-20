@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"os/signal"
 	"syscall"
 
 	"Server/configs"
+	internalgrpc "Server/internal/grpc"
 	"Server/internal/logger"
 	"Server/internal/repository"
 
+	authpb "Server/gen/auth"
+
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -19,7 +24,7 @@ func main() {
 	logger.InitLogger(cfg.LogLevel, cfg.LogEncoding)
 	defer logger.Sync()
 
-	logger.Log.Info("Starting SecureTalk server")
+	logger.Log.Info("Starting SecureTalk gRPC server")
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -30,16 +35,24 @@ func main() {
 		cfg.DBName,
 	)
 
-	// Сначала миграции
 	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
 		logger.Log.Fatal("Failed to run migrations", zap.Error(err))
 	}
 
-	// Потом создаем pool
 	db := repository.NewPostgresDB(cfg, logger.Log)
 	defer db.Close()
 
-	logger.Log.Info("Database connected and migrations applied")
+	logger.Log.Info("Database connected")
+
+	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
+	if err != nil {
+		logger.Log.Fatal("Failed to listen", zap.Error(err))
+	}
+
+	grpcServer := grpc.NewServer()
+
+	authServer := internalgrpc.NewAuthServer()
+	authpb.RegisterAuthServiceServer(grpcServer, authServer)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -48,8 +61,17 @@ func main() {
 	)
 	defer stop()
 
-	logger.Log.Info("Service started", zap.String("port", cfg.ServerPort))
+	go func() {
+		logger.Log.Info("gRPC server started", zap.String("port", cfg.ServerPort))
+		if err := grpcServer.Serve(lis); err != nil {
+			logger.Log.Fatal("gRPC server failed", zap.Error(err))
+		}
+	}()
 
 	<-ctx.Done()
-	logger.Log.Info("Shutting down...")
+
+	logger.Log.Info("Shutting down server...")
+
+	grpcServer.GracefulStop()
+	logger.Log.Info("Server stopped")
 }
