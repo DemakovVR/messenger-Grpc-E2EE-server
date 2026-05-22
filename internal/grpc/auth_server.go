@@ -4,25 +4,62 @@ import (
 	"context"
 
 	authpb "Server/gen/auth"
+	"Server/internal/service"
 )
 
 type AuthServer struct {
 	authpb.UnimplementedAuthServiceServer
+
+	authService *service.AuthService
 }
 
-func NewAuthServer() *AuthServer {
-	return &AuthServer{}
+func NewAuthServer(
+	authService *service.AuthService,
+) *AuthServer {
+
+	return &AuthServer{
+		authService: authService,
+	}
 }
 
-func (s *AuthServer) Register(ctx context.Context, req *authpb.RegisterRequest) (*authpb.RegisterResponse, error) {
+func (s *AuthServer) Register(
+	ctx context.Context,
+	req *authpb.RegisterRequest,
+) (*authpb.RegisterResponse, error) {
+
+	userID, err := s.authService.Register(
+		ctx,
+		req.Username,
+		req.Email,
+		req.Password,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &authpb.RegisterResponse{
-		UserId:  "test-id",
-		Message: "registered",
+		UserId:  userID,
+		Message: "User registered successfully",
 	}, nil
 }
 
-func (s *AuthServer) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.LoginResponse, error) {
+func (s *AuthServer) Login(
+	ctx context.Context,
+	req *authpb.LoginRequest,
+) (*authpb.LoginResponse, error) {
+
+	token, err := s.authService.Login(
+		ctx,
+		req.Email,
+		req.Password,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &authpb.LoginResponse{
-		Token: "test-token",
+		Token: token,
 	}, nil
 }

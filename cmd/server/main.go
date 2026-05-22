@@ -8,11 +8,11 @@ import (
 	"syscall"
 
 	"Server/configs"
+	authpb "Server/gen/auth"
 	internalgrpc "Server/internal/grpc"
 	"Server/internal/logger"
 	"Server/internal/repository"
-
-	authpb "Server/gen/auth"
+	"Server/internal/service"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -35,24 +35,44 @@ func main() {
 		cfg.DBName,
 	)
 
+	// Миграции
 	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
 		logger.Log.Fatal("Failed to run migrations", zap.Error(err))
 	}
 
+	// База данных
 	db := repository.NewPostgresDB(cfg, logger.Log)
 	defer db.Close()
 
 	logger.Log.Info("Database connected")
 
+	// Repository
+	userRepo := repository.NewUserRepository(db)
+
+	// Service
+	authService := service.NewAuthService(
+		userRepo,
+		cfg.JWTSecret,
+	)
+
+	// gRPC Auth Server
+	authServer := internalgrpc.NewAuthServer(
+		authService,
+	)
+
+	// Listener
 	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
 		logger.Log.Fatal("Failed to listen", zap.Error(err))
 	}
 
+	// gRPC Server
 	grpcServer := grpc.NewServer()
 
-	authServer := internalgrpc.NewAuthServer()
-	authpb.RegisterAuthServiceServer(grpcServer, authServer)
+	authpb.RegisterAuthServiceServer(
+		grpcServer,
+		authServer,
+	)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -62,9 +82,16 @@ func main() {
 	defer stop()
 
 	go func() {
-		logger.Log.Info("gRPC server started", zap.String("port", cfg.ServerPort))
+		logger.Log.Info(
+			"gRPC server started",
+			zap.String("port", cfg.ServerPort),
+		)
+
 		if err := grpcServer.Serve(lis); err != nil {
-			logger.Log.Fatal("gRPC server failed", zap.Error(err))
+			logger.Log.Fatal(
+				"gRPC server failed",
+				zap.Error(err),
+			)
 		}
 	}()
 
@@ -73,5 +100,6 @@ func main() {
 	logger.Log.Info("Shutting down server...")
 
 	grpcServer.GracefulStop()
+
 	logger.Log.Info("Server stopped")
 }
