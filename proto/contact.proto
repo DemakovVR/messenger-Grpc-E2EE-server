@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package contact;
+
+option go_package = "gen/contact;contact";
+
+service ContactService {
+  rpc SearchUsers(SearchUsersRequest)
+      returns (SearchUsersResponse);
+
+  rpc AddContact(AddContactRequest)
+      returns (AddContactResponse);
+
+  rpc GetContacts(GetContactsRequest)
+      returns (GetContactsResponse);
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message SearchUsersRequest {
+  string query = 1;
+}
+
+message SearchUsersResponse {
+  repeated User users = 1;
+}
+
+message AddContactRequest {
+  string contact_id = 1;
+}
+
+message AddContactResponse {
+  string message = 1;
+}
+
+message GetContactsRequest {}
+
+message GetContactsResponse {
+  repeated User contacts = 1;
+}

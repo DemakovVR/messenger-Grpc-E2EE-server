@@ -8,7 +8,10 @@ import (
 	"syscall"
 
 	"Server/configs"
+
 	authpb "Server/gen/auth"
+	contactpb "Server/gen/contact"
+
 	internalgrpc "Server/internal/grpc"
 	"Server/internal/logger"
 	"Server/internal/middleware"
@@ -36,7 +39,10 @@ func main() {
 		cfg.DBName,
 	)
 
-	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
+	if err := repository.RunMigrations(
+		logger.Log,
+		dsn,
+	); err != nil {
 		logger.Log.Fatal(
 			"Failed to run migrations",
 			zap.Error(err),
@@ -51,8 +57,12 @@ func main() {
 
 	logger.Log.Info("Database connected")
 
+	// Repositories
 	userRepo := repository.NewUserRepository(db)
 
+	contactRepo := repository.NewContactRepository(db)
+
+	// Services
 	authService := service.NewAuthService(
 		userRepo,
 		cfg.JWTSecret,
@@ -62,12 +72,21 @@ func main() {
 		userRepo,
 	)
 
+	contactService := service.NewContactService(
+		contactRepo,
+	)
+
+	// gRPC Servers
 	authServer := internalgrpc.NewAuthServer(
 		authService,
 	)
 
 	userServer := internalgrpc.NewUserServer(
 		userService,
+	)
+
+	contactServer := internalgrpc.NewContactServer(
+		contactService,
 	)
 
 	lis, err := net.Listen(
@@ -89,14 +108,22 @@ func main() {
 		),
 	)
 
+	// Auth Service
 	authpb.RegisterAuthServiceServer(
 		grpcServer,
 		authServer,
 	)
 
+	// User Service
 	authpb.RegisterUserServiceServer(
 		grpcServer,
 		userServer,
+	)
+
+	// Contact Service
+	contactpb.RegisterContactServiceServer(
+		grpcServer,
+		contactServer,
 	)
 
 	ctx, stop := signal.NotifyContext(
