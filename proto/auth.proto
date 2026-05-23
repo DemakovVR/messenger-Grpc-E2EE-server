@@ -9,6 +9,10 @@ service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
 }
 
+service UserService {
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+}
+
 message RegisterRequest {
   string username = 1;
   string email = 2;
@@ -27,4 +31,13 @@ message LoginRequest {
 
 message LoginResponse {
   string token = 1;
+}
+
+message GetProfileRequest {}
+
+message GetProfileResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string role = 4;
 }

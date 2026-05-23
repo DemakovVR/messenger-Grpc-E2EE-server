@@ -88,3 +88,40 @@ func (r *UserRepository) GetByEmail(
 
 	return &user, nil
 }
+
+func (r *UserRepository) GetByID(
+	ctx context.Context,
+	id string,
+) (*User, error) {
+
+	var user User
+
+	query := `
+		SELECT
+			id,
+			username,
+			email,
+			password_hash,
+			role
+		FROM users
+		WHERE id = $1
+	`
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Role,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
