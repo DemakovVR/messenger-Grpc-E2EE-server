@@ -12,6 +12,7 @@ import (
 	authpb "Server/gen/auth"
 	chatpb "Server/gen/chat"
 	contactpb "Server/gen/contact"
+	keyspb "Server/gen/keys"
 	messagepb "Server/gen/message"
 
 	internalgrpc "Server/internal/grpc"
@@ -41,14 +42,8 @@ func main() {
 		cfg.DBName,
 	)
 
-	if err := repository.RunMigrations(
-		logger.Log,
-		dsn,
-	); err != nil {
-		logger.Log.Fatal(
-			"Failed to run migrations",
-			zap.Error(err),
-		)
+	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
+		logger.Log.Fatal("Failed to run migrations", zap.Error(err))
 	}
 
 	db := repository.NewPostgresDB(cfg, logger.Log)
@@ -60,18 +55,21 @@ func main() {
 	contactRepo := repository.NewContactRepository(db)
 	chatRepo := repository.NewChatRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
+	keysRepo := repository.NewKeysRepository(db) // 👈 NEW (E2EE)
 
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	userService := service.NewUserService(userRepo)
 	contactService := service.NewContactService(contactRepo)
 	chatService := service.NewChatService(chatRepo)
 	messageService := service.NewMessageService(messageRepo)
+	keysService := service.NewKeysService(keysRepo) // 👈 NEW (E2EE)
 
 	authServer := internalgrpc.NewAuthServer(authService)
 	userServer := internalgrpc.NewUserServer(userService)
 	contactServer := internalgrpc.NewContactServer(contactService)
 	chatServer := internalgrpc.NewChatServer(chatService)
 	messageServer := internalgrpc.NewMessageServer(messageService)
+	keysServer := internalgrpc.NewKeysServer(keysService) // 👈 NEW (E2EE)
 
 	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
@@ -86,9 +84,13 @@ func main() {
 
 	authpb.RegisterAuthServiceServer(grpcServer, authServer)
 	authpb.RegisterUserServiceServer(grpcServer, userServer)
+
 	contactpb.RegisterContactServiceServer(grpcServer, contactServer)
 	chatpb.RegisterChatServiceServer(grpcServer, chatServer)
+
 	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
+
+	keyspb.RegisterKeyServiceServer(grpcServer, keysServer) // 👈 NEW (E2EE)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -104,10 +106,7 @@ func main() {
 		)
 
 		if err := grpcServer.Serve(lis); err != nil {
-			logger.Log.Fatal(
-				"gRPC server failed",
-				zap.Error(err),
-			)
+			logger.Log.Fatal("gRPC server failed", zap.Error(err))
 		}
 	}()
 

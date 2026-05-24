@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package keys;
+
+option go_package = "gen/keys;keyspb";
+
+service KeyService {
+  rpc UploadKeys (UploadKeysRequest) returns (Empty);
+  rpc GetPreKeyBundle (GetPreKeyBundleRequest) returns (PreKeyBundle);
+}
+
+message Empty {}
+
+message UploadKeysRequest {
+  string device_id = 1;
+  string identity_key_public = 2;
+  string signed_prekey_public = 3;
+  string signed_prekey_signature = 4;
+}
+
+message GetPreKeyBundleRequest {
+  string user_id = 1;
+}
+
+message PreKeyBundle {
+  string user_id = 1;
+  string device_id = 2;
+  string identity_key_public = 3;
+  string signed_prekey_public = 4;
+  string signed_prekey_signature = 5;
+  string one_time_prekey = 6;
+}
