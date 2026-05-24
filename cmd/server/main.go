@@ -12,6 +12,7 @@ import (
 	authpb "Server/gen/auth"
 	chatpb "Server/gen/chat"
 	contactpb "Server/gen/contact"
+	messagepb "Server/gen/message"
 
 	internalgrpc "Server/internal/grpc"
 	"Server/internal/logger"
@@ -50,96 +51,44 @@ func main() {
 		)
 	}
 
-	db := repository.NewPostgresDB(
-		cfg,
-		logger.Log,
-	)
+	db := repository.NewPostgresDB(cfg, logger.Log)
 	defer db.Close()
 
 	logger.Log.Info("Database connected")
 
-	// Repositories
 	userRepo := repository.NewUserRepository(db)
 	contactRepo := repository.NewContactRepository(db)
 	chatRepo := repository.NewChatRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
 
-	// Services
-	authService := service.NewAuthService(
-		userRepo,
-		cfg.JWTSecret,
-	)
+	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+	userService := service.NewUserService(userRepo)
+	contactService := service.NewContactService(contactRepo)
+	chatService := service.NewChatService(chatRepo)
+	messageService := service.NewMessageService(messageRepo)
 
-	userService := service.NewUserService(
-		userRepo,
-	)
+	authServer := internalgrpc.NewAuthServer(authService)
+	userServer := internalgrpc.NewUserServer(userService)
+	contactServer := internalgrpc.NewContactServer(contactService)
+	chatServer := internalgrpc.NewChatServer(chatService)
+	messageServer := internalgrpc.NewMessageServer(messageService)
 
-	contactService := service.NewContactService(
-		contactRepo,
-	)
-
-	chatService := service.NewChatService(
-		chatRepo,
-	)
-
-	// gRPC Servers
-	authServer := internalgrpc.NewAuthServer(
-		authService,
-	)
-
-	userServer := internalgrpc.NewUserServer(
-		userService,
-	)
-
-	contactServer := internalgrpc.NewContactServer(
-		contactService,
-	)
-
-	chatServer := internalgrpc.NewChatServer(
-		chatService,
-	)
-
-	lis, err := net.Listen(
-		"tcp",
-		":"+cfg.ServerPort,
-	)
+	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
-		logger.Log.Fatal(
-			"Failed to listen",
-			zap.Error(err),
-		)
+		logger.Log.Fatal("Failed to listen", zap.Error(err))
 	}
 
 	grpcServer := grpcserver.NewServer(
 		grpcserver.UnaryInterceptor(
-			middleware.AuthInterceptor(
-				cfg.JWTSecret,
-			),
+			middleware.AuthInterceptor(cfg.JWTSecret),
 		),
 	)
 
-	// Auth
-	authpb.RegisterAuthServiceServer(
-		grpcServer,
-		authServer,
-	)
-
-	// User
-	authpb.RegisterUserServiceServer(
-		grpcServer,
-		userServer,
-	)
-
-	// Contacts
-	contactpb.RegisterContactServiceServer(
-		grpcServer,
-		contactServer,
-	)
-
-	// Chats
-	chatpb.RegisterChatServiceServer(
-		grpcServer,
-		chatServer,
-	)
+	authpb.RegisterAuthServiceServer(grpcServer, authServer)
+	authpb.RegisterUserServiceServer(grpcServer, userServer)
+	contactpb.RegisterContactServiceServer(grpcServer, contactServer)
+	chatpb.RegisterChatServiceServer(grpcServer, chatServer)
+	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
