@@ -10,6 +10,7 @@ import (
 	"Server/configs"
 
 	authpb "Server/gen/auth"
+	chatpb "Server/gen/chat"
 	contactpb "Server/gen/contact"
 
 	internalgrpc "Server/internal/grpc"
@@ -59,8 +60,8 @@ func main() {
 
 	// Repositories
 	userRepo := repository.NewUserRepository(db)
-
 	contactRepo := repository.NewContactRepository(db)
+	chatRepo := repository.NewChatRepository(db)
 
 	// Services
 	authService := service.NewAuthService(
@@ -76,6 +77,10 @@ func main() {
 		contactRepo,
 	)
 
+	chatService := service.NewChatService(
+		chatRepo,
+	)
+
 	// gRPC Servers
 	authServer := internalgrpc.NewAuthServer(
 		authService,
@@ -87,6 +92,10 @@ func main() {
 
 	contactServer := internalgrpc.NewContactServer(
 		contactService,
+	)
+
+	chatServer := internalgrpc.NewChatServer(
+		chatService,
 	)
 
 	lis, err := net.Listen(
@@ -108,22 +117,28 @@ func main() {
 		),
 	)
 
-	// Auth Service
+	// Auth
 	authpb.RegisterAuthServiceServer(
 		grpcServer,
 		authServer,
 	)
 
-	// User Service
+	// User
 	authpb.RegisterUserServiceServer(
 		grpcServer,
 		userServer,
 	)
 
-	// Contact Service
+	// Contacts
 	contactpb.RegisterContactServiceServer(
 		grpcServer,
 		contactServer,
+	)
+
+	// Chats
+	chatpb.RegisterChatServiceServer(
+		grpcServer,
+		chatServer,
 	)
 
 	ctx, stop := signal.NotifyContext(

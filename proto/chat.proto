@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "gen/chat;chat";
+
+service ChatService {
+  rpc CreatePrivateChat(CreatePrivateChatRequest)
+      returns (CreateChatResponse);
+
+  rpc CreateGroupChat(CreateGroupChatRequest)
+      returns (CreateChatResponse);
+
+  rpc GetChats(GetChatsRequest)
+      returns (GetChatsResponse);
+}
+
+message CreatePrivateChatRequest {
+  string user_id = 1;
+}
+
+message CreateGroupChatRequest {
+  string name = 1;
+  repeated string participant_ids = 2;
+}
+
+message CreateChatResponse {
+  string chat_id = 1;
+}
+
+message GetChatsRequest {}
+
+message Chat {
+  string id = 1;
+  string type = 2;
+  string name = 3;
+}
+
+message GetChatsResponse {
+  repeated Chat chats = 1;
+}
