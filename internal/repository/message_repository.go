@@ -135,3 +135,35 @@ func (r *MessageRepository) IsParticipant(
 
 	return exists, err
 }
+
+func (r *MessageRepository) GetChatParticipants(
+	ctx context.Context,
+	chatID string,
+) ([]string, error) {
+
+	rows, err := r.db.Query(ctx, `
+		SELECT user_id
+		FROM chat_participants
+		WHERE chat_id = $1
+	`, chatID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []string
+
+	for rows.Next() {
+
+		var userID string
+
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+
+		users = append(users, userID)
+	}
+
+	return users, nil
+}

@@ -36,7 +36,7 @@ func (s *MessageServer) SendMessage(
 		ctx,
 		req.ChatId,
 		userID,
-		req.Content,
+		req.EncryptedContent,
 	)
 
 	if err != nil {
@@ -67,18 +67,18 @@ func (s *MessageServer) GetMessages(
 		return nil, err
 	}
 
-	var result []*messagepb.Message
+	var result []*messagepb.MessageResponse
 
 	for _, msg := range messages {
 
 		result = append(
 			result,
-			&messagepb.Message{
-				Id:       msg.ID.String(),
-				ChatId:   msg.ChatID.String(),
-				SenderId: msg.SenderID.String(),
-				Content:  msg.Content,
-				SentAt:   msg.SentAt.Format("2006-01-02 15:04:05"),
+			&messagepb.MessageResponse{
+				Id:               msg.ID.String(),
+				ChatId:           msg.ChatID.String(),
+				SenderId:         msg.SenderID.String(),
+				EncryptedContent: msg.Content,
+				SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
 			},
 		)
 	}
@@ -86,4 +86,37 @@ func (s *MessageServer) GetMessages(
 	return &messagepb.GetMessagesResponse{
 		Messages: result,
 	}, nil
+}
+
+func (s *MessageServer) ConnectMessages(
+	req *messagepb.ConnectRequest,
+	stream messagepb.MessageService_ConnectMessagesServer,
+) error {
+
+	userID := stream.Context().
+		Value(middleware.UserIDKey).(string)
+
+	ch := s.messageService.Subscribe(
+		userID,
+	)
+
+	defer s.messageService.Unsubscribe(
+		userID,
+		ch,
+	)
+
+	for {
+
+		select {
+
+		case <-stream.Context().Done():
+			return nil
+
+		case msg := <-ch:
+
+			if err := stream.Send(msg); err != nil {
+				return err
+			}
+		}
+	}
 }

@@ -55,13 +55,14 @@ func main() {
 	contactRepo := repository.NewContactRepository(db)
 	chatRepo := repository.NewChatRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	keysRepo := repository.NewKeysRepository(db) // 👈 NEW (E2EE)
+	keysRepo := repository.NewKeysRepository(db)
 
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	userService := service.NewUserService(userRepo)
 	contactService := service.NewContactService(contactRepo)
 	chatService := service.NewChatService(chatRepo)
-	messageService := service.NewMessageService(messageRepo)
+	connectionManager := service.NewConnectionManager()
+	messageService := service.NewMessageService(messageRepo, connectionManager)
 	keysService := service.NewKeysService(keysRepo) // 👈 NEW (E2EE)
 
 	authServer := internalgrpc.NewAuthServer(authService)

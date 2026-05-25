@@ -4,22 +4,40 @@ import (
 	"context"
 	"errors"
 
+	messagepb "Server/gen/message"
 	"Server/internal/repository"
 
 	"github.com/google/uuid"
 )
 
 type MessageService struct {
-	repo *repository.MessageRepository
+	repo    *repository.MessageRepository
+	manager *ConnectionManager
 }
 
 func NewMessageService(
 	repo *repository.MessageRepository,
+	manager *ConnectionManager,
 ) *MessageService {
 
 	return &MessageService{
-		repo: repo,
+		repo:    repo,
+		manager: manager,
 	}
+}
+
+func (s *MessageService) Subscribe(
+	userID string,
+) chan *messagepb.MessageResponse {
+
+	return s.manager.Subscribe(userID)
+}
+
+func (s *MessageService) Unsubscribe(
+	userID string,
+	ch chan *messagepb.MessageResponse,
+) {
+	s.manager.Unsubscribe(userID, ch)
 }
 
 func (s *MessageService) SendMessage(
@@ -45,12 +63,43 @@ func (s *MessageService) SendMessage(
 		)
 	}
 
-	return s.repo.SendMessage(
+	messageID, err := s.repo.SendMessage(
 		ctx,
 		chatID,
 		userID,
 		content,
 	)
+
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	participants, err := s.repo.GetChatParticipants(
+		ctx,
+		chatID,
+	)
+
+	if err == nil {
+
+		for _, participantID := range participants {
+
+			if participantID == userID {
+				continue
+			}
+
+			s.manager.Publish(
+				participantID,
+				&messagepb.MessageResponse{
+					Id:               messageID.String(),
+					ChatId:           chatID,
+					SenderId:         userID,
+					EncryptedContent: content,
+				},
+			)
+		}
+	}
+
+	return messageID, nil
 }
 
 func (s *MessageService) GetMessages(
