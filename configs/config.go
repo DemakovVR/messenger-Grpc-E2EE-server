@@ -18,6 +18,9 @@ type Config struct {
 
 	LogLevel    string
 	LogEncoding string
+
+	TLSCertFile string
+	TLSKeyFile  string
 }
 
 func LoadConfig() *Config {
@@ -35,6 +38,9 @@ func LoadConfig() *Config {
 
 		LogLevel:    getEnv("LOG_LEVEL", "debug"),
 		LogEncoding: getEnv("LOG_ENCODING", "json"),
+
+		TLSCertFile: getEnv("TLS_CERT_FILE", "certs/server.crt"),
+		TLSKeyFile:  getEnv("TLS_KEY_FILE", "certs/server.key"),
 	}
 }
 

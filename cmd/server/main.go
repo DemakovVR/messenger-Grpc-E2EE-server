@@ -21,6 +21,7 @@ import (
 	"Server/internal/middleware"
 	"Server/internal/repository"
 	"Server/internal/service"
+	tlsutil "Server/internal/tls"
 
 	"go.uber.org/zap"
 	grpcserver "google.golang.org/grpc"
@@ -81,7 +82,21 @@ func main() {
 		logger.Log.Fatal("Failed to listen", zap.Error(err))
 	}
 
+	creds, err := tlsutil.LoadTLSCredentials(
+		cfg.TLSCertFile,
+		cfg.TLSKeyFile,
+	)
+
+	if err != nil {
+		logger.Log.Fatal(
+			"Failed to load TLS certificates",
+			zap.Error(err),
+		)
+	}
+
 	grpcServer := grpcserver.NewServer(
+		grpcserver.Creds(creds),
+
 		grpcserver.UnaryInterceptor(
 			middleware.AuthInterceptor(cfg.JWTSecret),
 		),
