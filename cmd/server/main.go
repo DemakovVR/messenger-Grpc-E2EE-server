@@ -12,6 +12,7 @@ import (
 	authpb "Server/gen/auth"
 	chatpb "Server/gen/chat"
 	contactpb "Server/gen/contact"
+	filepb "Server/gen/file"
 	keyspb "Server/gen/keys"
 	messagepb "Server/gen/message"
 
@@ -56,6 +57,7 @@ func main() {
 	chatRepo := repository.NewChatRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 	keysRepo := repository.NewKeysRepository(db)
+	fileRepo := repository.NewFileRepository()
 
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	userService := service.NewUserService(userRepo)
@@ -63,14 +65,16 @@ func main() {
 	chatService := service.NewChatService(chatRepo)
 	connectionManager := service.NewConnectionManager()
 	messageService := service.NewMessageService(messageRepo, connectionManager)
-	keysService := service.NewKeysService(keysRepo) // 👈 NEW (E2EE)
+	keysService := service.NewKeysService(keysRepo)
+	fileService := service.NewFileService()
 
 	authServer := internalgrpc.NewAuthServer(authService)
 	userServer := internalgrpc.NewUserServer(userService)
 	contactServer := internalgrpc.NewContactServer(contactService)
 	chatServer := internalgrpc.NewChatServer(chatService)
 	messageServer := internalgrpc.NewMessageServer(messageService)
-	keysServer := internalgrpc.NewKeysServer(keysService) // 👈 NEW (E2EE)
+	keysServer := internalgrpc.NewKeysServer(keysService)
+	fileServer := internalgrpc.NewFileServer(fileService, fileRepo)
 
 	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
@@ -91,7 +95,15 @@ func main() {
 
 	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
 
-	keyspb.RegisterKeyServiceServer(grpcServer, keysServer) // 👈 NEW (E2EE)
+	keyspb.RegisterKeyServiceServer(grpcServer, keysServer)
+	filepb.RegisterFileServiceServer(grpcServer, fileServer)
+
+	if err := fileService.EnsureStorage(); err != nil {
+		logger.Log.Fatal(
+			"failed to create storage",
+			zap.Error(err),
+		)
+	}
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
