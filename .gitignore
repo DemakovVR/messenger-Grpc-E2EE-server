@@ -45,3 +45,11 @@ server
 # Temporary files
 tmp/
 temp/
+
+# TLS certificates
+certs/*.key
+certs/*.crt
+
+# Uploaded files
+storage/files/*
+!storage/files/.gitkeep
