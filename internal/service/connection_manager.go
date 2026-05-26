@@ -1,26 +1,27 @@
 package service
 
 import (
-	messagepb "Server/gen/message"
 	"sync"
+
+	messagepb "Server/gen/message"
+
+	"github.com/google/uuid"
 )
 
 type ConnectionManager struct {
 	mu sync.RWMutex
 
-	clients map[string][]chan *messagepb.MessageResponse
+	clients map[uuid.UUID][]chan *messagepb.MessageResponse
 }
 
 func NewConnectionManager() *ConnectionManager {
 	return &ConnectionManager{
-		clients: make(
-			map[string][]chan *messagepb.MessageResponse,
-		),
+		clients: make(map[uuid.UUID][]chan *messagepb.MessageResponse),
 	}
 }
 
 func (m *ConnectionManager) Subscribe(
-	userID string,
+	userID uuid.UUID,
 ) chan *messagepb.MessageResponse {
 
 	m.mu.Lock()
@@ -37,7 +38,7 @@ func (m *ConnectionManager) Subscribe(
 }
 
 func (m *ConnectionManager) Unsubscribe(
-	userID string,
+	userID uuid.UUID,
 	ch chan *messagepb.MessageResponse,
 ) {
 
@@ -56,14 +57,13 @@ func (m *ConnectionManager) Unsubscribe(
 			)
 
 			close(c)
-
 			break
 		}
 	}
 }
 
 func (m *ConnectionManager) Publish(
-	userID string,
+	userID uuid.UUID,
 	msg *messagepb.MessageResponse,
 ) {
 
@@ -73,9 +73,7 @@ func (m *ConnectionManager) Publish(
 	for _, ch := range m.clients[userID] {
 
 		select {
-
 		case ch <- msg:
-
 		default:
 		}
 	}

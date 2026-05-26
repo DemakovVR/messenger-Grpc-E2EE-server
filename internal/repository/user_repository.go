@@ -3,18 +3,11 @@ package repository
 import (
 	"context"
 
+	"Server/internal/models"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type User struct {
-	ID           uuid.UUID
-	Username     string
-	Email        string
-	PasswordHash string
-	PublicKey    string
-	Role         string
-}
 
 type UserRepository struct {
 	db *pgxpool.Pool
@@ -28,7 +21,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 
 func (r *UserRepository) CreateUser(
 	ctx context.Context,
-	user *User,
+	user *models.User,
 ) error {
 
 	query := `
@@ -42,7 +35,7 @@ func (r *UserRepository) CreateUser(
 		RETURNING id
 	`
 
-	return r.db.QueryRow(
+	err := r.db.QueryRow(
 		ctx,
 		query,
 		user.Username,
@@ -50,14 +43,16 @@ func (r *UserRepository) CreateUser(
 		user.PasswordHash,
 		user.Role,
 	).Scan(&user.ID)
+
+	return err
 }
 
 func (r *UserRepository) GetByEmail(
 	ctx context.Context,
 	email string,
-) (*User, error) {
+) (*models.User, error) {
 
-	var user User
+	var user models.User
 
 	query := `
 		SELECT
@@ -91,10 +86,10 @@ func (r *UserRepository) GetByEmail(
 
 func (r *UserRepository) GetByID(
 	ctx context.Context,
-	id string,
-) (*User, error) {
+	id uuid.UUID,
+) (*models.User, error) {
 
-	var user User
+	var user models.User
 
 	query := `
 		SELECT

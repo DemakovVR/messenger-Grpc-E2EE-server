@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"Server/internal/models"
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,7 +15,6 @@ type ContactRepository struct {
 func NewContactRepository(
 	db *pgxpool.Pool,
 ) *ContactRepository {
-
 	return &ContactRepository{
 		db: db,
 	}
@@ -22,7 +23,7 @@ func NewContactRepository(
 func (r *ContactRepository) SearchUsers(
 	ctx context.Context,
 	query string,
-) ([]User, error) {
+) ([]models.User, error) {
 
 	sql := `
 		SELECT
@@ -36,21 +37,16 @@ func (r *ContactRepository) SearchUsers(
 		LIMIT 20
 	`
 
-	rows, err := r.db.Query(
-		ctx,
-		sql,
-		query,
-	)
-
+	rows, err := r.db.Query(ctx, sql, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var users []User
+	var users []models.User
 
 	for rows.Next() {
-		var user User
+		var user models.User
 
 		err := rows.Scan(
 			&user.ID,
@@ -59,7 +55,6 @@ func (r *ContactRepository) SearchUsers(
 			&user.PasswordHash,
 			&user.Role,
 		)
-
 		if err != nil {
 			return nil, err
 		}
@@ -72,8 +67,8 @@ func (r *ContactRepository) SearchUsers(
 
 func (r *ContactRepository) AddContact(
 	ctx context.Context,
-	userID string,
-	contactID string,
+	userID uuid.UUID,
+	contactID uuid.UUID,
 ) error {
 
 	_, err := r.db.Exec(
@@ -95,8 +90,8 @@ func (r *ContactRepository) AddContact(
 
 func (r *ContactRepository) GetContacts(
 	ctx context.Context,
-	userID string,
-) ([]User, error) {
+	userID uuid.UUID,
+) ([]models.User, error) {
 
 	sql := `
 		SELECT
@@ -111,21 +106,16 @@ func (r *ContactRepository) GetContacts(
 		WHERE c.user_id = $1
 	`
 
-	rows, err := r.db.Query(
-		ctx,
-		sql,
-		userID,
-	)
-
+	rows, err := r.db.Query(ctx, sql, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var contacts []User
+	var contacts []models.User
 
 	for rows.Next() {
-		var user User
+		var user models.User
 
 		err := rows.Scan(
 			&user.ID,
@@ -134,7 +124,6 @@ func (r *ContactRepository) GetContacts(
 			&user.PasswordHash,
 			&user.Role,
 		)
-
 		if err != nil {
 			return nil, err
 		}

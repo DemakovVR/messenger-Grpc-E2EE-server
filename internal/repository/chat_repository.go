@@ -1,17 +1,12 @@
 package repository
 
 import (
+	"Server/internal/models"
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type Chat struct {
-	ID   uuid.UUID
-	Type string
-	Name string
-}
 
 type ChatRepository struct {
 	db *pgxpool.Pool
@@ -20,7 +15,6 @@ type ChatRepository struct {
 func NewChatRepository(
 	db *pgxpool.Pool,
 ) *ChatRepository {
-
 	return &ChatRepository{
 		db: db,
 	}
@@ -28,8 +22,8 @@ func NewChatRepository(
 
 func (r *ChatRepository) CreatePrivateChat(
 	ctx context.Context,
-	user1 string,
-	user2 string,
+	user1 uuid.UUID,
+	user2 uuid.UUID,
 ) (uuid.UUID, error) {
 
 	tx, err := r.db.Begin(ctx)
@@ -79,7 +73,7 @@ func (r *ChatRepository) CreatePrivateChat(
 func (r *ChatRepository) CreateGroupChat(
 	ctx context.Context,
 	name string,
-	participants []string,
+	participants []uuid.UUID,
 ) (uuid.UUID, error) {
 
 	tx, err := r.db.Begin(ctx)
@@ -131,8 +125,8 @@ func (r *ChatRepository) CreateGroupChat(
 
 func (r *ChatRepository) GetChats(
 	ctx context.Context,
-	userID string,
-) ([]Chat, error) {
+	userID uuid.UUID,
+) ([]models.Chat, error) {
 
 	rows, err := r.db.Query(
 		ctx,
@@ -154,11 +148,11 @@ func (r *ChatRepository) GetChats(
 	}
 	defer rows.Close()
 
-	var chats []Chat
+	var chats []models.Chat
 
 	for rows.Next() {
 
-		var chat Chat
+		var chat models.Chat
 
 		err := rows.Scan(
 			&chat.ID,

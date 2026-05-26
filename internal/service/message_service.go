@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	messagepb "Server/gen/message"
+	"Server/internal/models"
 	"Server/internal/repository"
 
 	"github.com/google/uuid"
@@ -19,7 +20,6 @@ func NewMessageService(
 	repo *repository.MessageRepository,
 	manager *ConnectionManager,
 ) *MessageService {
-
 	return &MessageService{
 		repo:    repo,
 		manager: manager,
@@ -27,14 +27,14 @@ func NewMessageService(
 }
 
 func (s *MessageService) Subscribe(
-	userID string,
+	userID uuid.UUID,
 ) chan *messagepb.MessageResponse {
 
 	return s.manager.Subscribe(userID)
 }
 
 func (s *MessageService) Unsubscribe(
-	userID string,
+	userID uuid.UUID,
 	ch chan *messagepb.MessageResponse,
 ) {
 	s.manager.Unsubscribe(userID, ch)
@@ -42,25 +42,18 @@ func (s *MessageService) Unsubscribe(
 
 func (s *MessageService) SendMessage(
 	ctx context.Context,
-	chatID string,
-	userID string,
+	chatID uuid.UUID,
+	userID uuid.UUID,
 	content string,
 ) (uuid.UUID, error) {
 
-	ok, err := s.repo.IsParticipant(
-		ctx,
-		chatID,
-		userID,
-	)
-
+	ok, err := s.repo.IsParticipant(ctx, chatID, userID)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
 	if !ok {
-		return uuid.Nil, errors.New(
-			"user is not participant of chat",
-		)
+		return uuid.Nil, errors.New("user is not participant of chat")
 	}
 
 	messageID, err := s.repo.SendMessage(
@@ -69,30 +62,23 @@ func (s *MessageService) SendMessage(
 		userID,
 		content,
 	)
-
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	participants, err := s.repo.GetChatParticipants(
-		ctx,
-		chatID,
-	)
-
+	participants, err := s.repo.GetChatParticipants(ctx, chatID)
 	if err == nil {
 
 		for _, participantID := range participants {
 
-			if participantID == userID {
-				continue
-			}
+			uuidParticipantID := participantID
 
 			s.manager.Publish(
-				participantID,
+				uuidParticipantID,
 				&messagepb.MessageResponse{
 					Id:               messageID.String(),
-					ChatId:           chatID,
-					SenderId:         userID,
+					ChatId:           chatID.String(),
+					SenderId:         userID.String(),
 					EncryptedContent: content,
 				},
 			)
@@ -104,28 +90,18 @@ func (s *MessageService) SendMessage(
 
 func (s *MessageService) GetMessages(
 	ctx context.Context,
-	chatID string,
-	userID string,
-) ([]repository.Message, error) {
+	chatID uuid.UUID,
+	userID uuid.UUID,
+) ([]models.Message, error) {
 
-	ok, err := s.repo.IsParticipant(
-		ctx,
-		chatID,
-		userID,
-	)
-
+	ok, err := s.repo.IsParticipant(ctx, chatID, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	if !ok {
-		return nil, errors.New(
-			"user is not participant of chat",
-		)
+		return nil, errors.New("user is not participant of chat")
 	}
 
-	return s.repo.GetMessages(
-		ctx,
-		chatID,
-	)
+	return s.repo.GetMessages(ctx, chatID)
 }

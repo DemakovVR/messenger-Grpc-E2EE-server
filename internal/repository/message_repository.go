@@ -2,37 +2,25 @@ package repository
 
 import (
 	"context"
-	"time"
+
+	"Server/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Message struct {
-	ID       uuid.UUID
-	ChatID   uuid.UUID
-	SenderID uuid.UUID
-	Content  string
-	SentAt   time.Time
-}
-
 type MessageRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewMessageRepository(
-	db *pgxpool.Pool,
-) *MessageRepository {
-
-	return &MessageRepository{
-		db: db,
-	}
+func NewMessageRepository(db *pgxpool.Pool) *MessageRepository {
+	return &MessageRepository{db: db}
 }
 
 func (r *MessageRepository) SendMessage(
 	ctx context.Context,
-	chatID string,
-	senderID string,
+	chatID uuid.UUID,
+	senderID uuid.UUID,
 	content string,
 ) (uuid.UUID, error) {
 
@@ -63,8 +51,8 @@ func (r *MessageRepository) SendMessage(
 
 func (r *MessageRepository) GetMessages(
 	ctx context.Context,
-	chatID string,
-) ([]Message, error) {
+	chatID uuid.UUID,
+) ([]models.Message, error) {
 
 	rows, err := r.db.Query(
 		ctx,
@@ -74,31 +62,36 @@ func (r *MessageRepository) GetMessages(
 			chat_id,
 			sender_id,
 			encrypted_content,
-			sent_at
+			encrypted_file_url,
+			sent_at,
+			created_at,
+			updated_at
 		FROM messages
 		WHERE chat_id = $1
 		ORDER BY sent_at ASC
 		`,
 		chatID,
 	)
-
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var messages []Message
+	var messages []models.Message
 
 	for rows.Next() {
 
-		var msg Message
+		var msg models.Message
 
 		err := rows.Scan(
 			&msg.ID,
 			&msg.ChatID,
 			&msg.SenderID,
-			&msg.Content,
+			&msg.EncryptedContent,
+			&msg.EncryptedFileURL,
 			&msg.SentAt,
+			&msg.CreatedAt,
+			&msg.UpdatedAt,
 		)
 
 		if err != nil {
@@ -113,8 +106,8 @@ func (r *MessageRepository) GetMessages(
 
 func (r *MessageRepository) IsParticipant(
 	ctx context.Context,
-	chatID string,
-	userID string,
+	chatID uuid.UUID,
+	userID uuid.UUID,
 ) (bool, error) {
 
 	var exists bool
@@ -138,8 +131,8 @@ func (r *MessageRepository) IsParticipant(
 
 func (r *MessageRepository) GetChatParticipants(
 	ctx context.Context,
-	chatID string,
-) ([]string, error) {
+	chatID uuid.UUID,
+) ([]uuid.UUID, error) {
 
 	rows, err := r.db.Query(ctx, `
 		SELECT user_id
@@ -152,11 +145,11 @@ func (r *MessageRepository) GetChatParticipants(
 	}
 	defer rows.Close()
 
-	var users []string
+	var users []uuid.UUID
 
 	for rows.Next() {
 
-		var userID string
+		var userID uuid.UUID
 
 		if err := rows.Scan(&userID); err != nil {
 			return nil, err

@@ -1,11 +1,15 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type DeviceKey struct {
-	ID       string `json:"id" db:"id"`
-	UserID   string `json:"user_id" db:"user_id"`
-	DeviceID string `json:"device_id" db:"device_id"`
+	ID       uuid.UUID `json:"id" db:"id"`
+	UserID   uuid.UUID `json:"user_id" db:"user_id"`
+	DeviceID string    `json:"device_id" db:"device_id"`
 
 	IdentityKeyPublic     string `json:"identity_key_public" db:"identity_key_public"`
 	SignedPreKeyPublic    string `json:"signed_prekey_public" db:"signed_prekey_public"`
@@ -18,8 +22,8 @@ type DeviceKey struct {
 }
 
 type OneTimePreKey struct {
-	ID          string `json:"id" db:"id"`
-	DeviceKeyID string `json:"device_key_id" db:"device_key_id"`
+	ID          uuid.UUID `json:"id" db:"id"`
+	DeviceKeyID uuid.UUID `json:"device_key_id" db:"device_key_id"`
 
 	KeyID     int    `json:"key_id" db:"key_id"`
 	PublicKey string `json:"public_key" db:"public_key"`

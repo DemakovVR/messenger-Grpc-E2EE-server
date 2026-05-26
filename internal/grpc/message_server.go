@@ -6,6 +6,8 @@ import (
 	messagepb "Server/gen/message"
 	"Server/internal/middleware"
 	"Server/internal/service"
+
+	"github.com/google/uuid"
 )
 
 type MessageServer struct {
@@ -17,7 +19,6 @@ type MessageServer struct {
 func NewMessageServer(
 	messageService *service.MessageService,
 ) *MessageServer {
-
 	return &MessageServer{
 		messageService: messageService,
 	}
@@ -28,13 +29,21 @@ func (s *MessageServer) SendMessage(
 	req *messagepb.SendMessageRequest,
 ) (*messagepb.SendMessageResponse, error) {
 
-	userID := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
 
 	messageID, err := s.messageService.SendMessage(
 		ctx,
-		req.ChatId,
+		chatID,
 		userID,
 		req.EncryptedContent,
 	)
@@ -53,13 +62,21 @@ func (s *MessageServer) GetMessages(
 	req *messagepb.GetMessagesRequest,
 ) (*messagepb.GetMessagesResponse, error) {
 
-	userID := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
 
 	messages, err := s.messageService.GetMessages(
 		ctx,
-		req.ChatId,
+		chatID,
 		userID,
 	)
 
@@ -70,17 +87,13 @@ func (s *MessageServer) GetMessages(
 	var result []*messagepb.MessageResponse
 
 	for _, msg := range messages {
-
-		result = append(
-			result,
-			&messagepb.MessageResponse{
-				Id:               msg.ID.String(),
-				ChatId:           msg.ChatID.String(),
-				SenderId:         msg.SenderID.String(),
-				EncryptedContent: msg.Content,
-				SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
-			},
-		)
+		result = append(result, &messagepb.MessageResponse{
+			Id:               msg.ID.String(),
+			ChatId:           msg.ChatID.String(),
+			SenderId:         msg.SenderID.String(),
+			EncryptedContent: msg.EncryptedContent,
+			SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
+		})
 	}
 
 	return &messagepb.GetMessagesResponse{
@@ -93,27 +106,23 @@ func (s *MessageServer) ConnectMessages(
 	stream messagepb.MessageService_ConnectMessagesServer,
 ) error {
 
-	userID := stream.Context().
-		Value(middleware.UserIDKey).(string)
+	userIDStr := stream.Context().Value(middleware.UserIDKey).(string)
 
-	ch := s.messageService.Subscribe(
-		userID,
-	)
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return err
+	}
 
-	defer s.messageService.Unsubscribe(
-		userID,
-		ch,
-	)
+	ch := s.messageService.Subscribe(userID)
+	defer s.messageService.Unsubscribe(userID, ch)
 
 	for {
-
 		select {
 
 		case <-stream.Context().Done():
 			return nil
 
 		case msg := <-ch:
-
 			if err := stream.Send(msg); err != nil {
 				return err
 			}

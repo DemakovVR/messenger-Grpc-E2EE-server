@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,7 +14,6 @@ type AuditRepository struct {
 func NewAuditRepository(
 	db *pgxpool.Pool,
 ) *AuditRepository {
-
 	return &AuditRepository{
 		db: db,
 	}
@@ -21,7 +21,7 @@ func NewAuditRepository(
 
 func (r *AuditRepository) CreateLog(
 	ctx context.Context,
-	userID string,
+	userID uuid.UUID,
 	action string,
 	details string,
 ) error {
@@ -31,7 +31,7 @@ func (r *AuditRepository) CreateLog(
 		`
 		INSERT INTO audit_logs
 		(user_id, action, details)
-		VALUES ($1,$2,$3)
+		VALUES ($1, $2, $3)
 		`,
 		userID,
 		action,

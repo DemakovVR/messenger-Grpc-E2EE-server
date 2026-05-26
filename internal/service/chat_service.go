@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"Server/internal/models"
 	"Server/internal/repository"
 
 	"github.com/google/uuid"
@@ -23,8 +24,8 @@ func NewChatService(
 
 func (s *ChatService) CreatePrivateChat(
 	ctx context.Context,
-	user1 string,
-	user2 string,
+	user1 uuid.UUID,
+	user2 uuid.UUID,
 ) (uuid.UUID, error) {
 
 	return s.repo.CreatePrivateChat(
@@ -37,7 +38,7 @@ func (s *ChatService) CreatePrivateChat(
 func (s *ChatService) CreateGroupChat(
 	ctx context.Context,
 	name string,
-	participants []string,
+	participants []uuid.UUID,
 ) (uuid.UUID, error) {
 
 	return s.repo.CreateGroupChat(
@@ -49,8 +50,8 @@ func (s *ChatService) CreateGroupChat(
 
 func (s *ChatService) GetChats(
 	ctx context.Context,
-	userID string,
-) ([]repository.Chat, error) {
+	userID uuid.UUID,
+) ([]models.Chat, error) {
 
 	return s.repo.GetChats(
 		ctx,

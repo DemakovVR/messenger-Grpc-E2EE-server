@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,15 +15,12 @@ type RefreshRepository struct {
 func NewRefreshRepository(
 	db *pgxpool.Pool,
 ) *RefreshRepository {
-
-	return &RefreshRepository{
-		db: db,
-	}
+	return &RefreshRepository{db: db}
 }
 
 func (r *RefreshRepository) Save(
 	ctx context.Context,
-	userID string,
+	userID uuid.UUID,
 	token string,
 	exp time.Time,
 ) error {
@@ -45,9 +43,9 @@ func (r *RefreshRepository) Save(
 func (r *RefreshRepository) GetByToken(
 	ctx context.Context,
 	token string,
-) (string, error) {
+) (uuid.UUID, error) {
 
-	var userID string
+	var userID uuid.UUID
 
 	err := r.db.QueryRow(
 		ctx,

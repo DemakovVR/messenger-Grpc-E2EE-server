@@ -6,6 +6,8 @@ import (
 	contactpb "Server/gen/contact"
 	"Server/internal/middleware"
 	"Server/internal/service"
+
+	"github.com/google/uuid"
 )
 
 type ContactServer struct {
@@ -17,7 +19,6 @@ type ContactServer struct {
 func NewContactServer(
 	contactService *service.ContactService,
 ) *ContactServer {
-
 	return &ContactServer{
 		contactService: contactService,
 	}
@@ -32,7 +33,6 @@ func (s *ContactServer) SearchUsers(
 		ctx,
 		req.Query,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -57,16 +57,23 @@ func (s *ContactServer) AddContact(
 	req *contactpb.AddContactRequest,
 ) (*contactpb.AddContactResponse, error) {
 
-	userID := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 
-	err := s.contactService.AddContact(
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	contactID, err := uuid.Parse(req.ContactId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.contactService.AddContact(
 		ctx,
 		userID,
-		req.ContactId,
+		contactID,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +88,17 @@ func (s *ContactServer) GetContacts(
 	req *contactpb.GetContactsRequest,
 ) (*contactpb.GetContactsResponse, error) {
 
-	userID := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
 
 	contacts, err := s.contactService.GetContacts(
 		ctx,
 		userID,
 	)
-
 	if err != nil {
 		return nil, err
 	}

@@ -1,12 +1,12 @@
 package grpc
 
 import (
+	"bytes"
+	"io"
+
 	filepb "Server/gen/file"
 	"Server/internal/repository"
 	"Server/internal/service"
-	"bytes"
-	"io"
-	"os"
 )
 
 type FileServer struct {
@@ -37,13 +37,10 @@ func (s *FileServer) UploadFile(
 	)
 
 	for {
-
 		req, err := stream.Recv()
-
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return err
 		}
@@ -55,22 +52,15 @@ func (s *FileServer) UploadFile(
 		buffer.Write(req.Chunk)
 	}
 
-	path := s.service.GenerateFilePath(
-		fileName,
-	)
+	path := s.service.GenerateFilePath(fileName)
 
-	if err := s.repo.SaveFile(
-		path,
-		buffer.Bytes(),
-	); err != nil {
+	if err := s.service.SaveFile(path, buffer.Bytes()); err != nil {
 		return err
 	}
 
-	return stream.SendAndClose(
-		&filepb.UploadFileResponse{
-			FileUrl: path,
-		},
-	)
+	return stream.SendAndClose(&filepb.UploadFileResponse{
+		FileUrl: path,
+	})
 }
 
 func (s *FileServer) DownloadFile(
@@ -78,7 +68,7 @@ func (s *FileServer) DownloadFile(
 	stream filepb.FileService_DownloadFileServer,
 ) error {
 
-	file, err := os.Open(req.FileUrl)
+	file, err := s.service.OpenFile(req.FileUrl)
 	if err != nil {
 		return err
 	}
@@ -87,17 +77,13 @@ func (s *FileServer) DownloadFile(
 	buf := make([]byte, 32*1024)
 
 	for {
-
 		n, err := file.Read(buf)
 
 		if n > 0 {
-
-			if sendErr := stream.Send(
-				&filepb.DownloadFileResponse{
-					Chunk: buf[:n],
-				},
-			); sendErr != nil {
-				return sendErr
+			if err := stream.Send(&filepb.DownloadFileResponse{
+				Chunk: buf[:n],
+			}); err != nil {
+				return err
 			}
 		}
 

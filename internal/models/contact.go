@@ -6,10 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type AuditLog struct {
-	ID        uuid.UUID `db:"id"`
+type Contact struct {
 	UserID    uuid.UUID `db:"user_id"`
-	Action    string    `db:"action"`
-	Details   *string   `db:"details"`
+	ContactID uuid.UUID `db:"contact_id"`
 	CreatedAt time.Time `db:"created_at"`
 }

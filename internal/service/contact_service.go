@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
+	"Server/internal/models"
 	"Server/internal/repository"
 )
 
@@ -22,7 +25,7 @@ func NewContactService(
 func (s *ContactService) SearchUsers(
 	ctx context.Context,
 	query string,
-) ([]repository.User, error) {
+) ([]models.User, error) {
 
 	return s.repo.SearchUsers(
 		ctx,
@@ -32,8 +35,8 @@ func (s *ContactService) SearchUsers(
 
 func (s *ContactService) AddContact(
 	ctx context.Context,
-	userID string,
-	contactID string,
+	userID uuid.UUID,
+	contactID uuid.UUID,
 ) error {
 
 	return s.repo.AddContact(
@@ -45,8 +48,8 @@ func (s *ContactService) AddContact(
 
 func (s *ContactService) GetContacts(
 	ctx context.Context,
-	userID string,
-) ([]repository.User, error) {
+	userID uuid.UUID,
+) ([]models.User, error) {
 
 	return s.repo.GetContacts(
 		ctx,

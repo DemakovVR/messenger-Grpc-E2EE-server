@@ -4,6 +4,7 @@ import (
 	"Server/internal/models"
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,7 +18,8 @@ func NewKeysRepository(db *pgxpool.Pool) *KeysRepository {
 
 func (r *KeysRepository) SaveDeviceKeys(
 	ctx context.Context,
-	userID, deviceID string,
+	userID uuid.UUID,
+	deviceID string,
 	identity, prekey, signature string,
 ) error {
 
@@ -42,14 +44,22 @@ func (r *KeysRepository) SaveDeviceKeys(
 	return err
 }
 
-func (r *KeysRepository) GetDeviceKeys(ctx context.Context, userID string) (models.DeviceKey, error) {
+func (r *KeysRepository) GetDeviceKeys(
+	ctx context.Context,
+	userID uuid.UUID,
+) (models.DeviceKey, error) {
+
 	var k models.DeviceKey
 
 	err := r.db.QueryRow(ctx, `
-		SELECT user_id, device_id,
-		       identity_key_public,
-		       signed_prekey_public,
-		       signed_prekey_signature
+		SELECT 
+			user_id, device_id,
+			identity_key_public,
+			signed_prekey_public,
+			signed_prekey_signature,
+			active,
+			created_at,
+			updated_at
 		FROM device_keys
 		WHERE user_id=$1 AND active=true
 		LIMIT 1
@@ -59,30 +69,45 @@ func (r *KeysRepository) GetDeviceKeys(ctx context.Context, userID string) (mode
 		&k.IdentityKeyPublic,
 		&k.SignedPreKeyPublic,
 		&k.SignedPreKeySignature,
+		&k.Active,
+		&k.CreatedAt,
+		&k.UpdatedAt,
 	)
 
 	return k, err
 }
 
-func (r *KeysRepository) GetOneTimePreKey(ctx context.Context, deviceKeyID string) (models.OneTimePreKey, error) {
+func (r *KeysRepository) GetOneTimePreKey(
+	ctx context.Context,
+	deviceKeyID uuid.UUID,
+) (models.OneTimePreKey, error) {
+
 	var k models.OneTimePreKey
 
 	err := r.db.QueryRow(ctx, `
-		SELECT id, key_id, public_key
+		SELECT id, device_key_id, key_id, public_key, used, used_at, created_at
 		FROM one_time_prekeys
 		WHERE device_key_id=$1 AND used=false
 		ORDER BY key_id ASC
 		LIMIT 1
 	`, deviceKeyID).Scan(
 		&k.ID,
+		&k.DeviceKeyID,
 		&k.KeyID,
 		&k.PublicKey,
+		&k.Used,
+		&k.UsedAt,
+		&k.CreatedAt,
 	)
 
 	return k, err
 }
 
-func (r *KeysRepository) MarkOneTimePreKeyUsed(ctx context.Context, id string) error {
+func (r *KeysRepository) MarkOneTimePreKeyUsed(
+	ctx context.Context,
+	id uuid.UUID,
+) error {
+
 	_, err := r.db.Exec(ctx, `
 		UPDATE one_time_prekeys
 		SET used=true, used_at=NOW()
@@ -94,7 +119,7 @@ func (r *KeysRepository) MarkOneTimePreKeyUsed(ctx context.Context, id string) e
 
 func (r *KeysRepository) SaveOTPKs(
 	ctx context.Context,
-	deviceKeyID string,
+	deviceKeyID uuid.UUID,
 	keys []models.OneTimePreKey,
 ) error {
 

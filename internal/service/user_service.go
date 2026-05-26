@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 
+	"Server/internal/models"
 	"Server/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -13,7 +16,6 @@ type UserService struct {
 func NewUserService(
 	userRepo *repository.UserRepository,
 ) *UserService {
-
 	return &UserService{
 		userRepo: userRepo,
 	}
@@ -21,11 +23,8 @@ func NewUserService(
 
 func (s *UserService) GetProfile(
 	ctx context.Context,
-	userID string,
-) (*repository.User, error) {
+	userID uuid.UUID,
+) (*models.User, error) {
 
-	return s.userRepo.GetByID(
-		ctx,
-		userID,
-	)
+	return s.userRepo.GetByID(ctx, userID)
 }

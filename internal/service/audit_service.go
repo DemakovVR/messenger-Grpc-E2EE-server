@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"Server/internal/repository"
 )
 
@@ -21,12 +23,12 @@ func NewAuditService(
 
 func (s *AuditService) Log(
 	ctx context.Context,
-	userID string,
+	userID uuid.UUID,
 	action string,
 	details string,
-) {
+) error {
 
-	_ = s.repo.CreateLog(
+	return s.repo.CreateLog(
 		ctx,
 		userID,
 		action,

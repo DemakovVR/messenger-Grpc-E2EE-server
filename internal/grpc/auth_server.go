@@ -5,6 +5,9 @@ import (
 
 	authpb "Server/gen/auth"
 	"Server/internal/service"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthServer struct {
@@ -16,7 +19,6 @@ type AuthServer struct {
 func NewAuthServer(
 	authService *service.AuthService,
 ) *AuthServer {
-
 	return &AuthServer{
 		authService: authService,
 	}
@@ -33,9 +35,8 @@ func (s *AuthServer) Register(
 		req.Email,
 		req.Password,
 	)
-
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &authpb.RegisterResponse{
@@ -49,16 +50,13 @@ func (s *AuthServer) Login(
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
 
-	accessToken,
-		refreshToken,
-		err := s.authService.Login(
+	accessToken, refreshToken, err := s.authService.Login(
 		ctx,
 		req.Email,
 		req.Password,
 	)
-
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
 	return &authpb.LoginResponse{
@@ -72,14 +70,12 @@ func (s *AuthServer) RefreshToken(
 	req *authpb.RefreshTokenRequest,
 ) (*authpb.RefreshTokenResponse, error) {
 
-	accessToken, err :=
-		s.authService.Refresh(
-			ctx,
-			req.RefreshToken,
-		)
-
+	accessToken, err := s.authService.Refresh(
+		ctx,
+		req.RefreshToken,
+	)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
 	return &authpb.RefreshTokenResponse{

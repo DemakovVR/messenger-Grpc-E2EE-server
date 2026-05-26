@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"Server/internal/auth"
+	"Server/internal/models"
 	"Server/internal/repository"
 )
 
-var ErrInvalidCredentials = errors.New(
-	"invalid email or password",
-)
+var ErrInvalidCredentials = errors.New("invalid email or password")
 
 type AuthService struct {
 	userRepo       *repository.UserRepository
@@ -51,17 +50,14 @@ func (s *AuthService) Register(
 		return "", err
 	}
 
-	user := &repository.User{
+	user := &models.User{
 		Username:     username,
 		Email:        email,
 		PasswordHash: hash,
 		Role:         "user",
 	}
 
-	err = s.userRepo.CreateUser(
-		ctx,
-		user,
-	)
+	err = s.userRepo.CreateUser(ctx, user)
 	if err != nil {
 		return "", err
 	}
@@ -75,19 +71,12 @@ func (s *AuthService) Login(
 	password string,
 ) (string, string, error) {
 
-	user, err := s.userRepo.GetByEmail(
-		ctx,
-		email,
-	)
-
+	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return "", "", err
 	}
 
-	if !auth.CheckPasswordHash(
-		password,
-		user.PasswordHash,
-	) {
+	if !auth.CheckPasswordHash(password, user.PasswordHash) {
 		return "", "", ErrInvalidCredentials
 	}
 
@@ -95,37 +84,30 @@ func (s *AuthService) Login(
 		user.ID.String(),
 		s.jwtSecret,
 	)
-
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken :=
-		s.refreshService.Generate()
+	refreshToken := s.refreshService.Generate()
 
 	err = s.refreshRepo.Save(
 		ctx,
-		user.ID.String(),
+		user.ID,
 		refreshToken,
-		time.Now().Add(
-			7*24*time.Hour,
-		),
+		time.Now().Add(7*24*time.Hour),
 	)
-
 	if err != nil {
 		return "", "", err
 	}
 
-	s.auditService.Log(
+	_ = s.auditService.Log(
 		ctx,
-		user.ID.String(),
+		user.ID,
 		"login",
 		"user login",
 	)
 
-	return accessToken,
-		refreshToken,
-		nil
+	return accessToken, refreshToken, nil
 }
 
 func (s *AuthService) Refresh(
@@ -133,23 +115,13 @@ func (s *AuthService) Refresh(
 	refreshToken string,
 ) (string, error) {
 
-	userID, err := s.refreshRepo.GetByToken(
-		ctx,
-		refreshToken,
-	)
-
+	userID, err := s.refreshRepo.GetByToken(ctx, refreshToken)
 	if err != nil {
 		return "", err
 	}
 
-	accessToken, err := auth.GenerateAccessToken(
-		userID,
+	return auth.GenerateAccessToken(
+		userID.String(),
 		s.jwtSecret,
 	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return accessToken, nil
 }

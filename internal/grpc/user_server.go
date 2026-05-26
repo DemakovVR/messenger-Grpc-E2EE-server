@@ -6,6 +6,8 @@ import (
 	authpb "Server/gen/auth"
 	"Server/internal/middleware"
 	"Server/internal/service"
+
+	"github.com/google/uuid"
 )
 
 type UserServer struct {
@@ -28,15 +30,14 @@ func (s *UserServer) GetProfile(
 	req *authpb.GetProfileRequest,
 ) (*authpb.GetProfileResponse, error) {
 
-	userID := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 
-	user, err := s.userService.GetProfile(
-		ctx,
-		userID,
-	)
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
 
+	user, err := s.userService.GetProfile(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

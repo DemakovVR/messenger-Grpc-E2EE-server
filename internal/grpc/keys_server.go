@@ -1,9 +1,13 @@
 package grpc
 
 import (
-	keyspb "Server/gen/keys"
-	"Server/internal/service"
 	"context"
+
+	keyspb "Server/gen/keys"
+	"Server/internal/middleware"
+	"Server/internal/service"
+
+	"github.com/google/uuid"
 )
 
 type KeysServer struct {
@@ -20,9 +24,15 @@ func (s *KeysServer) UploadKeys(
 	req *keyspb.UploadKeysRequest,
 ) (*keyspb.Empty, error) {
 
-	userID := ctx.Value("user_id").(string)
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 
-	err := s.service.UploadKeys(
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	// device_id у тебя UUID в protobuf → string в БД → НЕ парсим в UUID
+	err = s.service.UploadKeys(
 		ctx,
 		userID,
 		req.DeviceId,
@@ -39,18 +49,23 @@ func (s *KeysServer) GetPreKeyBundle(
 	req *keyspb.GetPreKeyBundleRequest,
 ) (*keyspb.PreKeyBundle, error) {
 
-	k, err := s.service.GetBundle(ctx, req.UserId)
+	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, err
 	}
 
-	otpk, err := s.service.GetOneTimeKey(ctx, k.DeviceID)
-	if err == nil && otpk.ID != "" {
+	k, err := s.service.GetBundle(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	otpk, err := s.service.GetOneTimeKey(ctx, k.ID)
+	if err == nil && otpk.ID != uuid.Nil {
 		_ = s.service.MarkOneTimeKeyUsed(ctx, otpk.ID)
 	}
 
 	return &keyspb.PreKeyBundle{
-		UserId:                k.UserID,
+		UserId:                k.UserID.String(),
 		DeviceId:              k.DeviceID,
 		IdentityKeyPublic:     k.IdentityKeyPublic,
 		SignedPrekeyPublic:    k.SignedPreKeyPublic,
