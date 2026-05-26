@@ -59,8 +59,13 @@ func main() {
 	messageRepo := repository.NewMessageRepository(db)
 	keysRepo := repository.NewKeysRepository(db)
 	fileRepo := repository.NewFileRepository()
+	auditRepo := repository.NewAuditRepository(db)
+	refreshRepo := repository.NewRefreshRepository(db)
 
-	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+	auditService := service.NewAuditService(auditRepo)
+	refreshService := service.NewRefreshService()
+	rateLimiter := service.NewRateLimiter()
+	authService := service.NewAuthService(userRepo, refreshRepo, auditService, refreshService, cfg.JWTSecret)
 	userService := service.NewUserService(userRepo)
 	contactService := service.NewContactService(contactRepo)
 	chatService := service.NewChatService(chatRepo)
@@ -97,8 +102,14 @@ func main() {
 	grpcServer := grpcserver.NewServer(
 		grpcserver.Creds(creds),
 
-		grpcserver.UnaryInterceptor(
-			middleware.AuthInterceptor(cfg.JWTSecret),
+		grpcserver.ChainUnaryInterceptor(
+			middleware.AuthInterceptor(
+				cfg.JWTSecret,
+			),
+
+			middleware.RateLimitInterceptor(
+				rateLimiter,
+			),
 		),
 	)
 

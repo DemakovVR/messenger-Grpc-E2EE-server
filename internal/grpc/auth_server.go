@@ -49,7 +49,9 @@ func (s *AuthServer) Login(
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
 
-	token, err := s.authService.Login(
+	accessToken,
+		refreshToken,
+		err := s.authService.Login(
 		ctx,
 		req.Email,
 		req.Password,
@@ -60,6 +62,27 @@ func (s *AuthServer) Login(
 	}
 
 	return &authpb.LoginResponse{
-		Token: token,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (s *AuthServer) RefreshToken(
+	ctx context.Context,
+	req *authpb.RefreshTokenRequest,
+) (*authpb.RefreshTokenResponse, error) {
+
+	accessToken, err :=
+		s.authService.Refresh(
+			ctx,
+			req.RefreshToken,
+		)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &authpb.RefreshTokenResponse{
+		AccessToken: accessToken,
 	}, nil
 }
