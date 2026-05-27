@@ -5,6 +5,7 @@ import (
 
 	keyspb "Server/gen/keys"
 	"Server/internal/middleware"
+	"Server/internal/models"
 	"Server/internal/service"
 
 	"github.com/google/uuid"
@@ -31,7 +32,6 @@ func (s *KeysServer) UploadKeys(
 		return nil, err
 	}
 
-	// device_id у тебя UUID в protobuf → string в БД → НЕ парсим в UUID
 	err = s.service.UploadKeys(
 		ctx,
 		userID,
@@ -71,5 +71,74 @@ func (s *KeysServer) GetPreKeyBundle(
 		SignedPrekeyPublic:    k.SignedPreKeyPublic,
 		SignedPrekeySignature: k.SignedPreKeySignature,
 		OneTimePrekey:         otpk.PublicKey,
+		OneTimePrekeyId:       int32(otpk.KeyID),
 	}, nil
+}
+
+func (s *KeysServer) UploadOneTimeKeys(
+	ctx context.Context,
+	req *keyspb.UploadOneTimeKeysRequest,
+) (*keyspb.Empty, error) {
+
+	deviceKeyID, err := uuid.Parse(
+		req.DeviceKeyId,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []models.OneTimePreKey
+
+	for _, k := range req.Keys {
+
+		keys = append(
+			keys,
+			models.OneTimePreKey{
+				KeyID:     int(k.KeyId),
+				PublicKey: k.PublicKey,
+			},
+		)
+	}
+
+	err = s.service.UploadOneTimeKeys(
+		ctx,
+		deviceKeyID,
+		keys,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &keyspb.Empty{}, nil
+}
+
+func (s *KeysServer) RotateSignedPreKey(
+	ctx context.Context,
+	req *keyspb.RotateSignedPreKeyRequest,
+) (*keyspb.Empty, error) {
+
+	userIDStr := ctx.Value(
+		middleware.UserIDKey,
+	).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.service.RotateSignedPreKey(
+		ctx,
+		userID,
+		req.DeviceId,
+		req.SignedPrekeyPublic,
+		req.SignedPrekeySignature,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &keyspb.Empty{}, nil
 }

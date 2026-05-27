@@ -117,3 +117,57 @@ func (s *ContactServer) GetContacts(
 		Contacts: result,
 	}, nil
 }
+
+func (s *ContactServer) DeleteContact(
+	ctx context.Context,
+	req *contactpb.DeleteContactRequest,
+) (*contactpb.DeleteContactResponse, error) {
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	contactID, err := uuid.Parse(req.ContactId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.contactService.DeleteContact(ctx, userID, contactID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contactpb.DeleteContactResponse{
+		Message: "contact deleted",
+	}, nil
+}
+
+func (s *ContactServer) BlockContact(
+	ctx context.Context,
+	req *contactpb.BlockContactRequest,
+) (*contactpb.BlockContactResponse, error) {
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	blockedID, err := uuid.Parse(req.ContactId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.contactService.BlockContact(ctx, userID, blockedID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contactpb.BlockContactResponse{
+		Message: "user blocked",
+	}, nil
+}

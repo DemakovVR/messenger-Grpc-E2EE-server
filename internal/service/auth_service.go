@@ -8,6 +8,8 @@ import (
 	"Server/internal/auth"
 	"Server/internal/models"
 	"Server/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 var ErrInvalidCredentials = errors.New("invalid email or password")
@@ -17,8 +19,7 @@ type AuthService struct {
 	refreshRepo    *repository.RefreshRepository
 	auditService   *AuditService
 	refreshService *RefreshService
-
-	jwtSecret string
+	jwtSecret      string
 }
 
 func NewAuthService(
@@ -28,7 +29,6 @@ func NewAuthService(
 	refreshService *RefreshService,
 	jwtSecret string,
 ) *AuthService {
-
 	return &AuthService{
 		userRepo:       userRepo,
 		refreshRepo:    refreshRepo,
@@ -43,11 +43,11 @@ func (s *AuthService) Register(
 	username string,
 	email string,
 	password string,
-) (string, error) {
+) (uuid.UUID, error) {
 
 	hash, err := auth.HashPassword(password)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 
 	user := &models.User{
@@ -59,10 +59,10 @@ func (s *AuthService) Register(
 
 	err = s.userRepo.CreateUser(ctx, user)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 
-	return user.ID.String(), nil
+	return user.ID, nil
 }
 
 func (s *AuthService) Login(
@@ -100,14 +100,18 @@ func (s *AuthService) Login(
 		return "", "", err
 	}
 
-	_ = s.auditService.Log(
-		ctx,
-		user.ID,
-		"login",
-		"user login",
-	)
+	details := "user login"
+	_ = s.auditService.Log(ctx, user.ID, "login", &details)
 
 	return accessToken, refreshToken, nil
+}
+
+func (s *AuthService) Logout(
+	ctx context.Context,
+	refreshToken string,
+) error {
+
+	return s.refreshRepo.DeleteByToken(ctx, refreshToken)
 }
 
 func (s *AuthService) Refresh(
@@ -124,4 +128,35 @@ func (s *AuthService) Refresh(
 		userID.String(),
 		s.jwtSecret,
 	)
+}
+
+func (s *AuthService) ChangePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	oldPassword string,
+	newPassword string,
+) error {
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if !auth.CheckPasswordHash(oldPassword, user.PasswordHash) {
+		return ErrInvalidCredentials
+	}
+
+	newHash, err := auth.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepo.UpdatePassword(ctx, userID, newHash)
+	if err != nil {
+		return err
+	}
+
+	_ = s.refreshRepo.DeleteByUserID(ctx, userID)
+
+	return nil
 }

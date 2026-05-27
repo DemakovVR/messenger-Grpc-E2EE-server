@@ -66,13 +66,13 @@ func main() {
 	refreshService := service.NewRefreshService()
 	rateLimiter := service.NewRateLimiter()
 	authService := service.NewAuthService(userRepo, refreshRepo, auditService, refreshService, cfg.JWTSecret)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, refreshRepo)
 	contactService := service.NewContactService(contactRepo)
 	chatService := service.NewChatService(chatRepo)
 	connectionManager := service.NewConnectionManager()
 	messageService := service.NewMessageService(messageRepo, connectionManager)
-	keysService := service.NewKeysService(keysRepo)
-	fileService := service.NewFileService()
+	keysService := service.NewKeysService(keysRepo, auditService)
+	fileService := service.NewFileService(fileRepo)
 
 	authServer := internalgrpc.NewAuthServer(authService)
 	userServer := internalgrpc.NewUserServer(userService)
@@ -80,7 +80,7 @@ func main() {
 	chatServer := internalgrpc.NewChatServer(chatService)
 	messageServer := internalgrpc.NewMessageServer(messageService)
 	keysServer := internalgrpc.NewKeysServer(keysService)
-	fileServer := internalgrpc.NewFileServer(fileService, fileRepo)
+	fileServer := internalgrpc.NewFileServer(fileService, auditService)
 
 	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {

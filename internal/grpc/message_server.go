@@ -114,7 +114,10 @@ func (s *MessageServer) ConnectMessages(
 	}
 
 	ch := s.messageService.Subscribe(userID)
-	defer s.messageService.Unsubscribe(userID, ch)
+
+	defer func() {
+		s.messageService.Unsubscribe(userID, ch)
+	}()
 
 	for {
 		select {
@@ -128,4 +131,69 @@ func (s *MessageServer) ConnectMessages(
 			}
 		}
 	}
+}
+
+func (s *MessageServer) DeleteMessage(
+	ctx context.Context,
+	req *messagepb.DeleteMessageRequest,
+) (*messagepb.Empty, error) {
+
+	userIDStr := ctx.Value(
+		middleware.UserIDKey,
+	).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	messageID, err := uuid.Parse(req.MessageId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.messageService.DeleteMessage(
+		ctx,
+		messageID,
+		userID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &messagepb.Empty{}, nil
+}
+
+func (s *MessageServer) EditMessage(
+	ctx context.Context,
+	req *messagepb.EditMessageRequest,
+) (*messagepb.Empty, error) {
+
+	userIDStr := ctx.Value(
+		middleware.UserIDKey,
+	).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	messageID, err := uuid.Parse(req.MessageId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.messageService.EditMessage(
+		ctx,
+		messageID,
+		userID,
+		req.EncryptedContent,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &messagepb.Empty{}, nil
 }

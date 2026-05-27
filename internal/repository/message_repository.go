@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"Server/internal/models"
 
@@ -63,6 +64,8 @@ func (r *MessageRepository) GetMessages(
 			sender_id,
 			encrypted_content,
 			encrypted_file_url,
+			is_edited,
+			is_deleted,
 			sent_at,
 			created_at,
 			updated_at
@@ -89,6 +92,8 @@ func (r *MessageRepository) GetMessages(
 			&msg.SenderID,
 			&msg.EncryptedContent,
 			&msg.EncryptedFileURL,
+			&msg.IsEdited,
+			&msg.IsDeleted,
 			&msg.SentAt,
 			&msg.CreatedAt,
 			&msg.UpdatedAt,
@@ -135,7 +140,7 @@ func (r *MessageRepository) GetChatParticipants(
 ) ([]uuid.UUID, error) {
 
 	rows, err := r.db.Query(ctx, `
-		SELECT user_id
+		SELECT DISTINCT user_id
 		FROM chat_participants
 		WHERE chat_id = $1
 	`, chatID)
@@ -159,4 +164,73 @@ func (r *MessageRepository) GetChatParticipants(
 	}
 
 	return users, nil
+}
+
+func (r *MessageRepository) DeleteMessage(
+	ctx context.Context,
+	messageID uuid.UUID,
+	userID uuid.UUID,
+) error {
+
+	commandTag, err := r.db.Exec(
+		ctx,
+		`
+		UPDATE messages
+		SET
+			encrypted_content = '',
+			is_deleted = true,
+			updated_at = NOW()
+		WHERE id = $1
+		AND sender_id = $2
+		`,
+		messageID,
+		userID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return errors.New("message not found or access denied")
+	}
+
+	return nil
+}
+
+func (r *MessageRepository) EditMessage(
+	ctx context.Context,
+	messageID uuid.UUID,
+	userID uuid.UUID,
+	content string,
+) error {
+
+	commandTag, err := r.db.Exec(
+		ctx,
+		`
+		UPDATE messages
+		SET
+			encrypted_content = $1,
+			is_edited = true,
+			updated_at = NOW()
+		WHERE id = $2
+		AND sender_id = $3
+		AND is_deleted = false
+		`,
+		content,
+		messageID,
+		userID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return errors.New(
+			"message not found or access denied",
+		)
+	}
+
+	return nil
 }

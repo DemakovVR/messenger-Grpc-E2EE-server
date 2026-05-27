@@ -16,12 +16,15 @@ type ChatServer struct {
 	chatService *service.ChatService
 }
 
-func NewChatServer(
-	chatService *service.ChatService,
-) *ChatServer {
+func NewChatServer(chatService *service.ChatService) *ChatServer {
 	return &ChatServer{
 		chatService: chatService,
 	}
+}
+
+func getUserID(ctx context.Context) (uuid.UUID, error) {
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+	return uuid.Parse(userIDStr)
 }
 
 func (s *ChatServer) CreatePrivateChat(
@@ -29,9 +32,7 @@ func (s *ChatServer) CreatePrivateChat(
 	req *chatpb.CreatePrivateChatRequest,
 ) (*chatpb.CreateChatResponse, error) {
 
-	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
-	userID, err := uuid.Parse(userIDStr)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +42,7 @@ func (s *ChatServer) CreatePrivateChat(
 		return nil, err
 	}
 
-	chatID, err := s.chatService.CreatePrivateChat(
-		ctx,
-		userID,
-		otherUserID,
-	)
+	chatID, err := s.chatService.CreatePrivateChat(ctx, userID, otherUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +57,7 @@ func (s *ChatServer) CreateGroupChat(
 	req *chatpb.CreateGroupChatRequest,
 ) (*chatpb.CreateChatResponse, error) {
 
-	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
-	userID, err := uuid.Parse(userIDStr)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -79,11 +74,7 @@ func (s *ChatServer) CreateGroupChat(
 
 	participants = append(participants, userID)
 
-	chatID, err := s.chatService.CreateGroupChat(
-		ctx,
-		req.Name,
-		participants,
-	)
+	chatID, err := s.chatService.CreateGroupChat(ctx, req.Name, participants)
 	if err != nil {
 		return nil, err
 	}
@@ -98,22 +89,17 @@ func (s *ChatServer) GetChats(
 	req *chatpb.GetChatsRequest,
 ) (*chatpb.GetChatsResponse, error) {
 
-	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
-	userID, err := uuid.Parse(userIDStr)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	chats, err := s.chatService.GetChats(
-		ctx,
-		userID,
-	)
+	chats, err := s.chatService.GetChats(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []*chatpb.Chat
+	result := make([]*chatpb.Chat, 0, len(chats))
 
 	for _, chat := range chats {
 		result = append(result, &chatpb.Chat{
@@ -126,4 +112,106 @@ func (s *ChatServer) GetChats(
 	return &chatpb.GetChatsResponse{
 		Chats: result,
 	}, nil
+}
+
+func (s *ChatServer) DeleteChat(
+	ctx context.Context,
+	req *chatpb.DeleteChatRequest,
+) (*chatpb.Empty, error) {
+
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.chatService.DeleteChat(ctx, chatID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chatpb.Empty{}, nil
+}
+
+func (s *ChatServer) AddParticipants(
+	ctx context.Context,
+	req *chatpb.AddParticipantsRequest,
+) (*chatpb.Empty, error) {
+
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	participants := make([]uuid.UUID, 0, len(req.UserIds))
+
+	for _, id := range req.UserIds {
+		uid, err := uuid.Parse(id)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, uid)
+	}
+
+	err = s.chatService.AddParticipants(ctx, chatID, participants)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chatpb.Empty{}, nil
+}
+
+func (s *ChatServer) RemoveParticipants(
+	ctx context.Context,
+	req *chatpb.RemoveParticipantsRequest,
+) (*chatpb.Empty, error) {
+
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	participants := make([]uuid.UUID, 0, len(req.UserIds))
+
+	for _, id := range req.UserIds {
+		uid, err := uuid.Parse(id)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, uid)
+	}
+
+	err = s.chatService.RemoveParticipants(ctx, chatID, participants)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chatpb.Empty{}, nil
+}
+
+func (s *ChatServer) LeaveGroup(
+	ctx context.Context,
+	req *chatpb.LeaveGroupRequest,
+) (*chatpb.Empty, error) {
+
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.chatService.LeaveGroup(ctx, chatID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chatpb.Empty{}, nil
 }

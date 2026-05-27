@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
@@ -55,4 +56,26 @@ func (s *ContactService) GetContacts(
 		ctx,
 		userID,
 	)
+}
+
+func (s *ContactService) DeleteContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	contactID uuid.UUID,
+) error {
+
+	return s.repo.DeleteContact(ctx, userID, contactID)
+}
+
+func (s *ContactService) BlockContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	blockedID uuid.UUID,
+) error {
+
+	if userID == blockedID {
+		return errors.New("cannot block yourself")
+	}
+
+	return s.repo.BlockContact(ctx, userID, blockedID)
 }

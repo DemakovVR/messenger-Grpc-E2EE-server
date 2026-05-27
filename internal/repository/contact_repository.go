@@ -133,3 +133,32 @@ func (r *ContactRepository) GetContacts(
 
 	return contacts, nil
 }
+
+func (r *ContactRepository) DeleteContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	contactID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        DELETE FROM contacts
+        WHERE user_id = $1 AND contact_id = $2
+    `, userID, contactID)
+
+	return err
+}
+
+func (r *ContactRepository) BlockContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	blockedID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        INSERT INTO blocked_contacts (user_id, blocked_user_id)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+    `, userID, blockedID)
+
+	return err
+}

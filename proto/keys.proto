@@ -7,6 +7,8 @@ option go_package = "gen/keys;keyspb";
 service KeyService {
   rpc UploadKeys (UploadKeysRequest) returns (Empty);
   rpc GetPreKeyBundle (GetPreKeyBundleRequest) returns (PreKeyBundle);
+  rpc UploadOneTimeKeys(UploadOneTimeKeysRequest) returns (Empty);
+  rpc RotateSignedPreKey(RotateSignedPreKeyRequest) returns (Empty);
 }
 
 message Empty {}
@@ -29,4 +31,21 @@ message PreKeyBundle {
   string signed_prekey_public = 4;
   string signed_prekey_signature = 5;
   string one_time_prekey = 6;
+  int32 one_time_prekey_id = 7;
+}
+
+message OneTimeKey {
+  int32 key_id = 1;
+  string public_key = 2;
+}
+
+message UploadOneTimeKeysRequest {
+  string device_key_id = 1;
+  repeated OneTimeKey keys = 2;
+}
+
+message RotateSignedPreKeyRequest {
+  string device_id = 1;
+  string signed_prekey_public = 2;
+  string signed_prekey_signature = 3;
 }

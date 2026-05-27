@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.29.3
-// source: keys.proto
+// source: proto/keys.proto
 
 package keyspb
 
@@ -29,7 +29,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_keys_proto_msgTypes[0]
+	mi := &file_proto_keys_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -41,7 +41,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[0]
+	mi := &file_proto_keys_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -54,7 +54,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{0}
+	return file_proto_keys_proto_rawDescGZIP(), []int{0}
 }
 
 type UploadKeysRequest struct {
@@ -69,7 +69,7 @@ type UploadKeysRequest struct {
 
 func (x *UploadKeysRequest) Reset() {
 	*x = UploadKeysRequest{}
-	mi := &file_keys_proto_msgTypes[1]
+	mi := &file_proto_keys_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -81,7 +81,7 @@ func (x *UploadKeysRequest) String() string {
 func (*UploadKeysRequest) ProtoMessage() {}
 
 func (x *UploadKeysRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[1]
+	mi := &file_proto_keys_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -94,7 +94,7 @@ func (x *UploadKeysRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadKeysRequest.ProtoReflect.Descriptor instead.
 func (*UploadKeysRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{1}
+	return file_proto_keys_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *UploadKeysRequest) GetDeviceId() string {
@@ -134,7 +134,7 @@ type GetPreKeyBundleRequest struct {
 
 func (x *GetPreKeyBundleRequest) Reset() {
 	*x = GetPreKeyBundleRequest{}
-	mi := &file_keys_proto_msgTypes[2]
+	mi := &file_proto_keys_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -146,7 +146,7 @@ func (x *GetPreKeyBundleRequest) String() string {
 func (*GetPreKeyBundleRequest) ProtoMessage() {}
 
 func (x *GetPreKeyBundleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[2]
+	mi := &file_proto_keys_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +159,7 @@ func (x *GetPreKeyBundleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPreKeyBundleRequest.ProtoReflect.Descriptor instead.
 func (*GetPreKeyBundleRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{2}
+	return file_proto_keys_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetPreKeyBundleRequest) GetUserId() string {
@@ -177,13 +177,14 @@ type PreKeyBundle struct {
 	SignedPrekeyPublic    string                 `protobuf:"bytes,4,opt,name=signed_prekey_public,json=signedPrekeyPublic,proto3" json:"signed_prekey_public,omitempty"`
 	SignedPrekeySignature string                 `protobuf:"bytes,5,opt,name=signed_prekey_signature,json=signedPrekeySignature,proto3" json:"signed_prekey_signature,omitempty"`
 	OneTimePrekey         string                 `protobuf:"bytes,6,opt,name=one_time_prekey,json=oneTimePrekey,proto3" json:"one_time_prekey,omitempty"`
+	OneTimePrekeyId       int32                  `protobuf:"varint,7,opt,name=one_time_prekey_id,json=oneTimePrekeyId,proto3" json:"one_time_prekey_id,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *PreKeyBundle) Reset() {
 	*x = PreKeyBundle{}
-	mi := &file_keys_proto_msgTypes[3]
+	mi := &file_proto_keys_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -195,7 +196,7 @@ func (x *PreKeyBundle) String() string {
 func (*PreKeyBundle) ProtoMessage() {}
 
 func (x *PreKeyBundle) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[3]
+	mi := &file_proto_keys_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,7 +209,7 @@ func (x *PreKeyBundle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreKeyBundle.ProtoReflect.Descriptor instead.
 func (*PreKeyBundle) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{3}
+	return file_proto_keys_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PreKeyBundle) GetUserId() string {
@@ -253,12 +254,182 @@ func (x *PreKeyBundle) GetOneTimePrekey() string {
 	return ""
 }
 
-var File_keys_proto protoreflect.FileDescriptor
+func (x *PreKeyBundle) GetOneTimePrekeyId() int32 {
+	if x != nil {
+		return x.OneTimePrekeyId
+	}
+	return 0
+}
 
-const file_keys_proto_rawDesc = "" +
+type OneTimeKey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KeyId         int32                  `protobuf:"varint,1,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OneTimeKey) Reset() {
+	*x = OneTimeKey{}
+	mi := &file_proto_keys_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OneTimeKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OneTimeKey) ProtoMessage() {}
+
+func (x *OneTimeKey) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_keys_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OneTimeKey.ProtoReflect.Descriptor instead.
+func (*OneTimeKey) Descriptor() ([]byte, []int) {
+	return file_proto_keys_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *OneTimeKey) GetKeyId() int32 {
+	if x != nil {
+		return x.KeyId
+	}
+	return 0
+}
+
+func (x *OneTimeKey) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+type UploadOneTimeKeysRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceKeyId   string                 `protobuf:"bytes,1,opt,name=device_key_id,json=deviceKeyId,proto3" json:"device_key_id,omitempty"`
+	Keys          []*OneTimeKey          `protobuf:"bytes,2,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadOneTimeKeysRequest) Reset() {
+	*x = UploadOneTimeKeysRequest{}
+	mi := &file_proto_keys_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadOneTimeKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadOneTimeKeysRequest) ProtoMessage() {}
+
+func (x *UploadOneTimeKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_keys_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadOneTimeKeysRequest.ProtoReflect.Descriptor instead.
+func (*UploadOneTimeKeysRequest) Descriptor() ([]byte, []int) {
+	return file_proto_keys_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UploadOneTimeKeysRequest) GetDeviceKeyId() string {
+	if x != nil {
+		return x.DeviceKeyId
+	}
+	return ""
+}
+
+func (x *UploadOneTimeKeysRequest) GetKeys() []*OneTimeKey {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+type RotateSignedPreKeyRequest struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId              string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	SignedPrekeyPublic    string                 `protobuf:"bytes,2,opt,name=signed_prekey_public,json=signedPrekeyPublic,proto3" json:"signed_prekey_public,omitempty"`
+	SignedPrekeySignature string                 `protobuf:"bytes,3,opt,name=signed_prekey_signature,json=signedPrekeySignature,proto3" json:"signed_prekey_signature,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *RotateSignedPreKeyRequest) Reset() {
+	*x = RotateSignedPreKeyRequest{}
+	mi := &file_proto_keys_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateSignedPreKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateSignedPreKeyRequest) ProtoMessage() {}
+
+func (x *RotateSignedPreKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_keys_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateSignedPreKeyRequest.ProtoReflect.Descriptor instead.
+func (*RotateSignedPreKeyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_keys_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RotateSignedPreKeyRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *RotateSignedPreKeyRequest) GetSignedPrekeyPublic() string {
+	if x != nil {
+		return x.SignedPrekeyPublic
+	}
+	return ""
+}
+
+func (x *RotateSignedPreKeyRequest) GetSignedPrekeySignature() string {
+	if x != nil {
+		return x.SignedPrekeySignature
+	}
+	return ""
+}
+
+var File_proto_keys_proto protoreflect.FileDescriptor
+
+const file_proto_keys_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"keys.proto\x12\x04keys\"\a\n" +
+	"\x10proto/keys.proto\x12\x04keys\"\a\n" +
 	"\x05Empty\"\xca\x01\n" +
 	"\x11UploadKeysRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12.\n" +
@@ -266,71 +437,94 @@ const file_keys_proto_rawDesc = "" +
 	"\x14signed_prekey_public\x18\x03 \x01(\tR\x12signedPrekeyPublic\x126\n" +
 	"\x17signed_prekey_signature\x18\x04 \x01(\tR\x15signedPrekeySignature\"1\n" +
 	"\x16GetPreKeyBundleRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x86\x02\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xb3\x02\n" +
 	"\fPreKeyBundle\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
 	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12.\n" +
 	"\x13identity_key_public\x18\x03 \x01(\tR\x11identityKeyPublic\x120\n" +
 	"\x14signed_prekey_public\x18\x04 \x01(\tR\x12signedPrekeyPublic\x126\n" +
 	"\x17signed_prekey_signature\x18\x05 \x01(\tR\x15signedPrekeySignature\x12&\n" +
-	"\x0fone_time_prekey\x18\x06 \x01(\tR\roneTimePrekey2\x85\x01\n" +
+	"\x0fone_time_prekey\x18\x06 \x01(\tR\roneTimePrekey\x12+\n" +
+	"\x12one_time_prekey_id\x18\a \x01(\x05R\x0foneTimePrekeyId\"B\n" +
+	"\n" +
+	"OneTimeKey\x12\x15\n" +
+	"\x06key_id\x18\x01 \x01(\x05R\x05keyId\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x02 \x01(\tR\tpublicKey\"d\n" +
+	"\x18UploadOneTimeKeysRequest\x12\"\n" +
+	"\rdevice_key_id\x18\x01 \x01(\tR\vdeviceKeyId\x12$\n" +
+	"\x04keys\x18\x02 \x03(\v2\x10.keys.OneTimeKeyR\x04keys\"\xa2\x01\n" +
+	"\x19RotateSignedPreKeyRequest\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x120\n" +
+	"\x14signed_prekey_public\x18\x02 \x01(\tR\x12signedPrekeyPublic\x126\n" +
+	"\x17signed_prekey_signature\x18\x03 \x01(\tR\x15signedPrekeySignature2\x8b\x02\n" +
 	"\n" +
 	"KeyService\x122\n" +
 	"\n" +
 	"UploadKeys\x12\x17.keys.UploadKeysRequest\x1a\v.keys.Empty\x12C\n" +
-	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundleB\x11Z\x0fgen/keys;keyspbb\x06proto3"
+	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundle\x12@\n" +
+	"\x11UploadOneTimeKeys\x12\x1e.keys.UploadOneTimeKeysRequest\x1a\v.keys.Empty\x12B\n" +
+	"\x12RotateSignedPreKey\x12\x1f.keys.RotateSignedPreKeyRequest\x1a\v.keys.EmptyB\x11Z\x0fgen/keys;keyspbb\x06proto3"
 
 var (
-	file_keys_proto_rawDescOnce sync.Once
-	file_keys_proto_rawDescData []byte
+	file_proto_keys_proto_rawDescOnce sync.Once
+	file_proto_keys_proto_rawDescData []byte
 )
 
-func file_keys_proto_rawDescGZIP() []byte {
-	file_keys_proto_rawDescOnce.Do(func() {
-		file_keys_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_keys_proto_rawDesc), len(file_keys_proto_rawDesc)))
+func file_proto_keys_proto_rawDescGZIP() []byte {
+	file_proto_keys_proto_rawDescOnce.Do(func() {
+		file_proto_keys_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_keys_proto_rawDesc), len(file_proto_keys_proto_rawDesc)))
 	})
-	return file_keys_proto_rawDescData
+	return file_proto_keys_proto_rawDescData
 }
 
-var file_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_keys_proto_goTypes = []any{
-	(*Empty)(nil),                  // 0: keys.Empty
-	(*UploadKeysRequest)(nil),      // 1: keys.UploadKeysRequest
-	(*GetPreKeyBundleRequest)(nil), // 2: keys.GetPreKeyBundleRequest
-	(*PreKeyBundle)(nil),           // 3: keys.PreKeyBundle
+var file_proto_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_keys_proto_goTypes = []any{
+	(*Empty)(nil),                     // 0: keys.Empty
+	(*UploadKeysRequest)(nil),         // 1: keys.UploadKeysRequest
+	(*GetPreKeyBundleRequest)(nil),    // 2: keys.GetPreKeyBundleRequest
+	(*PreKeyBundle)(nil),              // 3: keys.PreKeyBundle
+	(*OneTimeKey)(nil),                // 4: keys.OneTimeKey
+	(*UploadOneTimeKeysRequest)(nil),  // 5: keys.UploadOneTimeKeysRequest
+	(*RotateSignedPreKeyRequest)(nil), // 6: keys.RotateSignedPreKeyRequest
 }
-var file_keys_proto_depIdxs = []int32{
-	1, // 0: keys.KeyService.UploadKeys:input_type -> keys.UploadKeysRequest
-	2, // 1: keys.KeyService.GetPreKeyBundle:input_type -> keys.GetPreKeyBundleRequest
-	0, // 2: keys.KeyService.UploadKeys:output_type -> keys.Empty
-	3, // 3: keys.KeyService.GetPreKeyBundle:output_type -> keys.PreKeyBundle
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_proto_keys_proto_depIdxs = []int32{
+	4, // 0: keys.UploadOneTimeKeysRequest.keys:type_name -> keys.OneTimeKey
+	1, // 1: keys.KeyService.UploadKeys:input_type -> keys.UploadKeysRequest
+	2, // 2: keys.KeyService.GetPreKeyBundle:input_type -> keys.GetPreKeyBundleRequest
+	5, // 3: keys.KeyService.UploadOneTimeKeys:input_type -> keys.UploadOneTimeKeysRequest
+	6, // 4: keys.KeyService.RotateSignedPreKey:input_type -> keys.RotateSignedPreKeyRequest
+	0, // 5: keys.KeyService.UploadKeys:output_type -> keys.Empty
+	3, // 6: keys.KeyService.GetPreKeyBundle:output_type -> keys.PreKeyBundle
+	0, // 7: keys.KeyService.UploadOneTimeKeys:output_type -> keys.Empty
+	0, // 8: keys.KeyService.RotateSignedPreKey:output_type -> keys.Empty
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_keys_proto_init() }
-func file_keys_proto_init() {
-	if File_keys_proto != nil {
+func init() { file_proto_keys_proto_init() }
+func file_proto_keys_proto_init() {
+	if File_proto_keys_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_keys_proto_rawDesc), len(file_keys_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_keys_proto_rawDesc), len(file_proto_keys_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_keys_proto_goTypes,
-		DependencyIndexes: file_keys_proto_depIdxs,
-		MessageInfos:      file_keys_proto_msgTypes,
+		GoTypes:           file_proto_keys_proto_goTypes,
+		DependencyIndexes: file_proto_keys_proto_depIdxs,
+		MessageInfos:      file_proto_keys_proto_msgTypes,
 	}.Build()
-	File_keys_proto = out.File
-	file_keys_proto_goTypes = nil
-	file_keys_proto_depIdxs = nil
+	File_proto_keys_proto = out.File
+	file_proto_keys_proto_goTypes = nil
+	file_proto_keys_proto_depIdxs = nil
 }

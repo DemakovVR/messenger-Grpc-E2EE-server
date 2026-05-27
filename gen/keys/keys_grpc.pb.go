@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.29.3
-// source: keys.proto
+// source: proto/keys.proto
 
 package keyspb
 
@@ -19,8 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KeyService_UploadKeys_FullMethodName      = "/keys.KeyService/UploadKeys"
-	KeyService_GetPreKeyBundle_FullMethodName = "/keys.KeyService/GetPreKeyBundle"
+	KeyService_UploadKeys_FullMethodName         = "/keys.KeyService/UploadKeys"
+	KeyService_GetPreKeyBundle_FullMethodName    = "/keys.KeyService/GetPreKeyBundle"
+	KeyService_UploadOneTimeKeys_FullMethodName  = "/keys.KeyService/UploadOneTimeKeys"
+	KeyService_RotateSignedPreKey_FullMethodName = "/keys.KeyService/RotateSignedPreKey"
 )
 
 // KeyServiceClient is the client API for KeyService service.
@@ -29,6 +31,8 @@ const (
 type KeyServiceClient interface {
 	UploadKeys(ctx context.Context, in *UploadKeysRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPreKeyBundle(ctx context.Context, in *GetPreKeyBundleRequest, opts ...grpc.CallOption) (*PreKeyBundle, error)
+	UploadOneTimeKeys(ctx context.Context, in *UploadOneTimeKeysRequest, opts ...grpc.CallOption) (*Empty, error)
+	RotateSignedPreKey(ctx context.Context, in *RotateSignedPreKeyRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type keyServiceClient struct {
@@ -59,12 +63,34 @@ func (c *keyServiceClient) GetPreKeyBundle(ctx context.Context, in *GetPreKeyBun
 	return out, nil
 }
 
+func (c *keyServiceClient) UploadOneTimeKeys(ctx context.Context, in *UploadOneTimeKeysRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, KeyService_UploadOneTimeKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keyServiceClient) RotateSignedPreKey(ctx context.Context, in *RotateSignedPreKeyRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, KeyService_RotateSignedPreKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KeyServiceServer is the server API for KeyService service.
 // All implementations must embed UnimplementedKeyServiceServer
 // for forward compatibility.
 type KeyServiceServer interface {
 	UploadKeys(context.Context, *UploadKeysRequest) (*Empty, error)
 	GetPreKeyBundle(context.Context, *GetPreKeyBundleRequest) (*PreKeyBundle, error)
+	UploadOneTimeKeys(context.Context, *UploadOneTimeKeysRequest) (*Empty, error)
+	RotateSignedPreKey(context.Context, *RotateSignedPreKeyRequest) (*Empty, error)
 	mustEmbedUnimplementedKeyServiceServer()
 }
 
@@ -80,6 +106,12 @@ func (UnimplementedKeyServiceServer) UploadKeys(context.Context, *UploadKeysRequ
 }
 func (UnimplementedKeyServiceServer) GetPreKeyBundle(context.Context, *GetPreKeyBundleRequest) (*PreKeyBundle, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPreKeyBundle not implemented")
+}
+func (UnimplementedKeyServiceServer) UploadOneTimeKeys(context.Context, *UploadOneTimeKeysRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method UploadOneTimeKeys not implemented")
+}
+func (UnimplementedKeyServiceServer) RotateSignedPreKey(context.Context, *RotateSignedPreKeyRequest) (*Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method RotateSignedPreKey not implemented")
 }
 func (UnimplementedKeyServiceServer) mustEmbedUnimplementedKeyServiceServer() {}
 func (UnimplementedKeyServiceServer) testEmbeddedByValue()                    {}
@@ -138,6 +170,42 @@ func _KeyService_GetPreKeyBundle_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KeyService_UploadOneTimeKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadOneTimeKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeyServiceServer).UploadOneTimeKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeyService_UploadOneTimeKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeyServiceServer).UploadOneTimeKeys(ctx, req.(*UploadOneTimeKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KeyService_RotateSignedPreKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RotateSignedPreKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeyServiceServer).RotateSignedPreKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeyService_RotateSignedPreKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeyServiceServer).RotateSignedPreKey(ctx, req.(*RotateSignedPreKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KeyService_ServiceDesc is the grpc.ServiceDesc for KeyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,7 +221,15 @@ var KeyService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetPreKeyBundle",
 			Handler:    _KeyService_GetPreKeyBundle_Handler,
 		},
+		{
+			MethodName: "UploadOneTimeKeys",
+			Handler:    _KeyService_UploadOneTimeKeys_Handler,
+		},
+		{
+			MethodName: "RotateSignedPreKey",
+			Handler:    _KeyService_RotateSignedPreKey_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "keys.proto",
+	Metadata: "proto/keys.proto",
 }

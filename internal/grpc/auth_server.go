@@ -4,21 +4,20 @@ import (
 	"context"
 
 	authpb "Server/gen/auth"
+	"Server/internal/middleware"
 	"Server/internal/service"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type AuthServer struct {
 	authpb.UnimplementedAuthServiceServer
-
 	authService *service.AuthService
 }
 
-func NewAuthServer(
-	authService *service.AuthService,
-) *AuthServer {
+func NewAuthServer(authService *service.AuthService) *AuthServer {
 	return &AuthServer{
 		authService: authService,
 	}
@@ -40,7 +39,7 @@ func (s *AuthServer) Register(
 	}
 
 	return &authpb.RegisterResponse{
-		UserId:  userID,
+		UserId:  userID.String(),
 		Message: "User registered successfully",
 	}, nil
 }
@@ -65,6 +64,19 @@ func (s *AuthServer) Login(
 	}, nil
 }
 
+func (s *AuthServer) Logout(
+	ctx context.Context,
+	req *authpb.LogoutRequest,
+) (*authpb.Empty, error) {
+
+	err := s.authService.Logout(ctx, req.RefreshToken)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &authpb.Empty{}, nil
+}
+
 func (s *AuthServer) RefreshToken(
 	ctx context.Context,
 	req *authpb.RefreshTokenRequest,
@@ -81,4 +93,30 @@ func (s *AuthServer) RefreshToken(
 	return &authpb.RefreshTokenResponse{
 		AccessToken: accessToken,
 	}, nil
+}
+
+func (s *AuthServer) ChangePassword(
+	ctx context.Context,
+	req *authpb.ChangePasswordRequest,
+) (*authpb.Empty, error) {
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid user")
+	}
+
+	err = s.authService.ChangePassword(
+		ctx,
+		userID,
+		req.OldPassword,
+		req.NewPassword,
+	)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &authpb.Empty{}, nil
 }

@@ -40,6 +40,19 @@ func (r *RefreshRepository) Save(
 	return err
 }
 
+func (r *RefreshRepository) DeleteByToken(
+	ctx context.Context,
+	token string,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        DELETE FROM refresh_tokens
+        WHERE token = $1
+    `, token)
+
+	return err
+}
+
 func (r *RefreshRepository) GetByToken(
 	ctx context.Context,
 	token string,
@@ -59,4 +72,17 @@ func (r *RefreshRepository) GetByToken(
 	).Scan(&userID)
 
 	return userID, err
+}
+
+func (r *RefreshRepository) DeleteByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        DELETE FROM refresh_tokens
+        WHERE user_id = $1
+    `, userID)
+
+	return err
 }

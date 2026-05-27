@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.29.3
-// source: contact.proto
+// source: proto/contact.proto
 
 package contact
 
@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ContactService_SearchUsers_FullMethodName = "/contact.ContactService/SearchUsers"
-	ContactService_AddContact_FullMethodName  = "/contact.ContactService/AddContact"
-	ContactService_GetContacts_FullMethodName = "/contact.ContactService/GetContacts"
+	ContactService_SearchUsers_FullMethodName   = "/contact.ContactService/SearchUsers"
+	ContactService_AddContact_FullMethodName    = "/contact.ContactService/AddContact"
+	ContactService_GetContacts_FullMethodName   = "/contact.ContactService/GetContacts"
+	ContactService_DeleteContact_FullMethodName = "/contact.ContactService/DeleteContact"
+	ContactService_BlockContact_FullMethodName  = "/contact.ContactService/BlockContact"
 )
 
 // ContactServiceClient is the client API for ContactService service.
@@ -31,6 +33,8 @@ type ContactServiceClient interface {
 	SearchUsers(ctx context.Context, in *SearchUsersRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error)
 	AddContact(ctx context.Context, in *AddContactRequest, opts ...grpc.CallOption) (*AddContactResponse, error)
 	GetContacts(ctx context.Context, in *GetContactsRequest, opts ...grpc.CallOption) (*GetContactsResponse, error)
+	DeleteContact(ctx context.Context, in *DeleteContactRequest, opts ...grpc.CallOption) (*DeleteContactResponse, error)
+	BlockContact(ctx context.Context, in *BlockContactRequest, opts ...grpc.CallOption) (*BlockContactResponse, error)
 }
 
 type contactServiceClient struct {
@@ -71,6 +75,26 @@ func (c *contactServiceClient) GetContacts(ctx context.Context, in *GetContactsR
 	return out, nil
 }
 
+func (c *contactServiceClient) DeleteContact(ctx context.Context, in *DeleteContactRequest, opts ...grpc.CallOption) (*DeleteContactResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteContactResponse)
+	err := c.cc.Invoke(ctx, ContactService_DeleteContact_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) BlockContact(ctx context.Context, in *BlockContactRequest, opts ...grpc.CallOption) (*BlockContactResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BlockContactResponse)
+	err := c.cc.Invoke(ctx, ContactService_BlockContact_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContactServiceServer is the server API for ContactService service.
 // All implementations must embed UnimplementedContactServiceServer
 // for forward compatibility.
@@ -78,6 +102,8 @@ type ContactServiceServer interface {
 	SearchUsers(context.Context, *SearchUsersRequest) (*SearchUsersResponse, error)
 	AddContact(context.Context, *AddContactRequest) (*AddContactResponse, error)
 	GetContacts(context.Context, *GetContactsRequest) (*GetContactsResponse, error)
+	DeleteContact(context.Context, *DeleteContactRequest) (*DeleteContactResponse, error)
+	BlockContact(context.Context, *BlockContactRequest) (*BlockContactResponse, error)
 	mustEmbedUnimplementedContactServiceServer()
 }
 
@@ -96,6 +122,12 @@ func (UnimplementedContactServiceServer) AddContact(context.Context, *AddContact
 }
 func (UnimplementedContactServiceServer) GetContacts(context.Context, *GetContactsRequest) (*GetContactsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetContacts not implemented")
+}
+func (UnimplementedContactServiceServer) DeleteContact(context.Context, *DeleteContactRequest) (*DeleteContactResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteContact not implemented")
+}
+func (UnimplementedContactServiceServer) BlockContact(context.Context, *BlockContactRequest) (*BlockContactResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BlockContact not implemented")
 }
 func (UnimplementedContactServiceServer) mustEmbedUnimplementedContactServiceServer() {}
 func (UnimplementedContactServiceServer) testEmbeddedByValue()                        {}
@@ -172,6 +204,42 @@ func _ContactService_GetContacts_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContactService_DeleteContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteContactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).DeleteContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_DeleteContact_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).DeleteContact(ctx, req.(*DeleteContactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_BlockContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockContactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).BlockContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_BlockContact_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).BlockContact(ctx, req.(*BlockContactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ContactService_ServiceDesc is the grpc.ServiceDesc for ContactService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,7 +259,15 @@ var ContactService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetContacts",
 			Handler:    _ContactService_GetContacts_Handler,
 		},
+		{
+			MethodName: "DeleteContact",
+			Handler:    _ContactService_DeleteContact_Handler,
+		},
+		{
+			MethodName: "BlockContact",
+			Handler:    _ContactService_BlockContact_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "contact.proto",
+	Metadata: "proto/contact.proto",
 }

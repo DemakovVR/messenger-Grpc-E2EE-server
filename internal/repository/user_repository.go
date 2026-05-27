@@ -60,6 +60,7 @@ func (r *UserRepository) GetByEmail(
 			username,
 			email,
 			password_hash,
+			public_key,
 			role
 		FROM users
 		WHERE email = $1
@@ -74,6 +75,7 @@ func (r *UserRepository) GetByEmail(
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
+		&user.PublicKey,
 		&user.Role,
 	)
 
@@ -97,6 +99,7 @@ func (r *UserRepository) GetByID(
 			username,
 			email,
 			password_hash,
+			public_key,
 			role
 		FROM users
 		WHERE id = $1
@@ -111,6 +114,7 @@ func (r *UserRepository) GetByID(
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
+		&user.PublicKey,
 		&user.Role,
 	)
 
@@ -119,4 +123,67 @@ func (r *UserRepository) GetByID(
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) UpdatePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	hash string,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        UPDATE users
+        SET password_hash = $1,
+            updated_at = NOW()
+        WHERE id = $2
+    `, hash, userID)
+
+	return err
+}
+
+func (r *UserRepository) UpdateProfile(
+	ctx context.Context,
+	userID uuid.UUID,
+	username string,
+	email string,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        UPDATE users
+        SET username = $1,
+            email = $2,
+            updated_at = NOW()
+        WHERE id = $3
+    `, username, email, userID)
+
+	return err
+}
+
+func (r *UserRepository) UpdatePublicKey(
+	ctx context.Context,
+	userID uuid.UUID,
+	publicKey string,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        UPDATE users
+        SET public_key = $1,
+            updated_at = NOW()
+        WHERE id = $2
+    `, publicKey, userID)
+
+	return err
+}
+
+func (r *UserRepository) DeleteUser(
+	ctx context.Context,
+	userID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        DELETE FROM users
+        WHERE id = $1
+    `, userID)
+
+	return err
 }

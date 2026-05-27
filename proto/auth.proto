@@ -8,10 +8,24 @@ service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (Empty);
+  rpc ChangePassword(ChangePasswordRequest) returns (Empty);
 }
 
 service UserService {
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (Empty);
+  rpc UpdatePublicKey(UpdatePublicKeyRequest) returns (Empty);
+  rpc DeleteAccount(Empty) returns (Empty);
+}
+
+message UpdateProfileRequest {
+  string username = 1;
+  string email = 2;
+}
+
+message UpdatePublicKeyRequest {
+  string public_key = 1;
 }
 
 message RegisterRequest {
@@ -50,4 +64,14 @@ message RefreshTokenRequest {
 
 message RefreshTokenResponse {
     string access_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+message Empty {}
+
+message ChangePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
 }

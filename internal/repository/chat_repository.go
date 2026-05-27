@@ -51,7 +51,7 @@ func (r *ChatRepository) CreatePrivateChat(
 		ctx,
 		`
 		INSERT INTO chat_participants
-		(chat_id, user_id)
+		UNIQUE((chat_id, user_id)
 		VALUES ($1, $2), ($1, $3)
 		`,
 		chatID,
@@ -104,7 +104,7 @@ func (r *ChatRepository) CreateGroupChat(
 			ctx,
 			`
 			INSERT INTO chat_participants
-			(chat_id, user_id)
+			UNIQUE((chat_id, user_id)
 			VALUES ($1, $2)
 			`,
 			chatID,
@@ -134,7 +134,9 @@ func (r *ChatRepository) GetChats(
 		SELECT
 			c.id,
 			c.type,
-			COALESCE(c.name, '')
+			COALESCE(c.name, ''),
+			c.created_at,
+    		c.updated_at
 		FROM chats c
 		JOIN chat_participants cp
 			ON cp.chat_id = c.id
@@ -158,6 +160,8 @@ func (r *ChatRepository) GetChats(
 			&chat.ID,
 			&chat.Type,
 			&chat.Name,
+			&chat.CreatedAt,
+			&chat.UpdatedAt,
 		)
 
 		if err != nil {
@@ -168,4 +172,69 @@ func (r *ChatRepository) GetChats(
 	}
 
 	return chats, nil
+}
+
+func (r *ChatRepository) DeleteChat(
+	ctx context.Context,
+	chatID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM chats
+		WHERE id = $1
+	`, chatID)
+
+	return err
+}
+
+func (r *ChatRepository) AddParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userIDs []uuid.UUID,
+) error {
+
+	for _, userID := range userIDs {
+		_, err := r.db.Exec(ctx, `
+			INSERT INTO chat_participants(chat_id, user_id)
+			VALUES ($1, $2)
+			ON CONFLICT DO NOTHING
+		`, chatID, userID)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *ChatRepository) RemoveParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userIDs []uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM chat_participants
+		WHERE chat_id = $1
+		AND user_id = ANY($2)
+	`, chatID, userIDs)
+
+	return err
+}
+
+func (r *ChatRepository) CountParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+) (int, error) {
+
+	var count int
+
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM chat_participants
+		WHERE chat_id = $1
+	`, chatID).Scan(&count)
+
+	return count, err
 }

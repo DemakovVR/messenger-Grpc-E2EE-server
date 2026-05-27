@@ -5,14 +5,11 @@ package contact;
 option go_package = "gen/contact;contact";
 
 service ContactService {
-  rpc SearchUsers(SearchUsersRequest)
-      returns (SearchUsersResponse);
-
-  rpc AddContact(AddContactRequest)
-      returns (AddContactResponse);
-
-  rpc GetContacts(GetContactsRequest)
-      returns (GetContactsResponse);
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
+  rpc AddContact(AddContactRequest) returns (AddContactResponse);
+  rpc GetContacts(GetContactsRequest) returns (GetContactsResponse);
+  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse);
+  rpc BlockContact(BlockContactRequest) returns (BlockContactResponse);    
 }
 
 message User {
@@ -41,4 +38,20 @@ message GetContactsRequest {}
 
 message GetContactsResponse {
   repeated User contacts = 1;
+}
+
+message DeleteContactRequest {
+  string contact_id = 1;
+}
+
+message DeleteContactResponse {
+  string message = 1;
+}
+
+message BlockContactRequest {
+  string contact_id = 1;
+}
+
+message BlockContactResponse {
+  string message = 1;
 }

@@ -1,44 +1,65 @@
 package service
 
 import (
-	"os"
+	"Server/internal/models"
+	"Server/internal/repository"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type FileService struct {
 	basePath string
+	repo     *repository.FileRepository
 }
 
-func NewFileService() *FileService {
+func NewFileService(repo *repository.FileRepository) *FileService {
 	return &FileService{
 		basePath: "storage/files",
+		repo:     repo,
 	}
 }
 
-func (s *FileService) GenerateFilePath(originalName string) string {
+func (s *FileService) SaveUploadedFile(
+	uploaderID uuid.UUID,
+	originalName string,
+	data []byte,
+) (models.File, error) {
 
-	id := uuid.New()
+	fileID := uuid.New()
 
 	safeName := filepath.Base(originalName)
 	safeName = strings.ReplaceAll(safeName, " ", "_")
 
-	return filepath.Join(
+	filePath := filepath.Join(
 		s.basePath,
-		id.String()+"_"+safeName,
+		fileID.String()+"_"+safeName,
 	)
+
+	err := s.repo.SaveFile(filePath, data)
+	if err != nil {
+		return models.File{}, err
+	}
+
+	file := models.File{
+		ID:         fileID,
+		UploaderID: uploaderID,
+		FileName:   originalName,
+		FilePath:   filePath,
+		FileSize:   int64(len(data)),
+		CreatedAt:  time.Now(),
+	}
+
+	err = s.repo.SaveMetadata(file)
+	if err != nil {
+		return models.File{}, err
+	}
+
+	return file, nil
 }
 
 func (s *FileService) EnsureStorage() error {
-	return os.MkdirAll(s.basePath, 0755)
-}
-
-func (s *FileService) SaveFile(path string, data []byte) error {
-	return os.WriteFile(path, data, 0644)
-}
-
-func (s *FileService) OpenFile(path string) (*os.File, error) {
-	return os.Open(path)
+	return s.repo.EnsureDir(s.basePath)
 }

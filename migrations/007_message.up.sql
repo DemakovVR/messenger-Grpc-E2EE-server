@@ -1,0 +1,7 @@
+-- +goose Up
+
+ALTER TABLE messages
+ADD COLUMN is_edited BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE messages
+ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE;

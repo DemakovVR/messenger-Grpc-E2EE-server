@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"Server/internal/models"
 	"context"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func (r *AuditRepository) CreateLog(
 	ctx context.Context,
 	userID uuid.UUID,
 	action string,
-	details string,
+	details *string,
 ) error {
 
 	_, err := r.db.Exec(
@@ -39,4 +40,76 @@ func (r *AuditRepository) CreateLog(
 	)
 
 	return err
+}
+
+func (r *AuditRepository) GetUserLogs(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]models.AuditLog, error) {
+
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, action, details, created_at
+		FROM audit_logs
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+		LIMIT 100
+	`, userID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []models.AuditLog
+
+	for rows.Next() {
+		var l models.AuditLog
+		err := rows.Scan(
+			&l.ID,
+			&l.UserID,
+			&l.Action,
+			&l.Details,
+			&l.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, l)
+	}
+
+	return logs, nil
+}
+
+func (r *AuditRepository) GetChatLogs(
+	ctx context.Context,
+	chatID uuid.UUID,
+) ([]models.AuditLog, error) {
+
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, action, details, created_at
+		FROM audit_logs
+		WHERE chat_id = $1
+		ORDER BY created_at DESC
+	`, chatID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []models.AuditLog
+
+	for rows.Next() {
+		var l models.AuditLog
+		_ = rows.Scan(
+			&l.ID,
+			&l.UserID,
+			&l.Action,
+			&l.Details,
+			&l.CreatedAt,
+		)
+		logs = append(logs, l)
+	}
+
+	return logs, nil
 }

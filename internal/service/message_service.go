@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	messagepb "Server/gen/message"
 	"Server/internal/models"
@@ -71,15 +72,18 @@ func (s *MessageService) SendMessage(
 
 		for _, participantID := range participants {
 
-			uuidParticipantID := participantID
+			if participantID == userID {
+				continue
+			}
 
 			s.manager.Publish(
-				uuidParticipantID,
+				participantID,
 				&messagepb.MessageResponse{
 					Id:               messageID.String(),
 					ChatId:           chatID.String(),
 					SenderId:         userID.String(),
 					EncryptedContent: content,
+					SentAt:           time.Now().Format(time.RFC3339),
 				},
 			)
 		}
@@ -104,4 +108,32 @@ func (s *MessageService) GetMessages(
 	}
 
 	return s.repo.GetMessages(ctx, chatID)
+}
+
+func (s *MessageService) DeleteMessage(
+	ctx context.Context,
+	messageID uuid.UUID,
+	userID uuid.UUID,
+) error {
+
+	return s.repo.DeleteMessage(
+		ctx,
+		messageID,
+		userID,
+	)
+}
+
+func (s *MessageService) EditMessage(
+	ctx context.Context,
+	messageID uuid.UUID,
+	userID uuid.UUID,
+	content string,
+) error {
+
+	return s.repo.EditMessage(
+		ctx,
+		messageID,
+		userID,
+		content,
+	)
 }

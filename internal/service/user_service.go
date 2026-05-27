@@ -10,14 +10,18 @@ import (
 )
 
 type UserService struct {
-	userRepo *repository.UserRepository
+	userRepo    *repository.UserRepository
+	refreshRepo *repository.RefreshRepository
 }
 
 func NewUserService(
 	userRepo *repository.UserRepository,
+	refreshRepo *repository.RefreshRepository,
 ) *UserService {
+
 	return &UserService{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		refreshRepo: refreshRepo,
 	}
 }
 
@@ -27,4 +31,36 @@ func (s *UserService) GetProfile(
 ) (*models.User, error) {
 
 	return s.userRepo.GetByID(ctx, userID)
+}
+
+func (s *UserService) UpdateProfile(
+	ctx context.Context,
+	userID uuid.UUID,
+	username string,
+	email string,
+) error {
+
+	return s.userRepo.UpdateProfile(ctx, userID, username, email)
+}
+
+func (s *UserService) UpdatePublicKey(
+	ctx context.Context,
+	userID uuid.UUID,
+	publicKey string,
+) error {
+
+	return s.userRepo.UpdatePublicKey(ctx, userID, publicKey)
+}
+
+func (s *UserService) DeleteAccount(
+	ctx context.Context,
+	userID uuid.UUID,
+) error {
+
+	err := s.refreshRepo.DeleteByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.DeleteUser(ctx, userID)
 }

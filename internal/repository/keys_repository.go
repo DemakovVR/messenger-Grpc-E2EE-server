@@ -53,6 +53,7 @@ func (r *KeysRepository) GetDeviceKeys(
 
 	err := r.db.QueryRow(ctx, `
 		SELECT 
+			id,
 			user_id, device_id,
 			identity_key_public,
 			signed_prekey_public,
@@ -64,6 +65,7 @@ func (r *KeysRepository) GetDeviceKeys(
 		WHERE user_id=$1 AND active=true
 		LIMIT 1
 	`, userID).Scan(
+		&k.ID,
 		&k.UserID,
 		&k.DeviceID,
 		&k.IdentityKeyPublic,
@@ -141,4 +143,30 @@ func (r *KeysRepository) SaveOTPKs(
 	}
 
 	return nil
+}
+
+func (r *KeysRepository) UpdateSignedPreKey(
+	ctx context.Context,
+	userID uuid.UUID,
+	deviceID string,
+	publicKey string,
+	signature string,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+		UPDATE device_keys
+		SET
+			signed_prekey_public = $1,
+			signed_prekey_signature = $2,
+			updated_at = NOW()
+		WHERE user_id = $3
+		AND device_id = $4
+	`,
+		publicKey,
+		signature,
+		userID,
+		deviceID,
+	)
+
+	return err
 }

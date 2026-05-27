@@ -5,14 +5,13 @@ package chat;
 option go_package = "gen/chat;chat";
 
 service ChatService {
-  rpc CreatePrivateChat(CreatePrivateChatRequest)
-      returns (CreateChatResponse);
-
-  rpc CreateGroupChat(CreateGroupChatRequest)
-      returns (CreateChatResponse);
-
-  rpc GetChats(GetChatsRequest)
-      returns (GetChatsResponse);
+  rpc CreatePrivateChat(CreatePrivateChatRequest) returns (CreateChatResponse);
+  rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateChatResponse);
+  rpc GetChats(GetChatsRequest) returns (GetChatsResponse);
+  rpc DeleteChat(DeleteChatRequest) returns (Empty);
+  rpc AddParticipants(AddParticipantsRequest) returns (Empty);
+  rpc RemoveParticipants(RemoveParticipantsRequest) returns (Empty);
+  rpc LeaveGroup(LeaveGroupRequest) returns (Empty);
 }
 
 message CreatePrivateChatRequest {
@@ -39,3 +38,23 @@ message Chat {
 message GetChatsResponse {
   repeated Chat chats = 1;
 }
+
+message DeleteChatRequest {
+  string chat_id = 1;
+}
+
+message AddParticipantsRequest {
+  string chat_id = 1;
+  repeated string user_ids = 2;
+}
+
+message RemoveParticipantsRequest {
+  string chat_id = 1;
+  repeated string user_ids = 2;
+}
+
+message LeaveGroupRequest {
+  string chat_id = 1;
+}
+
+message Empty {}

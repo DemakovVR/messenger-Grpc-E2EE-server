@@ -58,3 +58,53 @@ func (s *ChatService) GetChats(
 		userID,
 	)
 }
+
+func (s *ChatService) DeleteChat(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userID uuid.UUID,
+) error {
+
+	return s.repo.DeleteChat(ctx, chatID)
+}
+
+func (s *ChatService) AddParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userIDs []uuid.UUID,
+) error {
+
+	return s.repo.AddParticipants(ctx, chatID, userIDs)
+}
+
+func (s *ChatService) RemoveParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userIDs []uuid.UUID,
+) error {
+
+	return s.repo.RemoveParticipants(ctx, chatID, userIDs)
+}
+
+func (s *ChatService) LeaveGroup(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userID uuid.UUID,
+) error {
+
+	err := s.repo.RemoveParticipants(ctx, chatID, []uuid.UUID{userID})
+	if err != nil {
+		return err
+	}
+
+	count, err := s.repo.CountParticipants(ctx, chatID)
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return s.repo.DeleteChat(ctx, chatID)
+	}
+
+	return nil
+}

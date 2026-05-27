@@ -317,6 +317,138 @@ func (x *GetMessagesResponse) GetMessages() []*MessageResponse {
 	return nil
 }
 
+type DeleteMessageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMessageRequest) Reset() {
+	*x = DeleteMessageRequest{}
+	mi := &file_proto_message_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMessageRequest) ProtoMessage() {}
+
+func (x *DeleteMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_message_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMessageRequest.ProtoReflect.Descriptor instead.
+func (*DeleteMessageRequest) Descriptor() ([]byte, []int) {
+	return file_proto_message_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *DeleteMessageRequest) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+type EditMessageRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	MessageId        string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	EncryptedContent string                 `protobuf:"bytes,2,opt,name=encrypted_content,json=encryptedContent,proto3" json:"encrypted_content,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *EditMessageRequest) Reset() {
+	*x = EditMessageRequest{}
+	mi := &file_proto_message_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EditMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EditMessageRequest) ProtoMessage() {}
+
+func (x *EditMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_message_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EditMessageRequest.ProtoReflect.Descriptor instead.
+func (*EditMessageRequest) Descriptor() ([]byte, []int) {
+	return file_proto_message_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *EditMessageRequest) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *EditMessageRequest) GetEncryptedContent() string {
+	if x != nil {
+		return x.EncryptedContent
+	}
+	return ""
+}
+
+type Empty struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Empty) Reset() {
+	*x = Empty{}
+	mi := &file_proto_message_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Empty) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Empty) ProtoMessage() {}
+
+func (x *Empty) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_message_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
+func (*Empty) Descriptor() ([]byte, []int) {
+	return file_proto_message_proto_rawDescGZIP(), []int{8}
+}
+
 var File_proto_message_proto protoreflect.FileDescriptor
 
 const file_proto_message_proto_rawDesc = "" +
@@ -338,11 +470,21 @@ const file_proto_message_proto_rawDesc = "" +
 	"\x11encrypted_content\x18\x04 \x01(\tR\x10encryptedContent\x12\x17\n" +
 	"\asent_at\x18\x05 \x01(\tR\x06sentAt\"K\n" +
 	"\x13GetMessagesResponse\x124\n" +
-	"\bmessages\x18\x01 \x03(\v2\x18.message.MessageResponseR\bmessages2\xec\x01\n" +
+	"\bmessages\x18\x01 \x03(\v2\x18.message.MessageResponseR\bmessages\"5\n" +
+	"\x14DeleteMessageRequest\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\"`\n" +
+	"\x12EditMessageRequest\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12+\n" +
+	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\"\a\n" +
+	"\x05Empty2\xe8\x02\n" +
 	"\x0eMessageService\x12H\n" +
 	"\vSendMessage\x12\x1b.message.SendMessageRequest\x1a\x1c.message.SendMessageResponse\x12H\n" +
 	"\vGetMessages\x12\x1b.message.GetMessagesRequest\x1a\x1c.message.GetMessagesResponse\x12F\n" +
-	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01B\rZ\vgen/messageb\x06proto3"
+	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01\x12>\n" +
+	"\rDeleteMessage\x12\x1d.message.DeleteMessageRequest\x1a\x0e.message.Empty\x12:\n" +
+	"\vEditMessage\x12\x1b.message.EditMessageRequest\x1a\x0e.message.EmptyB\rZ\vgen/messageb\x06proto3"
 
 var (
 	file_proto_message_proto_rawDescOnce sync.Once
@@ -356,25 +498,32 @@ func file_proto_message_proto_rawDescGZIP() []byte {
 	return file_proto_message_proto_rawDescData
 }
 
-var file_proto_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_message_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_message_proto_goTypes = []any{
-	(*ConnectRequest)(nil),      // 0: message.ConnectRequest
-	(*SendMessageRequest)(nil),  // 1: message.SendMessageRequest
-	(*SendMessageResponse)(nil), // 2: message.SendMessageResponse
-	(*GetMessagesRequest)(nil),  // 3: message.GetMessagesRequest
-	(*MessageResponse)(nil),     // 4: message.MessageResponse
-	(*GetMessagesResponse)(nil), // 5: message.GetMessagesResponse
+	(*ConnectRequest)(nil),       // 0: message.ConnectRequest
+	(*SendMessageRequest)(nil),   // 1: message.SendMessageRequest
+	(*SendMessageResponse)(nil),  // 2: message.SendMessageResponse
+	(*GetMessagesRequest)(nil),   // 3: message.GetMessagesRequest
+	(*MessageResponse)(nil),      // 4: message.MessageResponse
+	(*GetMessagesResponse)(nil),  // 5: message.GetMessagesResponse
+	(*DeleteMessageRequest)(nil), // 6: message.DeleteMessageRequest
+	(*EditMessageRequest)(nil),   // 7: message.EditMessageRequest
+	(*Empty)(nil),                // 8: message.Empty
 }
 var file_proto_message_proto_depIdxs = []int32{
 	4, // 0: message.GetMessagesResponse.messages:type_name -> message.MessageResponse
 	1, // 1: message.MessageService.SendMessage:input_type -> message.SendMessageRequest
 	3, // 2: message.MessageService.GetMessages:input_type -> message.GetMessagesRequest
 	0, // 3: message.MessageService.ConnectMessages:input_type -> message.ConnectRequest
-	2, // 4: message.MessageService.SendMessage:output_type -> message.SendMessageResponse
-	5, // 5: message.MessageService.GetMessages:output_type -> message.GetMessagesResponse
-	4, // 6: message.MessageService.ConnectMessages:output_type -> message.MessageResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	6, // 4: message.MessageService.DeleteMessage:input_type -> message.DeleteMessageRequest
+	7, // 5: message.MessageService.EditMessage:input_type -> message.EditMessageRequest
+	2, // 6: message.MessageService.SendMessage:output_type -> message.SendMessageResponse
+	5, // 7: message.MessageService.GetMessages:output_type -> message.GetMessagesResponse
+	4, // 8: message.MessageService.ConnectMessages:output_type -> message.MessageResponse
+	8, // 9: message.MessageService.DeleteMessage:output_type -> message.Empty
+	8, // 10: message.MessageService.EditMessage:output_type -> message.Empty
+	6, // [6:11] is the sub-list for method output_type
+	1, // [1:6] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -391,7 +540,7 @@ func file_proto_message_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_message_proto_rawDesc), len(file_proto_message_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

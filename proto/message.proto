@@ -13,6 +13,11 @@ service MessageService {
 
     rpc ConnectMessages(ConnectRequest)
         returns (stream MessageResponse);
+
+    rpc DeleteMessage(DeleteMessageRequest)
+        returns (Empty);
+    rpc EditMessage(EditMessageRequest)
+        returns (Empty);
 }
 
 message ConnectRequest {}
@@ -41,3 +46,14 @@ message MessageResponse {
 message GetMessagesResponse {
     repeated MessageResponse messages = 1;
 }
+
+message DeleteMessageRequest {
+    string message_id = 1;
+}
+
+message EditMessageRequest {
+    string message_id = 1;
+    string encrypted_content = 2;
+}
+
+message Empty {}
