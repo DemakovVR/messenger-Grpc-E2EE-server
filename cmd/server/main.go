@@ -65,13 +65,21 @@ func main() {
 	auditService := service.NewAuditService(auditRepo)
 	refreshService := service.NewRefreshService()
 	rateLimiter := service.NewRateLimiter()
-	authService := service.NewAuthService(userRepo, refreshRepo, auditService, refreshService, cfg.JWTSecret)
+
+	authService := service.NewAuthService(
+		userRepo,
+		refreshRepo,
+		auditService,
+		refreshService,
+		cfg.JWTSecret,
+	)
+
 	userService := service.NewUserService(userRepo, refreshRepo)
 	contactService := service.NewContactService(contactRepo)
 	chatService := service.NewChatService(chatRepo)
 	connectionManager := service.NewConnectionManager()
 	messageService := service.NewMessageService(messageRepo, connectionManager)
-	keysService := service.NewKeysService(keysRepo, auditService)
+	keysService := service.NewKeysService(keysRepo)
 	fileService := service.NewFileService(fileRepo)
 
 	authServer := internalgrpc.NewAuthServer(authService)
@@ -80,7 +88,9 @@ func main() {
 	chatServer := internalgrpc.NewChatServer(chatService)
 	messageServer := internalgrpc.NewMessageServer(messageService)
 	keysServer := internalgrpc.NewKeysServer(keysService)
-	fileServer := internalgrpc.NewFileServer(fileService, auditService)
+	fileServer := internalgrpc.NewFileServer(fileService)
+
+	auditMiddleware := middleware.NewAuditMiddleware(auditRepo)
 
 	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
@@ -91,25 +101,18 @@ func main() {
 		cfg.TLSCertFile,
 		cfg.TLSKeyFile,
 	)
-
 	if err != nil {
-		logger.Log.Fatal(
-			"Failed to load TLS certificates",
-			zap.Error(err),
-		)
+		logger.Log.Fatal("Failed to load TLS certificates", zap.Error(err))
 	}
 
 	grpcServer := grpcserver.NewServer(
 		grpcserver.Creds(creds),
 
 		grpcserver.ChainUnaryInterceptor(
-			middleware.AuthInterceptor(
-				cfg.JWTSecret,
-			),
+			middleware.AuthInterceptor(cfg.JWTSecret),
+			middleware.RateLimitInterceptor(rateLimiter),
 
-			middleware.RateLimitInterceptor(
-				rateLimiter,
-			),
+			auditMiddleware.Unary(),
 		),
 	)
 
@@ -125,10 +128,7 @@ func main() {
 	filepb.RegisterFileServiceServer(grpcServer, fileServer)
 
 	if err := fileService.EnsureStorage(); err != nil {
-		logger.Log.Fatal(
-			"failed to create storage",
-			zap.Error(err),
-		)
+		logger.Log.Fatal("failed to create storage", zap.Error(err))
 	}
 
 	ctx, stop := signal.NotifyContext(

@@ -1,26 +1,24 @@
 package service
 
 import (
+	"context"
+
 	"Server/internal/models"
 	"Server/internal/repository"
-	"context"
 
 	"github.com/google/uuid"
 )
 
 type KeysService struct {
-	repo         *repository.KeysRepository
-	auditService *AuditService
+	repo *repository.KeysRepository
 }
 
 func NewKeysService(
 	r *repository.KeysRepository,
-	auditService *AuditService,
 ) *KeysService {
 
 	return &KeysService{
-		repo:         r,
-		auditService: auditService,
+		repo: r,
 	}
 }
 
@@ -44,15 +42,6 @@ func (s *KeysService) UploadKeys(
 		return err
 	}
 
-	details := "device keys uploaded"
-
-	_ = s.auditService.Log(
-		ctx,
-		userID,
-		"upload_keys",
-		&details,
-	)
-
 	return nil
 }
 
@@ -65,19 +54,9 @@ func (s *KeysService) GetBundle(
 		ctx,
 		userID,
 	)
-
 	if err != nil {
 		return models.DeviceKey{}, err
 	}
-
-	details := "prekey bundle requested"
-
-	_ = s.auditService.Log(
-		ctx,
-		userID,
-		"get_prekey_bundle",
-		&details,
-	)
 
 	return k, nil
 }
@@ -87,7 +66,12 @@ func (s *KeysService) GetOneTimeKey(
 	deviceKeyID uuid.UUID,
 ) (models.OneTimePreKey, error) {
 
-	return s.repo.GetOneTimePreKey(ctx, deviceKeyID)
+	k, err := s.repo.GetOneTimePreKey(ctx, deviceKeyID)
+	if err != nil {
+		return models.OneTimePreKey{}, err
+	}
+
+	return k, nil
 }
 
 func (s *KeysService) MarkOneTimeKeyUsed(
@@ -114,15 +98,6 @@ func (s *KeysService) UploadOneTimeKeys(
 		return err
 	}
 
-	details := "one-time prekeys uploaded"
-
-	_ = s.auditService.Log(
-		ctx,
-		uuid.Nil,
-		"upload_otpk",
-		&details,
-	)
-
 	return nil
 }
 
@@ -145,15 +120,6 @@ func (s *KeysService) RotateSignedPreKey(
 	if err != nil {
 		return err
 	}
-
-	details := "signed prekey rotated"
-
-	_ = s.auditService.Log(
-		ctx,
-		userID,
-		"rotate_signed_prekey",
-		&details,
-	)
 
 	return nil
 }

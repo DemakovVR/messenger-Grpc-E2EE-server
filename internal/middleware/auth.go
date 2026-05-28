@@ -10,10 +10,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type contextKey string
-
-const UserIDKey contextKey = "user_id"
-
 func AuthInterceptor(jwtSecret string) grpc.UnaryServerInterceptor {
 
 	return func(

@@ -15,17 +15,14 @@ import (
 
 type FileServer struct {
 	filepb.UnimplementedFileServiceServer
-	service      *service.FileService
-	auditService *service.AuditService
+	service *service.FileService
 }
 
 func NewFileServer(
 	service *service.FileService,
-	auditService *service.AuditService,
 ) *FileServer {
 	return &FileServer{
-		service:      service,
-		auditService: auditService,
+		service: service,
 	}
 }
 
@@ -74,13 +71,6 @@ func (s *FileServer) UploadFile(
 		return err
 	}
 
-	_ = s.auditService.Log(
-		stream.Context(),
-		uploaderID,
-		"file_upload",
-		&file.FilePath,
-	)
-
 	return stream.SendAndClose(&filepb.UploadFileResponse{
 		FileUrl: file.FilePath,
 	})
@@ -97,18 +87,15 @@ func (s *FileServer) DownloadFile(
 	}
 	defer file.Close()
 
-	userIDStr := stream.Context().Value(middleware.UserIDKey).(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return err
+	userIDStr, ok := stream.Context().Value(middleware.UserIDKey).(string)
+	if !ok {
+		return errors.New("unauthorized: missing user id")
 	}
 
-	_ = s.auditService.Log(
-		stream.Context(),
-		userID,
-		"file_download",
-		&req.FileUrl,
-	)
+	_, err = uuid.Parse(userIDStr)
+	if err != nil {
+		return errors.New("unauthorized: invalid user id")
+	}
 
 	buf := make([]byte, 32*1024)
 

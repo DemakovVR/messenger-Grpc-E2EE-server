@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"Server/internal/models"
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,21 +20,21 @@ func NewRefreshRepository(
 
 func (r *RefreshRepository) Save(
 	ctx context.Context,
-	userID uuid.UUID,
-	token string,
-	exp time.Time,
+	token models.RefreshToken,
 ) error {
 
 	_, err := r.db.Exec(
 		ctx,
 		`
-		INSERT INTO refresh_tokens
-		(user_id, token, expires_at)
-		VALUES ($1,$2,$3)
-		`,
-		userID,
-		token,
-		exp,
+        INSERT INTO refresh_tokens
+        (id, user_id, token, expires_at, created_at)
+        VALUES ($1,$2,$3,$4,$5)
+        `,
+		token.ID,
+		token.UserID,
+		token.Token,
+		token.ExpiresAt,
+		token.CreatedAt,
 	)
 
 	return err
@@ -56,22 +56,28 @@ func (r *RefreshRepository) DeleteByToken(
 func (r *RefreshRepository) GetByToken(
 	ctx context.Context,
 	token string,
-) (uuid.UUID, error) {
+) (models.RefreshToken, error) {
 
-	var userID uuid.UUID
+	var rt models.RefreshToken
 
 	err := r.db.QueryRow(
 		ctx,
 		`
-		SELECT user_id
-		FROM refresh_tokens
-		WHERE token = $1
-		AND expires_at > NOW()
-		`,
+        SELECT id, user_id, token, expires_at, created_at
+        FROM refresh_tokens
+        WHERE token = $1
+        AND expires_at > NOW()
+        `,
 		token,
-	).Scan(&userID)
+	).Scan(
+		&rt.ID,
+		&rt.UserID,
+		&rt.Token,
+		&rt.ExpiresAt,
+		&rt.CreatedAt,
+	)
 
-	return userID, err
+	return rt, err
 }
 
 func (r *RefreshRepository) DeleteByUserID(

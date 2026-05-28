@@ -90,18 +90,20 @@ func (s *AuthService) Login(
 
 	refreshToken := s.refreshService.Generate()
 
-	err = s.refreshRepo.Save(
-		ctx,
-		user.ID,
-		refreshToken,
-		time.Now().Add(7*24*time.Hour),
-	)
+	_ = s.refreshRepo.DeleteByUserID(ctx, user.ID)
+
+	rt := models.RefreshToken{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		Token:     refreshToken,
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		CreatedAt: time.Now(),
+	}
+
+	err = s.refreshRepo.Save(ctx, rt)
 	if err != nil {
 		return "", "", err
 	}
-
-	details := "user login"
-	_ = s.auditService.Log(ctx, user.ID, "login", &details)
 
 	return accessToken, refreshToken, nil
 }
@@ -111,7 +113,12 @@ func (s *AuthService) Logout(
 	refreshToken string,
 ) error {
 
-	return s.refreshRepo.DeleteByToken(ctx, refreshToken)
+	rt, err := s.refreshRepo.GetByToken(ctx, refreshToken)
+	if err == nil {
+		_ = s.refreshRepo.DeleteByUserID(ctx, rt.UserID)
+	}
+
+	return nil
 }
 
 func (s *AuthService) Refresh(
@@ -119,15 +126,22 @@ func (s *AuthService) Refresh(
 	refreshToken string,
 ) (string, error) {
 
-	userID, err := s.refreshRepo.GetByToken(ctx, refreshToken)
+	rt, err := s.refreshRepo.GetByToken(ctx, refreshToken)
 	if err != nil {
 		return "", err
 	}
 
-	return auth.GenerateAccessToken(
-		userID.String(),
+	_ = s.refreshRepo.DeleteByToken(ctx, refreshToken)
+
+	newAccessToken, err := auth.GenerateAccessToken(
+		rt.UserID.String(),
 		s.jwtSecret,
 	)
+	if err != nil {
+		return "", err
+	}
+
+	return newAccessToken, nil
 }
 
 func (s *AuthService) ChangePassword(

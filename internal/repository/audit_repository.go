@@ -23,18 +23,18 @@ func NewAuditRepository(
 func (r *AuditRepository) CreateLog(
 	ctx context.Context,
 	userID uuid.UUID,
+	chatID *uuid.UUID,
 	action string,
 	details *string,
 ) error {
 
-	_, err := r.db.Exec(
-		ctx,
-		`
-		INSERT INTO audit_logs
-		(user_id, action, details)
-		VALUES ($1, $2, $3)
-		`,
+	_, err := r.db.Exec(ctx, `
+        INSERT INTO audit_logs
+        (user_id, chat_id, action, details)
+        VALUES ($1,$2,$3,$4)
+    `,
 		userID,
+		chatID,
 		action,
 		details,
 	)
@@ -48,7 +48,7 @@ func (r *AuditRepository) GetUserLogs(
 ) ([]models.AuditLog, error) {
 
 	rows, err := r.db.Query(ctx, `
-		SELECT id, user_id, action, details, created_at
+		SELECT id, user_id, chat_id, action, details, created_at
 		FROM audit_logs
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -67,6 +67,7 @@ func (r *AuditRepository) GetUserLogs(
 		err := rows.Scan(
 			&l.ID,
 			&l.UserID,
+			&l.ChatID,
 			&l.Action,
 			&l.Details,
 			&l.CreatedAt,
@@ -86,7 +87,7 @@ func (r *AuditRepository) GetChatLogs(
 ) ([]models.AuditLog, error) {
 
 	rows, err := r.db.Query(ctx, `
-		SELECT id, user_id, action, details, created_at
+		SELECT id, user_id, chat_id, action, details, created_at
 		FROM audit_logs
 		WHERE chat_id = $1
 		ORDER BY created_at DESC
@@ -104,6 +105,7 @@ func (r *AuditRepository) GetChatLogs(
 		_ = rows.Scan(
 			&l.ID,
 			&l.UserID,
+			&l.ChatID,
 			&l.Action,
 			&l.Details,
 			&l.CreatedAt,
