@@ -4,9 +4,24 @@ package auth;
 
 option go_package = "gen/auth;auth";
 
+import "google/api/annotations.proto";
+
 service AuthService {
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  rpc Login(LoginRequest) returns (LoginResponse);
+
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/auth/register"
+      body: "*"
+    };
+  }
+
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/auth/login"
+      body: "*"
+    };
+  }
+
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
   rpc Logout(LogoutRequest) returns (Empty);
   rpc ChangePassword(ChangePasswordRequest) returns (Empty);
@@ -17,15 +32,6 @@ service UserService {
   rpc UpdateProfile(UpdateProfileRequest) returns (Empty);
   rpc UpdatePublicKey(UpdatePublicKeyRequest) returns (Empty);
   rpc DeleteAccount(Empty) returns (Empty);
-}
-
-message UpdateProfileRequest {
-  string username = 1;
-  string email = 2;
-}
-
-message UpdatePublicKeyRequest {
-  string public_key = 1;
 }
 
 message RegisterRequest {
@@ -45,8 +51,34 @@ message LoginRequest {
 }
 
 message LoginResponse {
-    string access_token = 1;
-    string refresh_token = 2;
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message ChangePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
+}
+
+message UpdateProfileRequest {
+  string username = 1;
+  string email = 2;
+}
+
+message UpdatePublicKeyRequest {
+  string public_key = 1;
 }
 
 message GetProfileRequest {}
@@ -58,20 +90,4 @@ message GetProfileResponse {
   string role = 4;
 }
 
-message RefreshTokenRequest {
-    string refresh_token = 1;
-}
-
-message RefreshTokenResponse {
-    string access_token = 1;
-}
-
-message LogoutRequest {
-  string refresh_token = 1;
-}
 message Empty {}
-
-message ChangePasswordRequest {
-  string old_password = 1;
-  string new_password = 2;
-}

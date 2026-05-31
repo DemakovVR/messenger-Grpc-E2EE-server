@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os/signal"
 	"syscall"
 
@@ -23,8 +24,11 @@ import (
 	"Server/internal/service"
 	tlsutil "Server/internal/tls"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	grpcserver "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -33,7 +37,7 @@ func main() {
 	logger.InitLogger(cfg.LogLevel, cfg.LogEncoding)
 	defer logger.Sync()
 
-	logger.Log.Info("Starting SecureTalk gRPC server")
+	logger.Log.Info("Starting SecureTalk server")
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -45,7 +49,7 @@ func main() {
 	)
 
 	if err := repository.RunMigrations(logger.Log, dsn); err != nil {
-		logger.Log.Fatal("Failed to run migrations", zap.Error(err))
+		logger.Log.Fatal("Failed migrations", zap.Error(err))
 	}
 
 	db := repository.NewPostgresDB(cfg, logger.Log)
@@ -92,26 +96,21 @@ func main() {
 
 	auditMiddleware := middleware.NewAuditMiddleware(auditRepo)
 
-	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
+	creds, err := tlsutil.LoadTLSCredentials(cfg.TLSCertFile, cfg.TLSKeyFile)
 	if err != nil {
-		logger.Log.Fatal("Failed to listen", zap.Error(err))
+		logger.Log.Fatal("TLS error", zap.Error(err))
 	}
 
-	creds, err := tlsutil.LoadTLSCredentials(
-		cfg.TLSCertFile,
-		cfg.TLSKeyFile,
-	)
+	lis, err := net.Listen("tcp", ":"+cfg.ServerPort)
 	if err != nil {
-		logger.Log.Fatal("Failed to load TLS certificates", zap.Error(err))
+		logger.Log.Fatal("Listen error", zap.Error(err))
 	}
 
 	grpcServer := grpcserver.NewServer(
 		grpcserver.Creds(creds),
-
 		grpcserver.ChainUnaryInterceptor(
 			middleware.AuthInterceptor(cfg.JWTSecret),
 			middleware.RateLimitInterceptor(rateLimiter),
-
 			auditMiddleware.Unary(),
 		),
 	)
@@ -121,15 +120,46 @@ func main() {
 
 	contactpb.RegisterContactServiceServer(grpcServer, contactServer)
 	chatpb.RegisterChatServiceServer(grpcServer, chatServer)
-
 	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
-
 	keyspb.RegisterKeyServiceServer(grpcServer, keysServer)
 	filepb.RegisterFileServiceServer(grpcServer, fileServer)
 
 	if err := fileService.EnsureStorage(); err != nil {
-		logger.Log.Fatal("failed to create storage", zap.Error(err))
+		logger.Log.Fatal("storage error", zap.Error(err))
 	}
+
+	go func() {
+		ctx := context.Background()
+
+		mux := runtime.NewServeMux()
+
+		err := authpb.RegisterAuthServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			[]grpc.DialOption{
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+			},
+		)
+
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		logger.Log.Info("HTTP gateway started on :8080")
+
+		if err := http.ListenAndServe(":8080", mux); err != nil {
+			logger.Log.Fatal("HTTP server error", zap.Error(err))
+		}
+	}()
+
+	go func() {
+		logger.Log.Info("gRPC server started", zap.String("port", cfg.ServerPort))
+
+		if err := grpcServer.Serve(lis); err != nil {
+			logger.Log.Fatal("gRPC failed", zap.Error(err))
+		}
+	}()
 
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -137,17 +167,6 @@ func main() {
 		syscall.SIGTERM,
 	)
 	defer stop()
-
-	go func() {
-		logger.Log.Info(
-			"gRPC server started",
-			zap.String("port", cfg.ServerPort),
-		)
-
-		if err := grpcServer.Serve(lis); err != nil {
-			logger.Log.Fatal("gRPC server failed", zap.Error(err))
-		}
-	}()
 
 	<-ctx.Done()
 
