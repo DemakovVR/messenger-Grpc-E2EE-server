@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
+import AuthContainer from "../components/ui/AuthContainer";
+import AuthCard from "../components/ui/AuthCard";
+import AuthForm from "../components/ui/AuthForm";
+import AuthInput from "../components/ui/AuthInput";
+import AuthButton from "../components/ui/AuthButton";
+import AuthSwitch from "../components/ui/AuthSwitch";
+
+import "../styles/auth.css";
+
 function RegisterPage() {
   const { register } = useAuth();
 
@@ -8,43 +17,46 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleRegister = async () => {
-    try {
-      await register(username, email, password);
-      alert("Register success");
-
-    } catch (err) {
-      alert("Register failed");
-    }
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    await register(username, email, password);
   };
 
   return (
-    <div>
-      <h1>Register</h1>
+    <AuthContainer>
+      <AuthCard>
+        <h1>Создание аккаунта</h1>
 
-      <input
-        placeholder="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
+        <AuthForm onSubmit={handleRegister}>
+          <AuthInput
+            placeholder="Логин"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-      <input
-        placeholder="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+          <AuthInput
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-      <input
-        placeholder="password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+          <AuthInput
+            placeholder="Пароль"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-      <button onClick={handleRegister}>
-        Register
-      </button>
-    </div>
+          <AuthButton type="submit">
+            Зарегистрироваться
+          </AuthButton>
+        </AuthForm>
+
+        <AuthSwitch to="/">
+          Уже есть аккаунт? Войти
+        </AuthSwitch>
+      </AuthCard>
+    </AuthContainer>
   );
 }
 
