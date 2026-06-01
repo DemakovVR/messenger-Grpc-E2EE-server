@@ -51,7 +51,7 @@ func (s *AuthServer) Login(
 
 	accessToken, refreshToken, err := s.authService.Login(
 		ctx,
-		req.Email,
+		req.Username,
 		req.Password,
 	)
 	if err != nil {

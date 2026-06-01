@@ -19,6 +19,43 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
+func (r *UserRepository) GetByUsername(
+	ctx context.Context,
+	username string,
+) (*models.User, error) {
+
+	var user models.User
+
+	err := r.db.QueryRow(
+		ctx,
+		`
+		SELECT
+			id,
+			username,
+			email,
+			password_hash,
+			public_key,
+			role
+		FROM users
+		WHERE username = $1
+		`,
+		username,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.PasswordHash,
+		&user.PublicKey,
+		&user.Role,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *UserRepository) CreateUser(
 	ctx context.Context,
 	user *models.User,

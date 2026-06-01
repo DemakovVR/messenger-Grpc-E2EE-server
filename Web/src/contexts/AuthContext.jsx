@@ -17,11 +17,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    const data = await authApi.login(email, password);
+  const login = async (username, password) => {
+    const data = await authApi.login(username, password);
 
-    localStorage.setItem("access_token", data.access_token);
-    localStorage.setItem("refresh_token", data.refresh_token);
+    localStorage.setItem(
+      "access_token",
+      data.access_token
+    );
+
+    localStorage.setItem(
+      "refresh_token",
+      data.refresh_token
+    );
 
     setUser({
       token: data.access_token,
@@ -30,17 +37,25 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const register = async (username, email, password) => {
-    return await authApi.register(username, email, password);
+  const register = async (
+    username,
+    email,
+    password
+  ) => {
+    return await authApi.register(
+      username,
+      email,
+      password
+    );
   };
 
   const logout = async () => {
-    const refreshToken = localStorage.getItem("refresh_token");
+    const refreshToken =
+      localStorage.getItem("refresh_token");
 
     try {
       await authApi.logout(refreshToken);
-    } catch (e) {
-    }
+    } catch (e) {}
 
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");

@@ -59,3 +59,12 @@
 .switch:hover {
   color: white;
 }
+
+.errorText {
+  display: block;
+  text-align: left;
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-top: -5px;
+  margin-bottom: 10px;
+}

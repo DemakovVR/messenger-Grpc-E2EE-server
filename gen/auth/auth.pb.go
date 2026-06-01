@@ -136,7 +136,7 @@ func (x *RegisterResponse) GetMessage() string {
 
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -172,9 +172,9 @@ func (*LoginRequest) Descriptor() ([]byte, []int) {
 	return file_proto_auth_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *LoginRequest) GetEmail() string {
+func (x *LoginRequest) GetUsername() string {
 	if x != nil {
-		return x.Email
+		return x.Username
 	}
 	return ""
 }
@@ -669,9 +669,9 @@ const file_proto_auth_proto_rawDesc = "" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\"E\n" +
 	"\x10RegisterResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"@\n" +
-	"\fLoginRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"F\n" +
+	"\fLoginRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"W\n" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +

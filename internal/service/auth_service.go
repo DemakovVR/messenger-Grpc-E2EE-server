@@ -67,11 +67,11 @@ func (s *AuthService) Register(
 
 func (s *AuthService) Login(
 	ctx context.Context,
-	email string,
+	username string,
 	password string,
 ) (string, string, error) {
 
-	user, err := s.userRepo.GetByEmail(ctx, email)
+	user, err := s.userRepo.GetByEmail(ctx, username)
 	if err != nil {
 		return "", "", err
 	}
