@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 
 	"Server/internal/models"
 
@@ -24,7 +25,6 @@ func (r *MessageRepository) SendMessage(
 	senderID uuid.UUID,
 	content string,
 ) (uuid.UUID, error) {
-
 	var messageID uuid.UUID
 
 	err := r.db.QueryRow(
@@ -33,9 +33,12 @@ func (r *MessageRepository) SendMessage(
 		INSERT INTO messages (
 			chat_id,
 			sender_id,
-			encrypted_content
+			encrypted_content,
+			sent_at,
+			created_at,
+			updated_at
 		)
-		VALUES ($1,$2,$3)
+		VALUES ($1, $2, $3, NOW(), NOW(), NOW())
 		RETURNING id
 		`,
 		chatID,
@@ -54,6 +57,7 @@ func (r *MessageRepository) GetMessages(
 	ctx context.Context,
 	chatID uuid.UUID,
 ) ([]models.Message, error) {
+	log.Printf("GetMessages called for chatID: %s", chatID)
 
 	rows, err := r.db.Query(
 		ctx,
@@ -76,6 +80,7 @@ func (r *MessageRepository) GetMessages(
 		chatID,
 	)
 	if err != nil {
+		log.Printf("Query error: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -83,9 +88,7 @@ func (r *MessageRepository) GetMessages(
 	var messages []models.Message
 
 	for rows.Next() {
-
 		var msg models.Message
-
 		err := rows.Scan(
 			&msg.ID,
 			&msg.ChatID,
@@ -98,14 +101,14 @@ func (r *MessageRepository) GetMessages(
 			&msg.CreatedAt,
 			&msg.UpdatedAt,
 		)
-
 		if err != nil {
+			log.Printf("Scan error: %v", err)
 			return nil, err
 		}
-
 		messages = append(messages, msg)
 	}
 
+	log.Printf("Found %d messages", len(messages))
 	return messages, nil
 }
 

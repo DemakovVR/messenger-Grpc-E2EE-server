@@ -121,6 +121,7 @@ func (x *CreateGroupChatRequest) GetParticipantIds() []string {
 type CreateChatResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ChatId        string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	IsExisting    bool                   `protobuf:"varint,2,opt,name=is_existing,json=isExisting,proto3" json:"is_existing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -160,6 +161,13 @@ func (x *CreateChatResponse) GetChatId() string {
 		return x.ChatId
 	}
 	return ""
+}
+
+func (x *CreateChatResponse) GetIsExisting() bool {
+	if x != nil {
+		return x.IsExisting
+	}
+	return false
 }
 
 type GetChatsRequest struct {
@@ -539,9 +547,11 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"U\n" +
 	"\x16CreateGroupChatRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
-	"\x0fparticipant_ids\x18\x02 \x03(\tR\x0eparticipantIds\"-\n" +
+	"\x0fparticipant_ids\x18\x02 \x03(\tR\x0eparticipantIds\"N\n" +
 	"\x12CreateChatResponse\x12\x17\n" +
-	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\x11\n" +
+	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x1f\n" +
+	"\vis_existing\x18\x02 \x01(\bR\n" +
+	"isExisting\"\x11\n" +
 	"\x0fGetChatsRequest\">\n" +
 	"\x04Chat\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +

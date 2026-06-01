@@ -1,16 +1,25 @@
+import { useState } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useChats } from "../services/hooks/useChats";
+import CreateChatModal from "../components/ui/chat/CreateChatModal";
+import "../styles/chat.css";
 import "./layout.css";
 
 function AppLayout() {
   const { logout, user } = useAuth();
-  const { chats, loading } = useChats();
+  const { chats, loading, fetchChats, createPrivateChat, createGroupChat } = useChats();
   const navigate = useNavigate();
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const handleChatCreated = (chatId) => {
+    fetchChats();
+    navigate(`/app/chat/${chatId}`);
   };
 
   return (
@@ -18,11 +27,15 @@ function AppLayout() {
       <aside className="sidebar">
         <div className="logo">SecureTalk</div>
 
-        <div className="chatList">
-          {loading && <div className="chatItem">Loading...</div>}
+        <button className="create-chat-btn" onClick={() => setShowCreateModal(true)}>
+          + Новый чат
+        </button>
+
+        <div className="chat-list">
+          {loading && <div className="chat-list-loading">Loading...</div>}
           
           {!loading && chats.length === 0 && (
-            <div className="chatItem">No chats yet</div>
+            <div className="chat-list-empty">No chats yet</div>
           )}
           
           {chats.map((chat) => (
@@ -30,10 +43,15 @@ function AppLayout() {
               key={chat.id}
               to={`/app/chat/${chat.id}`}
               className={({ isActive }) =>
-                isActive ? "chatItem active" : "chatItem"
+                isActive ? "chat-list-item active" : "chat-list-item"
               }
             >
-              {chat.type === "private" ? chat.name || "Private Chat" : chat.name}
+              <div className="chat-list-item-name">
+                {chat.type === "private" ? "💬" : "👥"} {chat.name || (chat.type === "private" ? "Private Chat" : "Group Chat")}
+              </div>
+              <div className="chat-list-item-type">
+                {chat.type === "private" ? "Личный" : "Группа"}
+              </div>
             </NavLink>
           ))}
         </div>
@@ -58,6 +76,13 @@ function AppLayout() {
           <Outlet />
         </div>
       </div>
+
+      {showCreateModal && (
+        <CreateChatModal
+          onClose={() => setShowCreateModal(false)}
+          onChatCreated={handleChatCreated}
+        />
+      )}
     </div>
   );
 }

@@ -26,13 +26,8 @@ func (s *ChatService) CreatePrivateChat(
 	ctx context.Context,
 	user1 uuid.UUID,
 	user2 uuid.UUID,
-) (uuid.UUID, error) {
-
-	return s.repo.CreatePrivateChat(
-		ctx,
-		user1,
-		user2,
-	)
+) (uuid.UUID, bool, error) {
+	return s.repo.CreatePrivateChat(ctx, user1, user2)
 }
 
 func (s *ChatService) CreateGroupChat(

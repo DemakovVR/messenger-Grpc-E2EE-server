@@ -3,12 +3,16 @@ default_bits = 2048
 prompt = no
 default_md = sha256
 distinguished_name = dn
-req_extensions = req_ext
+req_extensions = v3_req
 
 [dn]
+C = RU
+ST = Samara
+L = Samara
+O = SecureTalk
 CN = localhost
 
-[req_ext]
+[v3_req]
 subjectAltName = @alt_names
 
 [alt_names]

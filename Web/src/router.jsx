@@ -6,7 +6,7 @@ import AppLayout from "./layouts/AppLayout";
 import ChatPage from "./pages/ChatPage";
 
 function ChatsPage() {
-  return <div className="chat-placeholder">Select a chat to start messaging</div>;
+  return <div className="no-chat-selected">Выберите чат из списка</div>;
 }
 
 export const router = createBrowserRouter([

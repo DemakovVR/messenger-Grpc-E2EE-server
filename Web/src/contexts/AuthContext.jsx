@@ -19,19 +19,29 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-    const login = async (username, password) => {
+  const login = async (username, password) => {
     const data = await authApi.login(username, password);
 
     localStorage.setItem("access_token", data.accessToken);
     localStorage.setItem("refresh_token", data.refreshToken);
     
-    if (data.user_id) {
-      localStorage.setItem("user_id", data.user_id);
+    let userId = data.user_id;
+    
+    if (!userId) {
+      try {
+        const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+        userId = payload.user_id;
+        localStorage.setItem("user_id", userId);
+      } catch (e) {
+        console.error("Failed to decode token", e);
+      }
+    } else {
+      localStorage.setItem("user_id", userId);
     }
 
     setUser({
       token: data.accessToken,
-      id: data.user_id || null,
+      id: userId,
     });
 
     return data;

@@ -23,7 +23,12 @@ service AuthService {
   }
 
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
-  rpc Logout(LogoutRequest) returns (Empty);
+  rpc Logout(LogoutRequest) returns (Empty) {
+  option (google.api.http) = {
+    post: "/auth/logout"
+    body: "*"
+  };
+}
   rpc ChangePassword(ChangePasswordRequest) returns (Empty);
 }
 

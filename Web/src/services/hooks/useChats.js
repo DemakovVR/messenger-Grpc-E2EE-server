@@ -25,11 +25,11 @@ export function useChats() {
     fetchChats();
   }, [fetchChats]);
 
-  const createPrivateChat = async (userId) => {
+  const createPrivateChat = async (username) => {
     try {
-      const data = await chatApi.createPrivateChat(userId);
+      const data = await chatApi.createPrivateChat(username);
       await fetchChats();
-      return data.chat_id;
+      return data.chatId;
     } catch (err) {
       console.error("Create private chat error:", err);
       throw err;
@@ -40,7 +40,7 @@ export function useChats() {
     try {
       const data = await chatApi.createGroupChat(name, participantIds);
       await fetchChats();
-      return data.chat_id;
+      return data.chatId;
     } catch (err) {
       console.error("Create group chat error:", err);
       throw err;

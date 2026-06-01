@@ -24,15 +24,37 @@ func (r *ChatRepository) CreatePrivateChat(
 	ctx context.Context,
 	user1 uuid.UUID,
 	user2 uuid.UUID,
-) (uuid.UUID, error) {
-
+) (uuid.UUID, bool, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 	defer tx.Rollback(ctx)
 
 	var chatID uuid.UUID
+
+	err = tx.QueryRow(
+		ctx,
+		`
+		SELECT c.id
+		FROM chats c
+		WHERE c.type = 'private'
+		AND EXISTS (
+			SELECT 1 FROM chat_participants cp1 
+			WHERE cp1.chat_id = c.id AND cp1.user_id = $1
+		)
+		AND EXISTS (
+			SELECT 1 FROM chat_participants cp2 
+			WHERE cp2.chat_id = c.id AND cp2.user_id = $2
+		)
+		`,
+		user1, user2,
+	).Scan(&chatID)
+
+	if err == nil {
+		tx.Commit(ctx)
+		return chatID, true, nil
+	}
 
 	err = tx.QueryRow(
 		ctx,
@@ -44,15 +66,15 @@ func (r *ChatRepository) CreatePrivateChat(
 	).Scan(&chatID)
 
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	_, err = tx.Exec(
 		ctx,
 		`
-		INSERT INTO chat_participants
-		UNIQUE((chat_id, user_id)
+		INSERT INTO chat_participants (chat_id, user_id)
 		VALUES ($1, $2), ($1, $3)
+		ON CONFLICT (chat_id, user_id) DO NOTHING
 		`,
 		chatID,
 		user1,
@@ -60,14 +82,14 @@ func (r *ChatRepository) CreatePrivateChat(
 	)
 
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, false, err
 	}
 
-	return chatID, nil
+	return chatID, false, nil
 }
 
 func (r *ChatRepository) CreateGroupChat(
@@ -75,7 +97,6 @@ func (r *ChatRepository) CreateGroupChat(
 	name string,
 	participants []uuid.UUID,
 ) (uuid.UUID, error) {
-
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return uuid.Nil, err
@@ -99,18 +120,16 @@ func (r *ChatRepository) CreateGroupChat(
 	}
 
 	for _, userID := range participants {
-
 		_, err := tx.Exec(
 			ctx,
 			`
-			INSERT INTO chat_participants
-			UNIQUE((chat_id, user_id)
+			INSERT INTO chat_participants (chat_id, user_id)
 			VALUES ($1, $2)
+			ON CONFLICT (chat_id, user_id) DO NOTHING
 			`,
 			chatID,
 			userID,
 		)
-
 		if err != nil {
 			return uuid.Nil, err
 		}
@@ -127,19 +146,17 @@ func (r *ChatRepository) GetChats(
 	ctx context.Context,
 	userID uuid.UUID,
 ) ([]models.Chat, error) {
-
 	rows, err := r.db.Query(
 		ctx,
 		`
 		SELECT
 			c.id,
 			c.type,
-			COALESCE(c.name, ''),
+			COALESCE(c.name, '') as name,
 			c.created_at,
-    		c.updated_at
+			c.updated_at
 		FROM chats c
-		JOIN chat_participants cp
-			ON cp.chat_id = c.id
+		JOIN chat_participants cp ON cp.chat_id = c.id
 		WHERE cp.user_id = $1
 		`,
 		userID,
@@ -153,9 +170,7 @@ func (r *ChatRepository) GetChats(
 	var chats []models.Chat
 
 	for rows.Next() {
-
 		var chat models.Chat
-
 		err := rows.Scan(
 			&chat.ID,
 			&chat.Type,
@@ -163,11 +178,9 @@ func (r *ChatRepository) GetChats(
 			&chat.CreatedAt,
 			&chat.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}
-
 		chats = append(chats, chat)
 	}
 

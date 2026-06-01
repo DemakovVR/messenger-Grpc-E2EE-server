@@ -33,7 +33,6 @@ func (s *ChatServer) CreatePrivateChat(
 	ctx context.Context,
 	req *chatpb.CreatePrivateChatRequest,
 ) (*chatpb.CreateChatResponse, error) {
-
 	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -44,13 +43,14 @@ func (s *ChatServer) CreatePrivateChat(
 		return nil, err
 	}
 
-	chatID, err := s.chatService.CreatePrivateChat(ctx, userID, otherUserID)
+	chatID, isExisting, err := s.chatService.CreatePrivateChat(ctx, userID, otherUserID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &chatpb.CreateChatResponse{
-		ChatId: chatID.String(),
+		ChatId:     chatID.String(),
+		IsExisting: isExisting,
 	}, nil
 }
 

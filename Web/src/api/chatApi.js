@@ -18,7 +18,7 @@ export const chatApi = {
 
   createGroupChat: async (name, participantIds) => {
     const res = await httpClient.post("/chats/group", {
-      name,
+      name: name,
       participant_ids: participantIds,
     });
     return res.data;
@@ -48,6 +48,21 @@ export const chatApi = {
     const res = await httpClient.put(`/messages/${messageId}`, {
       encrypted_content: encryptedContent,
     });
+    return res.data;
+  },
+
+  searchUsers: async (query) => {
+    const res = await httpClient.get("/contacts/search", { params: { query } });
+    return res.data;
+  },
+
+  addContact: async (contactId) => {
+    const res = await httpClient.post("/contacts", { contact_id: contactId });
+    return res.data;
+  },
+
+  getContacts: async () => {
+    const res = await httpClient.get("/contacts");
     return res.data;
   },
 };
