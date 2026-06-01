@@ -3,61 +3,87 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #0f0f12;
-  color: white;
+  background: #ffffff;
+  color: #1a1a1a;
 }
 
 .authCard {
   width: 360px;
   padding: 30px;
-  background: #15151b;
+  background: #ffffff;
   border-radius: 12px;
-  border: 1px solid #222;
+  border: 1px solid #e0e0e0;
   text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .authCard h1 {
   margin-bottom: 5px;
+  color: #1a1a1a;
 }
 
 .authCard p {
-  color: #aaa;
+  color: #666666;
   margin-bottom: 20px;
 }
 
-.authCard input {
+.inputGroup {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #0f0f12;
-  color: white;
+  margin-bottom: 12px;
 }
 
-.authCard button {
+.inputWrapper {
+  position: relative;
   width: 100%;
-  padding: 12px;
-  background: #4c5cff;
-  border: none;
+}
+
+.authInput {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  margin-bottom: 0;
   border-radius: 8px;
-  color: white;
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  color: #1a1a1a;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.authInput:focus {
+  border-color: #4c5cff;
+}
+
+.authInput.inputError {
+  border-color: #ff6b6b;
+}
+
+.authInput::placeholder {
+  color: #999999;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent !important;
+  border: none !important;
+  color: #999999;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 16px;
+  outline: none;
+  box-shadow: none;
 }
 
-.authCard button:hover {
-  background: #3b4bff;
-}
-
-.switch {
-  display: block;
-  margin-top: 12px;
-  color: #aaa;
-  text-decoration: none;
-}
-
-.switch:hover {
-  color: white;
+.togglePassword:hover {
+  color: #4c5cff;
 }
 
 .errorText {
@@ -65,6 +91,35 @@
   text-align: left;
   color: #ff6b6b;
   font-size: 13px;
-  margin-top: -5px;
-  margin-bottom: 10px;
+  margin-top: 4px;
+}
+
+.authCard button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: #4c5cff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.authCard button[type="submit"]:hover {
+  background: #3b4bff;
+}
+
+.switch {
+  display: block;
+  margin-top: 16px;
+  color: #4c5cff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.switch:hover {
+  color: #3b4bff;
+  text-decoration: underline;
 }

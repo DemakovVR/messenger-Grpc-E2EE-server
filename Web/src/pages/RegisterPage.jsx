@@ -71,7 +71,8 @@ function RegisterPage() {
   return (
     <AuthContainer>
       <AuthCard>
-        <h1>Создание аккаунта</h1>
+        <h1>SecureTalk</h1>
+        <p>Создание аккаунта</p>
 
         <AuthForm
           onSubmit={handleRegister}
