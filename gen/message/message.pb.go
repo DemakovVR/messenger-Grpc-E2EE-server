@@ -7,6 +7,7 @@
 package message
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -453,7 +454,7 @@ var File_proto_message_proto protoreflect.FileDescriptor
 
 const file_proto_message_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/message.proto\x12\amessage\"\x10\n" +
+	"\x13proto/message.proto\x12\amessage\x1a\x1cgoogle/api/annotations.proto\"\x10\n" +
 	"\x0eConnectRequest\"Z\n" +
 	"\x12SendMessageRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12+\n" +
@@ -478,13 +479,13 @@ const file_proto_message_proto_rawDesc = "" +
 	"\n" +
 	"message_id\x18\x01 \x01(\tR\tmessageId\x12+\n" +
 	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\"\a\n" +
-	"\x05Empty2\xe8\x02\n" +
-	"\x0eMessageService\x12H\n" +
-	"\vSendMessage\x12\x1b.message.SendMessageRequest\x1a\x1c.message.SendMessageResponse\x12H\n" +
-	"\vGetMessages\x12\x1b.message.GetMessagesRequest\x1a\x1c.message.GetMessagesResponse\x12F\n" +
-	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01\x12>\n" +
-	"\rDeleteMessage\x12\x1d.message.DeleteMessageRequest\x1a\x0e.message.Empty\x12:\n" +
-	"\vEditMessage\x12\x1b.message.EditMessageRequest\x1a\x0e.message.EmptyB\rZ\vgen/messageb\x06proto3"
+	"\x05Empty2\xe4\x03\n" +
+	"\x0eMessageService\x12^\n" +
+	"\vSendMessage\x12\x1b.message.SendMessageRequest\x1a\x1c.message.SendMessageResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/messages\x12k\n" +
+	"\vGetMessages\x12\x1b.message.GetMessagesRequest\x1a\x1c.message.GetMessagesResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/chats/{chat_id}/messages\x12F\n" +
+	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01\x12^\n" +
+	"\rDeleteMessage\x12\x1d.message.DeleteMessageRequest\x1a\x0e.message.Empty\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/messages/{message_id}\x12]\n" +
+	"\vEditMessage\x12\x1b.message.EditMessageRequest\x1a\x0e.message.Empty\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/messages/{message_id}B\rZ\vgen/messageb\x06proto3"
 
 var (
 	file_proto_message_proto_rawDescOnce sync.Once

@@ -4,11 +4,35 @@ package keys;
 
 option go_package = "gen/keys;keyspb";
 
+import "google/api/annotations.proto";
+
 service KeyService {
-  rpc UploadKeys (UploadKeysRequest) returns (Empty);
-  rpc GetPreKeyBundle (GetPreKeyBundleRequest) returns (PreKeyBundle);
-  rpc UploadOneTimeKeys(UploadOneTimeKeysRequest) returns (Empty);
-  rpc RotateSignedPreKey(RotateSignedPreKeyRequest) returns (Empty);
+  rpc UploadKeys (UploadKeysRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/keys/upload"
+      body: "*"
+    };
+  }
+  
+  rpc GetPreKeyBundle (GetPreKeyBundleRequest) returns (PreKeyBundle) {
+    option (google.api.http) = {
+      get: "/keys/bundle/{user_id}"
+    };
+  }
+  
+  rpc UploadOneTimeKeys(UploadOneTimeKeysRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/keys/one-time"
+      body: "*"
+    };
+  }
+  
+  rpc RotateSignedPreKey(RotateSignedPreKeyRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/keys/rotate"
+      body: "*"
+    };
+  }
 }
 
 message Empty {}

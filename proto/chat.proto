@@ -4,14 +4,54 @@ package chat;
 
 option go_package = "gen/chat;chat";
 
+import "google/api/annotations.proto";
+
 service ChatService {
-  rpc CreatePrivateChat(CreatePrivateChatRequest) returns (CreateChatResponse);
-  rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateChatResponse);
-  rpc GetChats(GetChatsRequest) returns (GetChatsResponse);
-  rpc DeleteChat(DeleteChatRequest) returns (Empty);
-  rpc AddParticipants(AddParticipantsRequest) returns (Empty);
-  rpc RemoveParticipants(RemoveParticipantsRequest) returns (Empty);
-  rpc LeaveGroup(LeaveGroupRequest) returns (Empty);
+  rpc CreatePrivateChat(CreatePrivateChatRequest) returns (CreateChatResponse) {
+    option (google.api.http) = {
+      post: "/chats/private"
+      body: "*"
+    };
+  }
+  
+  rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateChatResponse) {
+    option (google.api.http) = {
+      post: "/chats/group"
+      body: "*"
+    };
+  }
+  
+  rpc GetChats(GetChatsRequest) returns (GetChatsResponse) {
+    option (google.api.http) = {
+      get: "/chats"
+    };
+  }
+  
+  rpc DeleteChat(DeleteChatRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/chats/{chat_id}"
+    };
+  }
+  
+  rpc AddParticipants(AddParticipantsRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/chats/{chat_id}/participants"
+      body: "*"
+    };
+  }
+  
+  rpc RemoveParticipants(RemoveParticipantsRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/chats/{chat_id}/participants"
+    };
+  }
+  
+  rpc LeaveGroup(LeaveGroupRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/chats/{chat_id}/leave"
+      body: "*"
+    };
+  }
 }
 
 message CreatePrivateChatRequest {

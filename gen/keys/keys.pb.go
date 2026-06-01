@@ -7,6 +7,7 @@
 package keyspb
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -429,7 +430,7 @@ var File_proto_keys_proto protoreflect.FileDescriptor
 
 const file_proto_keys_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/keys.proto\x12\x04keys\"\a\n" +
+	"\x10proto/keys.proto\x12\x04keys\x1a\x1cgoogle/api/annotations.proto\"\a\n" +
 	"\x05Empty\"\xca\x01\n" +
 	"\x11UploadKeysRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12.\n" +
@@ -457,14 +458,14 @@ const file_proto_keys_proto_rawDesc = "" +
 	"\x19RotateSignedPreKeyRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x120\n" +
 	"\x14signed_prekey_public\x18\x02 \x01(\tR\x12signedPrekeyPublic\x126\n" +
-	"\x17signed_prekey_signature\x18\x03 \x01(\tR\x15signedPrekeySignature2\x8b\x02\n" +
+	"\x17signed_prekey_signature\x18\x03 \x01(\tR\x15signedPrekeySignature2\xf8\x02\n" +
 	"\n" +
-	"KeyService\x122\n" +
+	"KeyService\x12K\n" +
 	"\n" +
-	"UploadKeys\x12\x17.keys.UploadKeysRequest\x1a\v.keys.Empty\x12C\n" +
-	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundle\x12@\n" +
-	"\x11UploadOneTimeKeys\x12\x1e.keys.UploadOneTimeKeysRequest\x1a\v.keys.Empty\x12B\n" +
-	"\x12RotateSignedPreKey\x12\x1f.keys.RotateSignedPreKeyRequest\x1a\v.keys.EmptyB\x11Z\x0fgen/keys;keyspbb\x06proto3"
+	"UploadKeys\x12\x17.keys.UploadKeysRequest\x1a\v.keys.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/keys/upload\x12c\n" +
+	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundle\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/keys/bundle/{user_id}\x12[\n" +
+	"\x11UploadOneTimeKeys\x12\x1e.keys.UploadOneTimeKeysRequest\x1a\v.keys.Empty\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/keys/one-time\x12[\n" +
+	"\x12RotateSignedPreKey\x12\x1f.keys.RotateSignedPreKeyRequest\x1a\v.keys.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/keys/rotateB\x11Z\x0fgen/keys;keyspbb\x06proto3"
 
 var (
 	file_proto_keys_proto_rawDescOnce sync.Once

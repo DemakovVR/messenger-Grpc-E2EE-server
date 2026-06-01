@@ -7,6 +7,7 @@
 package file
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -209,7 +210,7 @@ var File_proto_file_proto protoreflect.FileDescriptor
 
 const file_proto_file_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/file.proto\x12\x04file\"F\n" +
+	"\x10proto/file.proto\x12\x04file\x1a\x1cgoogle/api/annotations.proto\"F\n" +
 	"\x11UploadFileRequest\x12\x1b\n" +
 	"\tfile_name\x18\x01 \x01(\tR\bfileName\x12\x14\n" +
 	"\x05chunk\x18\x02 \x01(\fR\x05chunk\"/\n" +
@@ -218,11 +219,11 @@ const file_proto_file_proto_rawDesc = "" +
 	"\x13DownloadFileRequest\x12\x19\n" +
 	"\bfile_url\x18\x01 \x01(\tR\afileUrl\",\n" +
 	"\x14DownloadFileResponse\x12\x14\n" +
-	"\x05chunk\x18\x01 \x01(\fR\x05chunk2\x99\x01\n" +
-	"\vFileService\x12A\n" +
+	"\x05chunk\x18\x01 \x01(\fR\x05chunk2\xd7\x01\n" +
+	"\vFileService\x12[\n" +
 	"\n" +
-	"UploadFile\x12\x17.file.UploadFileRequest\x1a\x18.file.UploadFileResponse(\x01\x12G\n" +
-	"\fDownloadFile\x12\x19.file.DownloadFileRequest\x1a\x1a.file.DownloadFileResponse0\x01B\x0fZ\rgen/file;fileb\x06proto3"
+	"UploadFile\x12\x17.file.UploadFileRequest\x1a\x18.file.UploadFileResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/files/upload(\x01\x12k\n" +
+	"\fDownloadFile\x12\x19.file.DownloadFileRequest\x1a\x1a.file.DownloadFileResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/files/download/{file_url}0\x01B\x0fZ\rgen/file;fileb\x06proto3"
 
 var (
 	file_proto_file_proto_rawDescOnce sync.Once

@@ -4,10 +4,12 @@ import (
 	"context"
 
 	chatpb "Server/gen/chat"
+	"Server/internal/logger"
 	"Server/internal/middleware"
 	"Server/internal/service"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type ChatServer struct {
@@ -88,19 +90,23 @@ func (s *ChatServer) GetChats(
 	ctx context.Context,
 	req *chatpb.GetChatsRequest,
 ) (*chatpb.GetChatsResponse, error) {
+	logger.Log.Info("GetChats called", zap.Any("req", req))
 
 	userID, err := getUserID(ctx)
 	if err != nil {
+		logger.Log.Error("getUserID failed", zap.Error(err))
 		return nil, err
 	}
+	logger.Log.Info("UserID extracted", zap.String("userID", userID.String()))
 
 	chats, err := s.chatService.GetChats(ctx, userID)
 	if err != nil {
+		logger.Log.Error("GetChats service failed", zap.Error(err))
 		return nil, err
 	}
+	logger.Log.Info("GetChats service succeeded", zap.Int("count", len(chats)))
 
 	result := make([]*chatpb.Chat, 0, len(chats))
-
 	for _, chat := range chats {
 		result = append(result, &chatpb.Chat{
 			Id:   chat.ID.String(),

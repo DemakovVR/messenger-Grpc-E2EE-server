@@ -19,18 +19,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+    const login = async (username, password) => {
     const data = await authApi.login(username, password);
 
-    localStorage.setItem("access_token", data.access_token);
-    localStorage.setItem("refresh_token", data.refresh_token);
+    localStorage.setItem("access_token", data.accessToken);
+    localStorage.setItem("refresh_token", data.refreshToken);
     
     if (data.user_id) {
       localStorage.setItem("user_id", data.user_id);
     }
 
     setUser({
-      token: data.access_token,
+      token: data.accessToken,
       id: data.user_id || null,
     });
 

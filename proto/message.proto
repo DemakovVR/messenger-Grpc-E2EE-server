@@ -4,20 +4,36 @@ package message;
 
 option go_package = "gen/message";
 
+import "google/api/annotations.proto";
+
 service MessageService {
-    rpc SendMessage(SendMessageRequest)
-        returns (SendMessageResponse);
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
+      option (google.api.http) = {
+        post: "/messages"
+        body: "*"
+      };
+    }
 
-    rpc GetMessages(GetMessagesRequest)
-        returns (GetMessagesResponse);
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {
+      option (google.api.http) = {
+        get: "/chats/{chat_id}/messages"
+      };
+    }
 
-    rpc ConnectMessages(ConnectRequest)
-        returns (stream MessageResponse);
+    rpc ConnectMessages(ConnectRequest) returns (stream MessageResponse);
 
-    rpc DeleteMessage(DeleteMessageRequest)
-        returns (Empty);
-    rpc EditMessage(EditMessageRequest)
-        returns (Empty);
+    rpc DeleteMessage(DeleteMessageRequest) returns (Empty) {
+      option (google.api.http) = {
+        delete: "/messages/{message_id}"
+      };
+    }
+    
+    rpc EditMessage(EditMessageRequest) returns (Empty) {
+      option (google.api.http) = {
+        put: "/messages/{message_id}"
+        body: "*"
+      };
+    }
 }
 
 message ConnectRequest {}

@@ -4,12 +4,40 @@ package contact;
 
 option go_package = "gen/contact;contact";
 
+import "google/api/annotations.proto";
+
 service ContactService {
-  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
-  rpc AddContact(AddContactRequest) returns (AddContactResponse);
-  rpc GetContacts(GetContactsRequest) returns (GetContactsResponse);
-  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse);
-  rpc BlockContact(BlockContactRequest) returns (BlockContactResponse);    
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {
+    option (google.api.http) = {
+      get: "/contacts/search"
+    };
+  }
+  
+  rpc AddContact(AddContactRequest) returns (AddContactResponse) {
+    option (google.api.http) = {
+      post: "/contacts"
+      body: "*"
+    };
+  }
+  
+  rpc GetContacts(GetContactsRequest) returns (GetContactsResponse) {
+    option (google.api.http) = {
+      get: "/contacts"
+    };
+  }
+  
+  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}"
+    };
+  }
+  
+  rpc BlockContact(BlockContactRequest) returns (BlockContactResponse) {
+    option (google.api.http) = {
+      post: "/contacts/{contact_id}/block"
+      body: "*"
+    };
+  }
 }
 
 message User {

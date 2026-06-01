@@ -1,16 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 import ProtectedRoute from "./components/ui/ProtectedRoute";
-
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AppLayout from "./layouts/AppLayout";
+import ChatPage from "./pages/ChatPage";
 
 function ChatsPage() {
-  return <div>Список чатов (будет здесь)</div>;
-}
-
-function ChatPage() {
-  return <div>Чат (будет здесь)</div>;
+  return <div className="chat-placeholder">Select a chat to start messaging</div>;
 }
 
 export const router = createBrowserRouter([

@@ -7,6 +7,7 @@
 package contact
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -517,7 +518,7 @@ var File_proto_contact_proto protoreflect.FileDescriptor
 
 const file_proto_contact_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/contact.proto\x12\acontact\"H\n" +
+	"\x13proto/contact.proto\x12\acontact\x1a\x1cgoogle/api/annotations.proto\"H\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
@@ -543,14 +544,14 @@ const file_proto_contact_proto_rawDesc = "" +
 	"\n" +
 	"contact_id\x18\x01 \x01(\tR\tcontactId\"0\n" +
 	"\x14BlockContactResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\x88\x03\n" +
-	"\x0eContactService\x12H\n" +
-	"\vSearchUsers\x12\x1b.contact.SearchUsersRequest\x1a\x1c.contact.SearchUsersResponse\x12E\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\x94\x04\n" +
+	"\x0eContactService\x12b\n" +
+	"\vSearchUsers\x12\x1b.contact.SearchUsersRequest\x1a\x1c.contact.SearchUsersResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/contacts/search\x12[\n" +
 	"\n" +
-	"AddContact\x12\x1a.contact.AddContactRequest\x1a\x1b.contact.AddContactResponse\x12H\n" +
-	"\vGetContacts\x12\x1b.contact.GetContactsRequest\x1a\x1c.contact.GetContactsResponse\x12N\n" +
-	"\rDeleteContact\x12\x1d.contact.DeleteContactRequest\x1a\x1e.contact.DeleteContactResponse\x12K\n" +
-	"\fBlockContact\x12\x1c.contact.BlockContactRequest\x1a\x1d.contact.BlockContactResponseB\x15Z\x13gen/contact;contactb\x06proto3"
+	"AddContact\x12\x1a.contact.AddContactRequest\x1a\x1b.contact.AddContactResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/contacts\x12[\n" +
+	"\vGetContacts\x12\x1b.contact.GetContactsRequest\x1a\x1c.contact.GetContactsResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/contacts\x12n\n" +
+	"\rDeleteContact\x12\x1d.contact.DeleteContactRequest\x1a\x1e.contact.DeleteContactResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/contacts/{contact_id}\x12t\n" +
+	"\fBlockContact\x12\x1c.contact.BlockContactRequest\x1a\x1d.contact.BlockContactResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/contacts/{contact_id}/blockB\x15Z\x13gen/contact;contactb\x06proto3"
 
 var (
 	file_proto_contact_proto_rawDescOnce sync.Once

@@ -92,3 +92,13 @@
   border-color: #ff6b6b;
   color: #ff6b6b;
 }
+
+.chatItem a {
+  color: white;
+  text-decoration: none;
+  display: block;
+}
+
+.chatItem.active {
+  background: #2a2a35;
+}

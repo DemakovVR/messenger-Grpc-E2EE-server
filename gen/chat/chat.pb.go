@@ -7,6 +7,7 @@
 package chat
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -533,7 +534,7 @@ var File_proto_chat_proto protoreflect.FileDescriptor
 
 const file_proto_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/chat.proto\x12\x04chat\"3\n" +
+	"\x10proto/chat.proto\x12\x04chat\x1a\x1cgoogle/api/annotations.proto\"3\n" +
 	"\x18CreatePrivateChatRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"U\n" +
 	"\x16CreateGroupChatRequest\x12\x12\n" +
@@ -559,17 +560,17 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\buser_ids\x18\x02 \x03(\tR\auserIds\",\n" +
 	"\x11LeaveGroupRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\a\n" +
-	"\x05Empty2\xcc\x03\n" +
-	"\vChatService\x12M\n" +
-	"\x11CreatePrivateChat\x12\x1e.chat.CreatePrivateChatRequest\x1a\x18.chat.CreateChatResponse\x12I\n" +
-	"\x0fCreateGroupChat\x12\x1c.chat.CreateGroupChatRequest\x1a\x18.chat.CreateChatResponse\x129\n" +
-	"\bGetChats\x12\x15.chat.GetChatsRequest\x1a\x16.chat.GetChatsResponse\x122\n" +
+	"\x05Empty2\x9e\x05\n" +
+	"\vChatService\x12h\n" +
+	"\x11CreatePrivateChat\x12\x1e.chat.CreatePrivateChatRequest\x1a\x18.chat.CreateChatResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/chats/private\x12b\n" +
+	"\x0fCreateGroupChat\x12\x1c.chat.CreateGroupChatRequest\x1a\x18.chat.CreateChatResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/chats/group\x12I\n" +
+	"\bGetChats\x12\x15.chat.GetChatsRequest\x1a\x16.chat.GetChatsResponse\"\x0e\x82\xd3\xe4\x93\x02\b\x12\x06/chats\x12L\n" +
 	"\n" +
-	"DeleteChat\x12\x17.chat.DeleteChatRequest\x1a\v.chat.Empty\x12<\n" +
-	"\x0fAddParticipants\x12\x1c.chat.AddParticipantsRequest\x1a\v.chat.Empty\x12B\n" +
-	"\x12RemoveParticipants\x12\x1f.chat.RemoveParticipantsRequest\x1a\v.chat.Empty\x122\n" +
+	"DeleteChat\x12\x17.chat.DeleteChatRequest\x1a\v.chat.Empty\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/chats/{chat_id}\x12f\n" +
+	"\x0fAddParticipants\x12\x1c.chat.AddParticipantsRequest\x1a\v.chat.Empty\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/chats/{chat_id}/participants\x12i\n" +
+	"\x12RemoveParticipants\x12\x1f.chat.RemoveParticipantsRequest\x1a\v.chat.Empty\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/chats/{chat_id}/participants\x12U\n" +
 	"\n" +
-	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\v.chat.EmptyB\x0fZ\rgen/chat;chatb\x06proto3"
+	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\v.chat.Empty\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/chats/{chat_id}/leaveB\x0fZ\rgen/chat;chatb\x06proto3"
 
 var (
 	file_proto_chat_proto_rawDescOnce sync.Once

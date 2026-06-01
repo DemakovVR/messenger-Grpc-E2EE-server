@@ -155,15 +155,66 @@ func main() {
 			logger.Log.Fatal("failed to load TLS cert for gateway", zap.Error(err))
 		}
 
+		opts := []grpc.DialOption{
+			grpc.WithTransportCredentials(creds),
+		}
+
 		err = authpb.RegisterAuthServiceHandlerFromEndpoint(
 			ctx,
 			mux,
 			"localhost:"+cfg.ServerPort,
-			[]grpc.DialOption{
-				grpc.WithTransportCredentials(creds),
-			},
+			opts,
 		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
 
+		err = chatpb.RegisterChatServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		err = messagepb.RegisterMessageServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		err = contactpb.RegisterContactServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		err = filepb.RegisterFileServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		err = keyspb.RegisterKeyServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
