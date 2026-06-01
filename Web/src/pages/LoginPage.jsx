@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 import AuthContainer from "../components/ui/auth/AuthContainer";
@@ -17,37 +18,38 @@ import "../styles/auth.css";
 
 function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const usernameError =
-      validateUsername(username);
-
-    const passwordError =
-      validatePassword(password);
+    const usernameError = validateUsername(username);
+    const passwordError = validatePassword(password);
 
     setErrors({
       username: usernameError,
       password: passwordError,
     });
 
-    if (
-      usernameError ||
-      passwordError
-    ) {
+    if (usernameError || passwordError) {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       await login(username, password);
+      navigate("/app", { replace: true });
     } catch (err) {
-      alert("Ошибка входа");
+      console.error("Login error:", err);
+      alert(err.response?.data?.message || "Ошибка входа. Проверьте логин и пароль.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,34 +63,20 @@ function LoginPage() {
           <AuthInput
             placeholder="Логин"
             value={username}
-            onChange={(e) =>
-              setUsername(e.target.value)
-            }
+            onChange={(e) => setUsername(e.target.value)}
+            error={errors.username}
           />
-
-          {errors.username && (
-            <span className="errorText">
-              {errors.username}
-            </span>
-          )}
 
           <AuthInput
             placeholder="Пароль"
             type="password"
             value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors.password}
           />
 
-          {errors.password && (
-            <span className="errorText">
-              {errors.password}
-            </span>
-          )}
-
-          <AuthButton type="submit">
-            Войти
+          <AuthButton type="submit" disabled={isLoading}>
+            {isLoading ? "Вход..." : "Войти"}
           </AuthButton>
         </AuthForm>
 

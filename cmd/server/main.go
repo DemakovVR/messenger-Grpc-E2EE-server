@@ -22,14 +22,31 @@ import (
 	"Server/internal/middleware"
 	"Server/internal/repository"
 	"Server/internal/service"
+
 	tlsutil "Server/internal/tls"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	grpcserver "google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	cfg := configs.LoadConfig()
@@ -133,12 +150,17 @@ func main() {
 
 		mux := runtime.NewServeMux()
 
-		err := authpb.RegisterAuthServiceHandlerFromEndpoint(
+		creds, err := credentials.NewClientTLSFromFile(cfg.TLSCertFile, "")
+		if err != nil {
+			logger.Log.Fatal("failed to load TLS cert for gateway", zap.Error(err))
+		}
+
+		err = authpb.RegisterAuthServiceHandlerFromEndpoint(
 			ctx,
 			mux,
 			"localhost:"+cfg.ServerPort,
 			[]grpc.DialOption{
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithTransportCredentials(creds),
 			},
 		)
 
@@ -148,7 +170,7 @@ func main() {
 
 		logger.Log.Info("HTTP gateway started on :8080")
 
-		if err := http.ListenAndServe(":8080", mux); err != nil {
+		if err := http.ListenAndServe(":8080", corsMiddleware(mux)); err != nil {
 			logger.Log.Fatal("HTTP server error", zap.Error(err))
 		}
 	}()

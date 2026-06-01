@@ -1,10 +1,18 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import "./layout.css";
 
 function AppLayout() {
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
   return (
     <div className="app">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="logo">SecureTalk</div>
 
@@ -16,9 +24,17 @@ function AppLayout() {
             Alice
           </div>
         </div>
+
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <span>ID: {user?.id?.slice(0, 8)}...</span>
+          </div>
+          <button onClick={handleLogout} className="logout-btn">
+            Выйти
+          </button>
+        </div>
       </aside>
 
-      {/* Main area */}
       <div className="main">
         <header className="topbar">
           <div className="title">Chat</div>

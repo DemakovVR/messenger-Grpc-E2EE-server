@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 import AuthContainer from "../components/ui/auth/AuthContainer";
@@ -18,30 +19,20 @@ import "../styles/auth.css";
 
 function RegisterPage() {
   const { register } = useAuth();
+  const navigate = useNavigate();
 
-  const [username, setUsername] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [errors, setErrors] =
-    useState({});
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const usernameError =
-      validateUsername(username);
-
-    const emailError =
-      validateEmail(email);
-
-    const passwordError =
-      validatePassword(password);
+    const usernameError = validateUsername(username);
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
 
     setErrors({
       username: usernameError,
@@ -49,22 +40,21 @@ function RegisterPage() {
       password: passwordError,
     });
 
-    if (
-      usernameError ||
-      emailError ||
-      passwordError
-    ) {
+    if (usernameError || emailError || passwordError) {
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      await register(
-        username,
-        email,
-        password
-      );
+      await register(username, email, password);
+      alert("Регистрация успешна! Теперь войдите в систему.");
+      navigate("/", { replace: true });
     } catch (err) {
-      alert("Ошибка регистрации");
+      console.error("Register error:", err);
+      alert(err.response?.data?.message || "Ошибка регистрации. Попробуйте другой логин или email.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,54 +64,31 @@ function RegisterPage() {
         <h1>SecureTalk</h1>
         <p>Создание аккаунта</p>
 
-        <AuthForm
-          onSubmit={handleRegister}
-        >
+        <AuthForm onSubmit={handleRegister}>
           <AuthInput
             placeholder="Логин"
             value={username}
-            onChange={(e) =>
-              setUsername(e.target.value)
-            }
+            onChange={(e) => setUsername(e.target.value)}
+            error={errors.username}
           />
-
-          {errors.username && (
-            <span className="errorText">
-              {errors.username}
-            </span>
-          )}
 
           <AuthInput
             placeholder="E-mail"
             value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
+            onChange={(e) => setEmail(e.target.value)}
+            error={errors.email}
           />
-
-          {errors.email && (
-            <span className="errorText">
-              {errors.email}
-            </span>
-          )}
 
           <AuthInput
             placeholder="Пароль"
             type="password"
             value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors.password}
           />
 
-          {errors.password && (
-            <span className="errorText">
-              {errors.password}
-            </span>
-          )}
-
-          <AuthButton type="submit">
-            Зарегистрироваться
+          <AuthButton type="submit" disabled={isLoading}>
+            {isLoading ? "Регистрация..." : "Зарегистрироваться"}
           </AuthButton>
         </AuthForm>
 

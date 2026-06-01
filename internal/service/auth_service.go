@@ -71,7 +71,7 @@ func (s *AuthService) Login(
 	password string,
 ) (string, string, error) {
 
-	user, err := s.userRepo.GetByEmail(ctx, username)
+	user, err := s.userRepo.GetByUsername(ctx, username)
 	if err != nil {
 		return "", "", err
 	}

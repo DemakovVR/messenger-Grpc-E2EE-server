@@ -11,7 +11,7 @@ type User struct {
 	Username     string    `db:"username"`
 	Email        string    `db:"email"`
 	PasswordHash string    `db:"password_hash"`
-	PublicKey    string    `db:"public_key"`
+	PublicKey    *string   `db:"public_key"`
 	Role         string    `db:"role"`
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
