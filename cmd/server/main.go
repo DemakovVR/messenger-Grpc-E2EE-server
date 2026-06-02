@@ -103,7 +103,7 @@ func main() {
 	keysService := service.NewKeysService(keysRepo)
 	fileService := service.NewFileService(fileRepo)
 
-	authServer := internalgrpc.NewAuthServer(authService)
+	authServer := internalgrpc.NewAuthServer(authService, userService)
 	userServer := internalgrpc.NewUserServer(userService)
 	contactServer := internalgrpc.NewContactServer(contactService)
 	chatServer := internalgrpc.NewChatServer(chatService)

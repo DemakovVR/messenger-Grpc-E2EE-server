@@ -25,6 +25,13 @@ func NewUserService(
 	}
 }
 
+func (s *UserService) GetByUsername(
+	ctx context.Context,
+	username string,
+) (*models.User, error) {
+	return s.userRepo.GetByUsername(ctx, username)
+}
+
 func (s *UserService) GetProfile(
 	ctx context.Context,
 	userID uuid.UUID,

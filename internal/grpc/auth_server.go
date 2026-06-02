@@ -15,11 +15,13 @@ import (
 type AuthServer struct {
 	authpb.UnimplementedAuthServiceServer
 	authService *service.AuthService
+	userService *service.UserService
 }
 
-func NewAuthServer(authService *service.AuthService) *AuthServer {
+func NewAuthServer(authService *service.AuthService, userService *service.UserService) *AuthServer {
 	return &AuthServer{
 		authService: authService,
+		userService: userService,
 	}
 }
 
@@ -48,7 +50,6 @@ func (s *AuthServer) Login(
 	ctx context.Context,
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
-
 	accessToken, refreshToken, err := s.authService.Login(
 		ctx,
 		req.Username,
@@ -58,9 +59,15 @@ func (s *AuthServer) Login(
 		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
+	user, err := s.userService.GetByUsername(ctx, req.Username)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
 	return &authpb.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		Username:     user.Username,
 	}, nil
 }
 

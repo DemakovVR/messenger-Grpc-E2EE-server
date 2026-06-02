@@ -12,6 +12,7 @@ function ChatPage() {
   const { user } = useAuth();
   const { messages, loading, sendMessage } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
+  const [chatUsers, setChatUsers] = useState({});
   const [e2eeReady, setE2eeReady] = useState(false);
 
   useEffect(() => {
@@ -35,9 +36,17 @@ function ChatPage() {
           if (data.chat) {
             const chat = data.chat;
             let peerId = null;
+            const usersMap = {};
+            
             if (chat.participants && chat.participants.length > 0) {
-              peerId = chat.participants[0]?.id;
+              chat.participants.forEach(p => {
+                usersMap[p.id] = p;
+                if (p.id !== user.id) {
+                  peerId = p.id;
+                }
+              });
             }
+            setChatUsers(usersMap);
             setPeerUserId(peerId);
           }
         } catch (err) {
@@ -80,6 +89,7 @@ function ChatPage() {
         messages={messages}
         currentUserId={user?.id}
         peerUserId={peerUserId}
+        users={chatUsers}
       />
       <MessageInput
         chatId={chatId}

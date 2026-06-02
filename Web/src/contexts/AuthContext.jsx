@@ -11,41 +11,47 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const userId = localStorage.getItem("user_id");
+    const username = localStorage.getItem("username");
 
     if (token && userId) {
-      setUser({ token, id: userId });
+      setUser({ token, id: userId, username });
     }
 
     setLoading(false);
   }, []);
 
   const login = async (username, password) => {
-    const data = await authApi.login(username, password);
+  const data = await authApi.login(username, password);
 
-    localStorage.setItem("access_token", data.accessToken);
-    localStorage.setItem("refresh_token", data.refreshToken);
-    
-    let userId = data.userId;
-    
-    if (!userId) {
-      try {
-        const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-        userId = payload.user_id;
-        localStorage.setItem("user_id", userId);
-      } catch (e) {
-        console.error("Failed to decode token", e);
-      }
-    } else {
+  localStorage.setItem("access_token", data.accessToken);
+  localStorage.setItem("refresh_token", data.refreshToken);
+  
+  let userId = data.userId;
+  let userName = data.username || username;
+  
+  if (!userId) {
+    try {
+      const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+      userId = payload.user_id;
+      userName = payload.username || username;
       localStorage.setItem("user_id", userId);
+      localStorage.setItem("username", userName);
+    } catch (e) {
+      console.error("Failed to decode token", e);
     }
+  } else {
+    localStorage.setItem("user_id", userId);
+    localStorage.setItem("username", userName);
+  }
 
-    setUser({
-      token: data.accessToken,
-      id: userId,
-    });
+  setUser({
+    token: data.accessToken,
+    id: userId,
+    username: userName,
+  });
 
-    return data;
-  };
+  return data;
+};
 
   const register = async (username, email, password) => {
     return await authApi.register(username, email, password);

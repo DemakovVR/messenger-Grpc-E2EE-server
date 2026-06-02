@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { ensureSharedSecret, decryptMessage } from "../../../crypto/e2ee";
 
-export default function MessageList({ messages, currentUserId, peerUserId }) {
+export default function MessageList({ messages, currentUserId, peerUserId, users }) {
   const messagesEndRef = useRef(null);
   const [decryptedMessages, setDecryptedMessages] = useState([]);
 
@@ -41,6 +41,12 @@ export default function MessageList({ messages, currentUserId, peerUserId }) {
             content = "[Зашифрованное сообщение]";
           }
 
+          // Получаем имя отправителя
+          let senderName = msg.senderId?.slice(0, 8);
+          if (users && users[msg.senderId]) {
+            senderName = users[msg.senderId].username || users[msg.senderId].display_name;
+          }
+
           let sentAt = msg.sentAt || msg.createdAt;
           let validDate = true;
           try {
@@ -55,17 +61,17 @@ export default function MessageList({ messages, currentUserId, peerUserId }) {
             ...msg,
             displayContent: content,
             isDecrypted,
+            senderName,
             sentAt: validDate ? sentAt : null,
           };
         })
       );
 
-      console.log("Decrypted messages:", decrypted);
       setDecryptedMessages(decrypted);
     };
 
     decryptMessages();
-  }, [messages, peerUserId]);
+  }, [messages, peerUserId, users]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,8 +80,16 @@ export default function MessageList({ messages, currentUserId, peerUserId }) {
   const formatTime = (dateString) => {
     if (!dateString) return "";
     try {
+      const parts = dateString.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+      if (parts) {
+        let hours = parseInt(parts[4], 10) + 4;
+        const minutes = parts[5];
+        if (hours >= 24) hours -= 24;
+        return `${hours.toString().padStart(2, '0')}:${minutes}`;
+      }
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "";
+      date.setHours(date.getHours() + 4);
       return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     } catch {
       return "";
@@ -94,14 +108,13 @@ export default function MessageList({ messages, currentUserId, peerUserId }) {
     <div className="message-list">
       {decryptedMessages.map((msg) => {
         const isOwn = msg.senderId === currentUserId;
-        console.log("Rendering message:", msg.id, "Content:", msg.displayContent);
         return (
           <div
             key={msg.id}
             className={`message ${isOwn ? "message-own" : "message-other"}`}
           >
             <div className="message-sender">
-              {isOwn ? "Вы" : msg.senderId?.slice(0, 8)}
+              {isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8))}
               {msg.isEncrypted && !msg.isDecrypted && <span className="ml-1 text-xs">🔒</span>}
               {msg.isEncrypted && msg.isDecrypted && <span className="ml-1 text-xs">✓🔒</span>}
             </div>

@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { useChats } from "../services/hooks/useChats";
-import CreateChatModal from "../components/ui/chat/CreateChatModal";
-import "../styles/chat.css";
-import "./layout.css";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useChats } from "../../../services/hooks/useChats";
+import CreateChatModal from "../chat/CreateChatModal";
+import "../../../styles/chat.css";
 
 function AppLayout() {
   const { logout, user } = useAuth();
@@ -58,7 +57,7 @@ function AppLayout() {
 
         <div className="sidebar-footer">
           <div className="user-info">
-            <span>ID: {user?.id?.slice(0, 8)}...</span>
+            <span>{user?.username || "Пользователь"}</span>
           </div>
           <button onClick={handleLogout} className="logout-btn">
             Выйти
