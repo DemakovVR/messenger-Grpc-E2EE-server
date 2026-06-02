@@ -4,9 +4,20 @@ package audit;
 
 option go_package = "gen/audit;auditpb";
 
+import "google/api/annotations.proto";
+
 service AuditService {
-  rpc GetUserLogs(GetUserLogsRequest) returns (GetUserLogsResponse);
-  rpc GetChatLogs(GetChatLogsRequest) returns (GetChatLogsResponse);
+  rpc GetUserLogs(GetUserLogsRequest) returns (GetUserLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/audit/user/{user_id}"
+    };
+  }
+  
+  rpc GetChatLogs(GetChatLogsRequest) returns (GetChatLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/audit/chat/{chat_id}"
+    };
+  }
 }
 
 message GetUserLogsRequest {

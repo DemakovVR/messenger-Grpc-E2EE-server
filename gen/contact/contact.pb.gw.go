@@ -214,7 +214,7 @@ func RegisterContactServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/SearchUsers", runtime.WithHTTPPathPattern("/contacts/search"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/SearchUsers", runtime.WithHTTPPathPattern("/api/contacts/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -234,7 +234,7 @@ func RegisterContactServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/AddContact", runtime.WithHTTPPathPattern("/contacts"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/AddContact", runtime.WithHTTPPathPattern("/api/contacts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -254,7 +254,7 @@ func RegisterContactServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/GetContacts", runtime.WithHTTPPathPattern("/contacts"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/GetContacts", runtime.WithHTTPPathPattern("/api/contacts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -274,7 +274,7 @@ func RegisterContactServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/DeleteContact", runtime.WithHTTPPathPattern("/contacts/{contact_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/DeleteContact", runtime.WithHTTPPathPattern("/api/contacts/{contact_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -294,7 +294,7 @@ func RegisterContactServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/BlockContact", runtime.WithHTTPPathPattern("/contacts/{contact_id}/block"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/contact.ContactService/BlockContact", runtime.WithHTTPPathPattern("/api/contacts/{contact_id}/block"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -352,7 +352,7 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/SearchUsers", runtime.WithHTTPPathPattern("/contacts/search"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/SearchUsers", runtime.WithHTTPPathPattern("/api/contacts/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -369,7 +369,7 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/AddContact", runtime.WithHTTPPathPattern("/contacts"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/AddContact", runtime.WithHTTPPathPattern("/api/contacts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -386,7 +386,7 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/GetContacts", runtime.WithHTTPPathPattern("/contacts"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/GetContacts", runtime.WithHTTPPathPattern("/api/contacts"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -403,7 +403,7 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/DeleteContact", runtime.WithHTTPPathPattern("/contacts/{contact_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/DeleteContact", runtime.WithHTTPPathPattern("/api/contacts/{contact_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -420,7 +420,7 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/BlockContact", runtime.WithHTTPPathPattern("/contacts/{contact_id}/block"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/contact.ContactService/BlockContact", runtime.WithHTTPPathPattern("/api/contacts/{contact_id}/block"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -437,11 +437,11 @@ func RegisterContactServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 }
 
 var (
-	pattern_ContactService_SearchUsers_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"contacts", "search"}, ""))
-	pattern_ContactService_AddContact_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"contacts"}, ""))
-	pattern_ContactService_GetContacts_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"contacts"}, ""))
-	pattern_ContactService_DeleteContact_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"contacts", "contact_id"}, ""))
-	pattern_ContactService_BlockContact_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"contacts", "contact_id", "block"}, ""))
+	pattern_ContactService_SearchUsers_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "contacts", "search"}, ""))
+	pattern_ContactService_AddContact_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "contacts"}, ""))
+	pattern_ContactService_GetContacts_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "contacts"}, ""))
+	pattern_ContactService_DeleteContact_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "contacts", "contact_id"}, ""))
+	pattern_ContactService_BlockContact_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "contacts", "contact_id", "block"}, ""))
 )
 
 var (

@@ -27,11 +27,11 @@ export function useMessages(chatId) {
     fetchMessages();
   }, [fetchMessages]);
 
-  const sendMessage = async (encryptedContent) => {
+  const sendMessage = async (encryptedContent, isEncrypted = false) => {
     try {
-      const data = await chatApi.sendMessage(chatId, encryptedContent);
+      const data = await chatApi.sendMessage(chatId, encryptedContent, isEncrypted);
       await fetchMessages();
-      return data.message_id;
+      return data.messageId;
     } catch (err) {
       console.error("Send message error:", err);
       throw err;
@@ -48,9 +48,9 @@ export function useMessages(chatId) {
     }
   };
 
-  const editMessage = async (messageId, encryptedContent) => {
+  const editMessage = async (messageId, encryptedContent, isEncrypted = false) => {
     try {
-      await chatApi.editMessage(messageId, encryptedContent);
+      await chatApi.editMessage(messageId, encryptedContent, isEncrypted);
       await fetchMessages();
     } catch (err) {
       console.error("Edit message error:", err);

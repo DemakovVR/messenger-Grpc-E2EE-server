@@ -9,32 +9,32 @@ import "google/api/annotations.proto";
 service ContactService {
   rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {
     option (google.api.http) = {
-      get: "/contacts/search"
+      get: "/api/contacts/search"
     };
   }
   
   rpc AddContact(AddContactRequest) returns (AddContactResponse) {
     option (google.api.http) = {
-      post: "/contacts"
+      post: "/api/contacts"
       body: "*"
     };
   }
   
   rpc GetContacts(GetContactsRequest) returns (GetContactsResponse) {
     option (google.api.http) = {
-      get: "/contacts"
+      get: "/api/contacts"
     };
   }
   
   rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {
     option (google.api.http) = {
-      delete: "/contacts/{contact_id}"
+      delete: "/api/contacts/{contact_id}"
     };
   }
   
   rpc BlockContact(BlockContactRequest) returns (BlockContactResponse) {
     option (google.api.http) = {
-      post: "/contacts/{contact_id}/block"
+      post: "/api/contacts/{contact_id}/block"
       body: "*"
     };
   }
@@ -44,6 +44,8 @@ message User {
   string id = 1;
   string username = 2;
   string email = 3;
+  string display_name = 4;
+  string avatar_url = 5;
 }
 
 message SearchUsersRequest {

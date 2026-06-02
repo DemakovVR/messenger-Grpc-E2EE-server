@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	chatpb "Server/gen/chat"
 	"Server/internal/logger"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ChatServer struct {
@@ -220,4 +223,58 @@ func (s *ChatServer) LeaveGroup(
 	}
 
 	return &chatpb.Empty{}, nil
+}
+
+func (s *ChatServer) GetChat(
+	ctx context.Context,
+	req *chatpb.GetChatRequest,
+) (*chatpb.GetChatResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, err
+	}
+
+	ok, err := s.chatService.IsParticipant(ctx, chatID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, status.Error(codes.PermissionDenied, "not a participant")
+	}
+
+	chat, err := s.chatService.GetChat(ctx, chatID)
+	if err != nil {
+		return nil, err
+	}
+
+	participants, err := s.chatService.GetParticipants(ctx, chatID)
+	if err != nil {
+		return nil, err
+	}
+
+	pbParticipants := make([]*chatpb.Participant, 0, len(participants))
+	for _, p := range participants {
+		pbParticipants = append(pbParticipants, &chatpb.Participant{
+			Id:          p.ID.String(),
+			Username:    p.Username,
+			DisplayName: p.Username,
+			AvatarUrl:   "",
+		})
+	}
+
+	return &chatpb.GetChatResponse{
+		Chat: &chatpb.Chat{
+			Id:           chat.ID.String(),
+			Type:         chat.Type,
+			Name:         chat.Name,
+			Participants: pbParticipants,
+			CreatedAt:    chat.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:    chat.UpdatedAt.Format(time.RFC3339),
+		},
+	}, nil
 }

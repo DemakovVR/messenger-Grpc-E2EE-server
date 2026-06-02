@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("access_token", data.accessToken);
     localStorage.setItem("refresh_token", data.refreshToken);
     
-    let userId = data.user_id;
+    let userId = data.userId;
     
     if (!userId) {
       try {

@@ -10,7 +10,7 @@ service FileService {
     rpc UploadFile(stream UploadFileRequest)
         returns (UploadFileResponse) {
         option (google.api.http) = {
-            post: "/files/upload"
+            post: "/api/files/upload"
             body: "*"
         };
     }
@@ -18,7 +18,7 @@ service FileService {
     rpc DownloadFile(DownloadFileRequest)
         returns (stream DownloadFileResponse) {
         option (google.api.http) = {
-            get: "/files/download/{file_url}"
+            get: "/api/files/download/{file_url}"
         };
     }
 }

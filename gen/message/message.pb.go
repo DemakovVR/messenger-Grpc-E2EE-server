@@ -62,6 +62,7 @@ type SendMessageRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	ChatId           string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	EncryptedContent string                 `protobuf:"bytes,2,opt,name=encrypted_content,json=encryptedContent,proto3" json:"encrypted_content,omitempty"`
+	IsEncrypted      bool                   `protobuf:"varint,3,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -108,6 +109,13 @@ func (x *SendMessageRequest) GetEncryptedContent() string {
 		return x.EncryptedContent
 	}
 	return ""
+}
+
+func (x *SendMessageRequest) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
 }
 
 type SendMessageResponse struct {
@@ -157,6 +165,8 @@ func (x *SendMessageResponse) GetMessageId() string {
 type GetMessagesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ChatId        string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,13 +208,29 @@ func (x *GetMessagesRequest) GetChatId() string {
 	return ""
 }
 
+func (x *GetMessagesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetMessagesRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
 type MessageResponse struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ChatId           string                 `protobuf:"bytes,2,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	SenderId         string                 `protobuf:"bytes,3,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
 	EncryptedContent string                 `protobuf:"bytes,4,opt,name=encrypted_content,json=encryptedContent,proto3" json:"encrypted_content,omitempty"`
-	SentAt           string                 `protobuf:"bytes,5,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	IsEncrypted      bool                   `protobuf:"varint,5,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
+	SentAt           string                 `protobuf:"bytes,6,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	CreatedAt        string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -267,9 +293,23 @@ func (x *MessageResponse) GetEncryptedContent() string {
 	return ""
 }
 
+func (x *MessageResponse) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
+}
+
 func (x *MessageResponse) GetSentAt() string {
 	if x != nil {
 		return x.SentAt
+	}
+	return ""
+}
+
+func (x *MessageResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
 	}
 	return ""
 }
@@ -366,6 +406,7 @@ type EditMessageRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	MessageId        string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
 	EncryptedContent string                 `protobuf:"bytes,2,opt,name=encrypted_content,json=encryptedContent,proto3" json:"encrypted_content,omitempty"`
+	IsEncrypted      bool                   `protobuf:"varint,3,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -414,6 +455,13 @@ func (x *EditMessageRequest) GetEncryptedContent() string {
 	return ""
 }
 
+func (x *EditMessageRequest) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -455,37 +503,44 @@ var File_proto_message_proto protoreflect.FileDescriptor
 const file_proto_message_proto_rawDesc = "" +
 	"\n" +
 	"\x13proto/message.proto\x12\amessage\x1a\x1cgoogle/api/annotations.proto\"\x10\n" +
-	"\x0eConnectRequest\"Z\n" +
+	"\x0eConnectRequest\"}\n" +
 	"\x12SendMessageRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12+\n" +
-	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\"4\n" +
+	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\x12!\n" +
+	"\fis_encrypted\x18\x03 \x01(\bR\visEncrypted\"4\n" +
 	"\x13SendMessageResponse\x12\x1d\n" +
 	"\n" +
-	"message_id\x18\x01 \x01(\tR\tmessageId\"-\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\"[\n" +
 	"\x12GetMessagesRequest\x12\x17\n" +
-	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\x9d\x01\n" +
+	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\xdf\x01\n" +
 	"\x0fMessageResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\achat_id\x18\x02 \x01(\tR\x06chatId\x12\x1b\n" +
 	"\tsender_id\x18\x03 \x01(\tR\bsenderId\x12+\n" +
-	"\x11encrypted_content\x18\x04 \x01(\tR\x10encryptedContent\x12\x17\n" +
-	"\asent_at\x18\x05 \x01(\tR\x06sentAt\"K\n" +
+	"\x11encrypted_content\x18\x04 \x01(\tR\x10encryptedContent\x12!\n" +
+	"\fis_encrypted\x18\x05 \x01(\bR\visEncrypted\x12\x17\n" +
+	"\asent_at\x18\x06 \x01(\tR\x06sentAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\"K\n" +
 	"\x13GetMessagesResponse\x124\n" +
 	"\bmessages\x18\x01 \x03(\v2\x18.message.MessageResponseR\bmessages\"5\n" +
 	"\x14DeleteMessageRequest\x12\x1d\n" +
 	"\n" +
-	"message_id\x18\x01 \x01(\tR\tmessageId\"`\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\"\x83\x01\n" +
 	"\x12EditMessageRequest\x12\x1d\n" +
 	"\n" +
 	"message_id\x18\x01 \x01(\tR\tmessageId\x12+\n" +
-	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\"\a\n" +
-	"\x05Empty2\xe4\x03\n" +
-	"\x0eMessageService\x12^\n" +
-	"\vSendMessage\x12\x1b.message.SendMessageRequest\x1a\x1c.message.SendMessageResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/messages\x12k\n" +
-	"\vGetMessages\x12\x1b.message.GetMessagesRequest\x1a\x1c.message.GetMessagesResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/chats/{chat_id}/messages\x12F\n" +
-	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01\x12^\n" +
-	"\rDeleteMessage\x12\x1d.message.DeleteMessageRequest\x1a\x0e.message.Empty\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/messages/{message_id}\x12]\n" +
-	"\vEditMessage\x12\x1b.message.EditMessageRequest\x1a\x0e.message.Empty\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/messages/{message_id}B\rZ\vgen/messageb\x06proto3"
+	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\x12!\n" +
+	"\fis_encrypted\x18\x03 \x01(\bR\visEncrypted\"\a\n" +
+	"\x05Empty2\xf4\x03\n" +
+	"\x0eMessageService\x12b\n" +
+	"\vSendMessage\x12\x1b.message.SendMessageRequest\x1a\x1c.message.SendMessageResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/messages\x12o\n" +
+	"\vGetMessages\x12\x1b.message.GetMessagesRequest\x1a\x1c.message.GetMessagesResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/chats/{chat_id}/messages\x12F\n" +
+	"\x0fConnectMessages\x12\x17.message.ConnectRequest\x1a\x18.message.MessageResponse0\x01\x12b\n" +
+	"\rDeleteMessage\x12\x1d.message.DeleteMessageRequest\x1a\x0e.message.Empty\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/api/messages/{message_id}\x12a\n" +
+	"\vEditMessage\x12\x1b.message.EditMessageRequest\x1a\x0e.message.Empty\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/messages/{message_id}B\rZ\vgen/messageb\x06proto3"
 
 var (
 	file_proto_message_proto_rawDescOnce sync.Once

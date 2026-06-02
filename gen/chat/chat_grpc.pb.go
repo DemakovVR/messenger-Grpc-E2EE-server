@@ -22,6 +22,7 @@ const (
 	ChatService_CreatePrivateChat_FullMethodName  = "/chat.ChatService/CreatePrivateChat"
 	ChatService_CreateGroupChat_FullMethodName    = "/chat.ChatService/CreateGroupChat"
 	ChatService_GetChats_FullMethodName           = "/chat.ChatService/GetChats"
+	ChatService_GetChat_FullMethodName            = "/chat.ChatService/GetChat"
 	ChatService_DeleteChat_FullMethodName         = "/chat.ChatService/DeleteChat"
 	ChatService_AddParticipants_FullMethodName    = "/chat.ChatService/AddParticipants"
 	ChatService_RemoveParticipants_FullMethodName = "/chat.ChatService/RemoveParticipants"
@@ -35,6 +36,7 @@ type ChatServiceClient interface {
 	CreatePrivateChat(ctx context.Context, in *CreatePrivateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
 	CreateGroupChat(ctx context.Context, in *CreateGroupChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
 	GetChats(ctx context.Context, in *GetChatsRequest, opts ...grpc.CallOption) (*GetChatsResponse, error)
+	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error)
 	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*Empty, error)
 	AddParticipants(ctx context.Context, in *AddParticipantsRequest, opts ...grpc.CallOption) (*Empty, error)
 	RemoveParticipants(ctx context.Context, in *RemoveParticipantsRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -73,6 +75,16 @@ func (c *chatServiceClient) GetChats(ctx context.Context, in *GetChatsRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetChatsResponse)
 	err := c.cc.Invoke(ctx, ChatService_GetChats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetChatResponse)
+	err := c.cc.Invoke(ctx, ChatService_GetChat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +138,7 @@ type ChatServiceServer interface {
 	CreatePrivateChat(context.Context, *CreatePrivateChatRequest) (*CreateChatResponse, error)
 	CreateGroupChat(context.Context, *CreateGroupChatRequest) (*CreateChatResponse, error)
 	GetChats(context.Context, *GetChatsRequest) (*GetChatsResponse, error)
+	GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error)
 	DeleteChat(context.Context, *DeleteChatRequest) (*Empty, error)
 	AddParticipants(context.Context, *AddParticipantsRequest) (*Empty, error)
 	RemoveParticipants(context.Context, *RemoveParticipantsRequest) (*Empty, error)
@@ -148,6 +161,9 @@ func (UnimplementedChatServiceServer) CreateGroupChat(context.Context, *CreateGr
 }
 func (UnimplementedChatServiceServer) GetChats(context.Context, *GetChatsRequest) (*GetChatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChats not implemented")
+}
+func (UnimplementedChatServiceServer) GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetChat not implemented")
 }
 func (UnimplementedChatServiceServer) DeleteChat(context.Context, *DeleteChatRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteChat not implemented")
@@ -232,6 +248,24 @@ func _ChatService_GetChats_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServiceServer).GetChats(ctx, req.(*GetChatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_GetChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).GetChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_GetChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).GetChat(ctx, req.(*GetChatRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -326,6 +360,10 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChats",
 			Handler:    _ChatService_GetChats_Handler,
+		},
+		{
+			MethodName: "GetChat",
+			Handler:    _ChatService_GetChat_Handler,
 		},
 		{
 			MethodName: "DeleteChat",

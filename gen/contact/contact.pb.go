@@ -27,6 +27,8 @@ type User struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -78,6 +80,20 @@ func (x *User) GetUsername() string {
 func (x *User) GetEmail() string {
 	if x != nil {
 		return x.Email
+	}
+	return ""
+}
+
+func (x *User) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *User) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
 	}
 	return ""
 }
@@ -518,11 +534,14 @@ var File_proto_contact_proto protoreflect.FileDescriptor
 
 const file_proto_contact_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/contact.proto\x12\acontact\x1a\x1cgoogle/api/annotations.proto\"H\n" +
+	"\x13proto/contact.proto\x12\acontact\x1a\x1cgoogle/api/annotations.proto\"\x8a\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"*\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12!\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\x05 \x01(\tR\tavatarUrl\"*\n" +
 	"\x12SearchUsersRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\":\n" +
 	"\x13SearchUsersResponse\x12#\n" +
@@ -544,14 +563,14 @@ const file_proto_contact_proto_rawDesc = "" +
 	"\n" +
 	"contact_id\x18\x01 \x01(\tR\tcontactId\"0\n" +
 	"\x14BlockContactResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\x94\x04\n" +
-	"\x0eContactService\x12b\n" +
-	"\vSearchUsers\x12\x1b.contact.SearchUsersRequest\x1a\x1c.contact.SearchUsersResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/contacts/search\x12[\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\xa8\x04\n" +
+	"\x0eContactService\x12f\n" +
+	"\vSearchUsers\x12\x1b.contact.SearchUsersRequest\x1a\x1c.contact.SearchUsersResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/contacts/search\x12_\n" +
 	"\n" +
-	"AddContact\x12\x1a.contact.AddContactRequest\x1a\x1b.contact.AddContactResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/contacts\x12[\n" +
-	"\vGetContacts\x12\x1b.contact.GetContactsRequest\x1a\x1c.contact.GetContactsResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/contacts\x12n\n" +
-	"\rDeleteContact\x12\x1d.contact.DeleteContactRequest\x1a\x1e.contact.DeleteContactResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/contacts/{contact_id}\x12t\n" +
-	"\fBlockContact\x12\x1c.contact.BlockContactRequest\x1a\x1d.contact.BlockContactResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/contacts/{contact_id}/blockB\x15Z\x13gen/contact;contactb\x06proto3"
+	"AddContact\x12\x1a.contact.AddContactRequest\x1a\x1b.contact.AddContactResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/contacts\x12_\n" +
+	"\vGetContacts\x12\x1b.contact.GetContactsRequest\x1a\x1c.contact.GetContactsResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/contacts\x12r\n" +
+	"\rDeleteContact\x12\x1d.contact.DeleteContactRequest\x1a\x1e.contact.DeleteContactResponse\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/api/contacts/{contact_id}\x12x\n" +
+	"\fBlockContact\x12\x1c.contact.BlockContactRequest\x1a\x1d.contact.BlockContactResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/contacts/{contact_id}/blockB\x15Z\x13gen/contact;contactb\x06proto3"
 
 var (
 	file_proto_contact_proto_rawDescOnce sync.Once

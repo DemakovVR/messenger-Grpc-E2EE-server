@@ -13,8 +13,9 @@ type Message struct {
 	EncryptedContent string    `db:"encrypted_content"`
 	EncryptedFileURL *string   `db:"encrypted_file_url"`
 
-	IsEdited  bool `db:"is_edited"`
-	IsDeleted bool `db:"is_deleted"`
+	IsEdited    bool `db:"is_edited"`
+	IsDeleted   bool `db:"is_deleted"`
+	IsEncrypted bool `db:"is_encrypted"`
 
 	SentAt    time.Time `db:"sent_at"`
 	CreatedAt time.Time `db:"created_at"`

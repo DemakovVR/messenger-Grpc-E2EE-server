@@ -251,3 +251,74 @@ func (r *ChatRepository) CountParticipants(
 
 	return count, err
 }
+
+func (r *ChatRepository) GetChat(
+	ctx context.Context,
+	chatID uuid.UUID,
+) (*models.Chat, error) {
+	var chat models.Chat
+	err := r.db.QueryRow(ctx, `
+		SELECT id, type, COALESCE(name, ''), created_at, updated_at
+		FROM chats
+		WHERE id = $1
+	`, chatID).Scan(
+		&chat.ID,
+		&chat.Type,
+		&chat.Name,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &chat, nil
+}
+
+func (r *ChatRepository) IsParticipant(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userID uuid.UUID,
+) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM chat_participants
+			WHERE chat_id = $1 AND user_id = $2
+		)
+	`, chatID, userID).Scan(&exists)
+	return exists, err
+}
+
+func (r *ChatRepository) GetParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+) ([]models.User, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT u.id, u.username, u.email, u.password_hash, u.public_key, u.role
+		FROM users u
+		JOIN chat_participants cp ON cp.user_id = u.id
+		WHERE cp.chat_id = $1
+	`, chatID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.PublicKey,
+			&user.Role,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}

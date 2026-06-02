@@ -34,7 +34,7 @@ export const authApi = {
     const res = await httpClient.post(
       "/auth/logout",
       {
-        refresh_token: refreshToken,
+        refreshToken: refreshToken,
       }
     );
 

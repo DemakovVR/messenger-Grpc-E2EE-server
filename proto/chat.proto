@@ -9,49 +9,39 @@ import "google/api/annotations.proto";
 service ChatService {
   rpc CreatePrivateChat(CreatePrivateChatRequest) returns (CreateChatResponse) {
     option (google.api.http) = {
-      post: "/chats/private"
+      post: "/api/chats/private"
       body: "*"
     };
   }
   
   rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateChatResponse) {
     option (google.api.http) = {
-      post: "/chats/group"
+      post: "/api/chats/group"
       body: "*"
     };
   }
   
   rpc GetChats(GetChatsRequest) returns (GetChatsResponse) {
     option (google.api.http) = {
-      get: "/chats"
+      get: "/api/chats"
+    };
+  }
+  
+  rpc GetChat(GetChatRequest) returns (GetChatResponse) {
+    option (google.api.http) = {
+      get: "/api/chats/{chat_id}"
     };
   }
   
   rpc DeleteChat(DeleteChatRequest) returns (Empty) {
     option (google.api.http) = {
-      delete: "/chats/{chat_id}"
+      delete: "/api/chats/{chat_id}"
     };
   }
   
-  rpc AddParticipants(AddParticipantsRequest) returns (Empty) {
-    option (google.api.http) = {
-      post: "/chats/{chat_id}/participants"
-      body: "*"
-    };
-  }
-  
-  rpc RemoveParticipants(RemoveParticipantsRequest) returns (Empty) {
-    option (google.api.http) = {
-      delete: "/chats/{chat_id}/participants"
-    };
-  }
-  
-  rpc LeaveGroup(LeaveGroupRequest) returns (Empty) {
-    option (google.api.http) = {
-      post: "/chats/{chat_id}/leave"
-      body: "*"
-    };
-  }
+  rpc AddParticipants(AddParticipantsRequest) returns (Empty);
+  rpc RemoveParticipants(RemoveParticipantsRequest) returns (Empty);
+  rpc LeaveGroup(LeaveGroupRequest) returns (Empty);
 }
 
 message CreatePrivateChatRequest {
@@ -70,14 +60,32 @@ message CreateChatResponse {
 
 message GetChatsRequest {}
 
+message GetChatsResponse {
+  repeated Chat chats = 1;
+}
+
+message GetChatRequest {
+  string chat_id = 1;
+}
+
+message GetChatResponse {
+  Chat chat = 1;
+}
+
 message Chat {
   string id = 1;
   string type = 2;
   string name = 3;
+  repeated Participant participants = 4;
+  string created_at = 5;
+  string updated_at = 6;
 }
 
-message GetChatsResponse {
-  repeated Chat chats = 1;
+message Participant {
+  string id = 1;
+  string username = 2;
+  string display_name = 3;
+  string avatar_url = 4;
 }
 
 message DeleteChatRequest {

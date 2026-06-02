@@ -103,3 +103,25 @@ func (s *ChatService) LeaveGroup(
 
 	return nil
 }
+
+func (s *ChatService) GetChat(
+	ctx context.Context,
+	chatID uuid.UUID,
+) (*models.Chat, error) {
+	return s.repo.GetChat(ctx, chatID)
+}
+
+func (s *ChatService) IsParticipant(
+	ctx context.Context,
+	chatID uuid.UUID,
+	userID uuid.UUID,
+) (bool, error) {
+	return s.repo.IsParticipant(ctx, chatID, userID)
+}
+
+func (s *ChatService) GetParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+) ([]models.User, error) {
+	return s.repo.GetParticipants(ctx, chatID)
+}

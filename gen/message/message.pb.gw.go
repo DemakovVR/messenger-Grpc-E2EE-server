@@ -62,6 +62,8 @@ func local_request_MessageService_SendMessage_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
+var filter_MessageService_GetMessages_0 = &utilities.DoubleArray{Encoding: map[string]int{"chat_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_MessageService_GetMessages_0(ctx context.Context, marshaler runtime.Marshaler, client MessageServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq GetMessagesRequest
@@ -78,6 +80,12 @@ func request_MessageService_GetMessages_0(ctx context.Context, marshaler runtime
 	protoReq.ChatId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chat_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_MessageService_GetMessages_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.GetMessages(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -96,6 +104,12 @@ func local_request_MessageService_GetMessages_0(ctx context.Context, marshaler r
 	protoReq.ChatId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "chat_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_MessageService_GetMessages_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.GetMessages(ctx, &protoReq)
 	return msg, metadata, err
@@ -197,7 +211,7 @@ func RegisterMessageServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/SendMessage", runtime.WithHTTPPathPattern("/messages"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/SendMessage", runtime.WithHTTPPathPattern("/api/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -217,7 +231,7 @@ func RegisterMessageServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/GetMessages", runtime.WithHTTPPathPattern("/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/GetMessages", runtime.WithHTTPPathPattern("/api/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -237,7 +251,7 @@ func RegisterMessageServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/DeleteMessage", runtime.WithHTTPPathPattern("/messages/{message_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/DeleteMessage", runtime.WithHTTPPathPattern("/api/messages/{message_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -257,7 +271,7 @@ func RegisterMessageServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/EditMessage", runtime.WithHTTPPathPattern("/messages/{message_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/message.MessageService/EditMessage", runtime.WithHTTPPathPattern("/api/messages/{message_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -315,7 +329,7 @@ func RegisterMessageServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/SendMessage", runtime.WithHTTPPathPattern("/messages"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/SendMessage", runtime.WithHTTPPathPattern("/api/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -332,7 +346,7 @@ func RegisterMessageServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/GetMessages", runtime.WithHTTPPathPattern("/chats/{chat_id}/messages"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/GetMessages", runtime.WithHTTPPathPattern("/api/chats/{chat_id}/messages"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -349,7 +363,7 @@ func RegisterMessageServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/DeleteMessage", runtime.WithHTTPPathPattern("/messages/{message_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/DeleteMessage", runtime.WithHTTPPathPattern("/api/messages/{message_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -366,7 +380,7 @@ func RegisterMessageServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/EditMessage", runtime.WithHTTPPathPattern("/messages/{message_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/message.MessageService/EditMessage", runtime.WithHTTPPathPattern("/api/messages/{message_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -383,10 +397,10 @@ func RegisterMessageServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 }
 
 var (
-	pattern_MessageService_SendMessage_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"messages"}, ""))
-	pattern_MessageService_GetMessages_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"chats", "chat_id", "messages"}, ""))
-	pattern_MessageService_DeleteMessage_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"messages", "message_id"}, ""))
-	pattern_MessageService_EditMessage_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"messages", "message_id"}, ""))
+	pattern_MessageService_SendMessage_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "messages"}, ""))
+	pattern_MessageService_GetMessages_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "chats", "chat_id", "messages"}, ""))
+	pattern_MessageService_DeleteMessage_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "messages", "message_id"}, ""))
+	pattern_MessageService_EditMessage_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "messages", "message_id"}, ""))
 )
 
 var (

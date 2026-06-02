@@ -7,6 +7,7 @@
 package auditpb
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -285,7 +286,7 @@ var File_proto_audit_proto protoreflect.FileDescriptor
 
 const file_proto_audit_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/audit.proto\x12\x05audit\"-\n" +
+	"\x11proto/audit.proto\x12\x05audit\x1a\x1cgoogle/api/annotations.proto\"-\n" +
 	"\x12GetUserLogsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"-\n" +
 	"\x12GetChatLogsRequest\x12\x17\n" +
@@ -301,10 +302,10 @@ const file_proto_audit_proto_rawDesc = "" +
 	"\x13GetUserLogsResponse\x12#\n" +
 	"\x04logs\x18\x01 \x03(\v2\x0f.audit.AuditLogR\x04logs\":\n" +
 	"\x13GetChatLogsResponse\x12#\n" +
-	"\x04logs\x18\x01 \x03(\v2\x0f.audit.AuditLogR\x04logs2\x9a\x01\n" +
-	"\fAuditService\x12D\n" +
-	"\vGetUserLogs\x12\x19.audit.GetUserLogsRequest\x1a\x1a.audit.GetUserLogsResponse\x12D\n" +
-	"\vGetChatLogs\x12\x19.audit.GetChatLogsRequest\x1a\x1a.audit.GetChatLogsResponseB\x13Z\x11gen/audit;auditpbb\x06proto3"
+	"\x04logs\x18\x01 \x03(\v2\x0f.audit.AuditLogR\x04logs2\xe0\x01\n" +
+	"\fAuditService\x12g\n" +
+	"\vGetUserLogs\x12\x19.audit.GetUserLogsRequest\x1a\x1a.audit.GetUserLogsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/audit/user/{user_id}\x12g\n" +
+	"\vGetChatLogs\x12\x19.audit.GetChatLogsRequest\x1a\x1a.audit.GetChatLogsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/audit/chat/{chat_id}B\x13Z\x11gen/audit;auditpbb\x06proto3"
 
 var (
 	file_proto_audit_proto_rawDescOnce sync.Once

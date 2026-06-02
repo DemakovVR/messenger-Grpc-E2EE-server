@@ -167,7 +167,7 @@ func RegisterKeyServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/UploadKeys", runtime.WithHTTPPathPattern("/keys/upload"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/UploadKeys", runtime.WithHTTPPathPattern("/api/keys/publish"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -187,7 +187,7 @@ func RegisterKeyServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/GetPreKeyBundle", runtime.WithHTTPPathPattern("/keys/bundle/{user_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/GetPreKeyBundle", runtime.WithHTTPPathPattern("/api/keys/user/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -207,7 +207,7 @@ func RegisterKeyServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/UploadOneTimeKeys", runtime.WithHTTPPathPattern("/keys/one-time"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/UploadOneTimeKeys", runtime.WithHTTPPathPattern("/api/keys/one-time"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -227,7 +227,7 @@ func RegisterKeyServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/RotateSignedPreKey", runtime.WithHTTPPathPattern("/keys/rotate"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/keys.KeyService/RotateSignedPreKey", runtime.WithHTTPPathPattern("/api/keys/rotate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -285,7 +285,7 @@ func RegisterKeyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/UploadKeys", runtime.WithHTTPPathPattern("/keys/upload"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/UploadKeys", runtime.WithHTTPPathPattern("/api/keys/publish"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -302,7 +302,7 @@ func RegisterKeyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/GetPreKeyBundle", runtime.WithHTTPPathPattern("/keys/bundle/{user_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/GetPreKeyBundle", runtime.WithHTTPPathPattern("/api/keys/user/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -319,7 +319,7 @@ func RegisterKeyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/UploadOneTimeKeys", runtime.WithHTTPPathPattern("/keys/one-time"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/UploadOneTimeKeys", runtime.WithHTTPPathPattern("/api/keys/one-time"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -336,7 +336,7 @@ func RegisterKeyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/RotateSignedPreKey", runtime.WithHTTPPathPattern("/keys/rotate"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/keys.KeyService/RotateSignedPreKey", runtime.WithHTTPPathPattern("/api/keys/rotate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -353,10 +353,10 @@ func RegisterKeyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 }
 
 var (
-	pattern_KeyService_UploadKeys_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"keys", "upload"}, ""))
-	pattern_KeyService_GetPreKeyBundle_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"keys", "bundle", "user_id"}, ""))
-	pattern_KeyService_UploadOneTimeKeys_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"keys", "one-time"}, ""))
-	pattern_KeyService_RotateSignedPreKey_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"keys", "rotate"}, ""))
+	pattern_KeyService_UploadKeys_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "keys", "publish"}, ""))
+	pattern_KeyService_GetPreKeyBundle_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "keys", "user", "user_id"}, ""))
+	pattern_KeyService_UploadOneTimeKeys_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "keys", "one-time"}, ""))
+	pattern_KeyService_RotateSignedPreKey_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "keys", "rotate"}, ""))
 )
 
 var (

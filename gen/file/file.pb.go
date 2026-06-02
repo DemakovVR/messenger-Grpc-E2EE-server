@@ -219,11 +219,11 @@ const file_proto_file_proto_rawDesc = "" +
 	"\x13DownloadFileRequest\x12\x19\n" +
 	"\bfile_url\x18\x01 \x01(\tR\afileUrl\",\n" +
 	"\x14DownloadFileResponse\x12\x14\n" +
-	"\x05chunk\x18\x01 \x01(\fR\x05chunk2\xd7\x01\n" +
-	"\vFileService\x12[\n" +
+	"\x05chunk\x18\x01 \x01(\fR\x05chunk2\xdf\x01\n" +
+	"\vFileService\x12_\n" +
 	"\n" +
-	"UploadFile\x12\x17.file.UploadFileRequest\x1a\x18.file.UploadFileResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/files/upload(\x01\x12k\n" +
-	"\fDownloadFile\x12\x19.file.DownloadFileRequest\x1a\x1a.file.DownloadFileResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/files/download/{file_url}0\x01B\x0fZ\rgen/file;fileb\x06proto3"
+	"UploadFile\x12\x17.file.UploadFileRequest\x1a\x18.file.UploadFileResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/files/upload(\x01\x12o\n" +
+	"\fDownloadFile\x12\x19.file.DownloadFileRequest\x1a\x1a.file.DownloadFileResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/files/download/{file_url}0\x01B\x0fZ\rgen/file;fileb\x06proto3"
 
 var (
 	file_proto_file_proto_rawDescOnce sync.Once

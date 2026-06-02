@@ -697,17 +697,17 @@ const file_proto_auth_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
 	"\x04role\x18\x04 \x01(\tR\x04role\"\a\n" +
-	"\x05Empty2\xf5\x02\n" +
-	"\vAuthService\x12T\n" +
-	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/auth/register\x12H\n" +
-	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/auth/login\x12E\n" +
-	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\x12C\n" +
-	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\v.auth.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/auth/logout\x12:\n" +
-	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\v.auth.Empty2\xf1\x01\n" +
-	"\vUserService\x12?\n" +
+	"\x05Empty2\xc5\x03\n" +
+	"\vAuthService\x12X\n" +
+	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/auth/register\x12L\n" +
+	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/api/auth/login\x12c\n" +
+	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/auth/refresh\x12G\n" +
+	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\v.auth.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/auth/logout\x12`\n" +
+	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\v.auth.Empty\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/auth/change-password2\xa0\x02\n" +
+	"\vUserService\x12U\n" +
 	"\n" +
-	"GetProfile\x12\x17.auth.GetProfileRequest\x1a\x18.auth.GetProfileResponse\x128\n" +
-	"\rUpdateProfile\x12\x1a.auth.UpdateProfileRequest\x1a\v.auth.Empty\x12<\n" +
+	"GetProfile\x12\x17.auth.GetProfileRequest\x1a\x18.auth.GetProfileResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/api/auth/me\x12Q\n" +
+	"\rUpdateProfile\x12\x1a.auth.UpdateProfileRequest\x1a\v.auth.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\x1a\f/api/auth/me\x12<\n" +
 	"\x0fUpdatePublicKey\x12\x1c.auth.UpdatePublicKeyRequest\x1a\v.auth.Empty\x12)\n" +
 	"\rDeleteAccount\x12\v.auth.Empty\x1a\v.auth.EmptyB\x0fZ\rgen/auth;authb\x06proto3"
 

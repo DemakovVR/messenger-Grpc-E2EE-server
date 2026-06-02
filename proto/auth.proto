@@ -10,31 +10,54 @@ service AuthService {
 
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
-      post: "/auth/register"
+      post: "/api/auth/register"
       body: "*"
     };
   }
 
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/auth/login"
+      post: "/api/auth/login"
       body: "*"
     };
   }
 
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/auth/refresh"
+      body: "*"
+    };
+  }
+
   rpc Logout(LogoutRequest) returns (Empty) {
-  option (google.api.http) = {
-    post: "/auth/logout"
-    body: "*"
-  };
-}
-  rpc ChangePassword(ChangePasswordRequest) returns (Empty);
+    option (google.api.http) = {
+      post: "/api/auth/logout"
+      body: "*"
+    };
+  }
+
+  rpc ChangePassword(ChangePasswordRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/api/auth/change-password"
+      body: "*"
+    };
+  }
 }
 
 service UserService {
-  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
-  rpc UpdateProfile(UpdateProfileRequest) returns (Empty);
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/auth/me"
+    };
+  }
+  
+  rpc UpdateProfile(UpdateProfileRequest) returns (Empty) {
+    option (google.api.http) = {
+      put: "/api/auth/me"
+      body: "*"
+    };
+  }
+  
   rpc UpdatePublicKey(UpdatePublicKeyRequest) returns (Empty);
   rpc DeleteAccount(Empty) returns (Empty);
 }

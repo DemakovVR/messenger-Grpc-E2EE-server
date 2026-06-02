@@ -458,14 +458,14 @@ const file_proto_keys_proto_rawDesc = "" +
 	"\x19RotateSignedPreKeyRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x120\n" +
 	"\x14signed_prekey_public\x18\x02 \x01(\tR\x12signedPrekeyPublic\x126\n" +
-	"\x17signed_prekey_signature\x18\x03 \x01(\tR\x15signedPrekeySignature2\xf8\x02\n" +
+	"\x17signed_prekey_signature\x18\x03 \x01(\tR\x15signedPrekeySignature2\x87\x03\n" +
 	"\n" +
-	"KeyService\x12K\n" +
+	"KeyService\x12P\n" +
 	"\n" +
-	"UploadKeys\x12\x17.keys.UploadKeysRequest\x1a\v.keys.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/keys/upload\x12c\n" +
-	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundle\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/keys/bundle/{user_id}\x12[\n" +
-	"\x11UploadOneTimeKeys\x12\x1e.keys.UploadOneTimeKeysRequest\x1a\v.keys.Empty\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/keys/one-time\x12[\n" +
-	"\x12RotateSignedPreKey\x12\x1f.keys.RotateSignedPreKeyRequest\x1a\v.keys.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/keys/rotateB\x11Z\x0fgen/keys;keyspbb\x06proto3"
+	"UploadKeys\x12\x17.keys.UploadKeysRequest\x1a\v.keys.Empty\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/keys/publish\x12e\n" +
+	"\x0fGetPreKeyBundle\x12\x1c.keys.GetPreKeyBundleRequest\x1a\x12.keys.PreKeyBundle\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/keys/user/{user_id}\x12_\n" +
+	"\x11UploadOneTimeKeys\x12\x1e.keys.UploadOneTimeKeysRequest\x1a\v.keys.Empty\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/keys/one-time\x12_\n" +
+	"\x12RotateSignedPreKey\x12\x1f.keys.RotateSignedPreKeyRequest\x1a\v.keys.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/keys/rotateB\x11Z\x0fgen/keys;keyspbb\x06proto3"
 
 var (
 	file_proto_keys_proto_rawDescOnce sync.Once

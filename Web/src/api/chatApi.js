@@ -12,14 +12,14 @@ export const chatApi = {
   },
 
   createPrivateChat: async (userId) => {
-    const res = await httpClient.post("/chats/private", { user_id: userId });
+    const res = await httpClient.post("/chats/private", { userId });
     return res.data;
   },
 
   createGroupChat: async (name, participantIds) => {
     const res = await httpClient.post("/chats/group", {
-      name: name,
-      participant_ids: participantIds,
+      name,
+      participantIds,
     });
     return res.data;
   },
@@ -31,10 +31,11 @@ export const chatApi = {
     return res.data;
   },
 
-  sendMessage: async (chatId, encryptedContent) => {
+  sendMessage: async (chatId, encryptedContent, isEncrypted = false) => {
     const res = await httpClient.post("/messages", {
-      chat_id: chatId,
-      encrypted_content: encryptedContent,
+      chatId,
+      encryptedContent,
+      isEncrypted,
     });
     return res.data;
   },
@@ -44,9 +45,10 @@ export const chatApi = {
     return res.data;
   },
 
-  editMessage: async (messageId, encryptedContent) => {
+  editMessage: async (messageId, encryptedContent, isEncrypted = false) => {
     const res = await httpClient.put(`/messages/${messageId}`, {
-      encrypted_content: encryptedContent,
+      encryptedContent,
+      isEncrypted,
     });
     return res.data;
   },
@@ -57,7 +59,7 @@ export const chatApi = {
   },
 
   addContact: async (contactId) => {
-    const res = await httpClient.post("/contacts", { contact_id: contactId });
+    const res = await httpClient.post("/contacts", { contactId });
     return res.data;
   },
 

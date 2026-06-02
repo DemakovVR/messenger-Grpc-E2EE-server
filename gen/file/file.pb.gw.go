@@ -168,7 +168,7 @@ func RegisterFileServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/file.FileService/UploadFile", runtime.WithHTTPPathPattern("/files/upload"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/file.FileService/UploadFile", runtime.WithHTTPPathPattern("/api/files/upload"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -185,7 +185,7 @@ func RegisterFileServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/file.FileService/DownloadFile", runtime.WithHTTPPathPattern("/files/download/{file_url}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/file.FileService/DownloadFile", runtime.WithHTTPPathPattern("/api/files/download/{file_url}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -202,8 +202,8 @@ func RegisterFileServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_FileService_UploadFile_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"files", "upload"}, ""))
-	pattern_FileService_DownloadFile_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"files", "download", "file_url"}, ""))
+	pattern_FileService_UploadFile_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "files", "upload"}, ""))
+	pattern_FileService_DownloadFile_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "files", "download", "file_url"}, ""))
 )
 
 var (

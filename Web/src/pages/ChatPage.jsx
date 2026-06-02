@@ -1,21 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useMessages } from "../services/hooks/useMessages";
 import MessageList from "../components/ui/chat/MessageList";
 import MessageInput from "../components/ui/chat/MessageInput";
+import { publishPublicKey, getOrCreateKeys } from "../crypto/e2ee";
 import "../styles/chat.css";
 
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
   const { messages, loading, sendMessage } = useMessages(chatId);
+  const [peerUserId, setPeerUserId] = useState(null);
+  const [e2eeReady, setE2eeReady] = useState(false);
 
-  const handleSendMessage = async (content) => {
+  useEffect(() => {
+    const initE2EE = async () => {
+      getOrCreateKeys();
+      const published = await publishPublicKey();
+      setE2eeReady(published);
+    };
+    initE2EE();
+  }, []);
+
+  useEffect(() => {
+    if (chatId && user) {
+      const fetchChat = async () => {
+        const token = localStorage.getItem("access_token");
+        try {
+          const response = await fetch(`/api/chats/${chatId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (data.chat) {
+            const chat = data.chat;
+            let peerId = null;
+            if (chat.participants && chat.participants.length > 0) {
+              peerId = chat.participants[0]?.id;
+            }
+            setPeerUserId(peerId);
+          }
+        } catch (err) {
+          console.error("Failed to fetch chat:", err);
+        }
+      };
+      fetchChat();
+    }
+  }, [chatId, user]);
+
+  const handleSendMessage = async (content, isEncrypted) => {
     try {
-      await sendMessage(content);
+      await sendMessage(content, isEncrypted);
     } catch (err) {
       console.error("Send failed:", err);
+      throw err;
     }
   };
 
@@ -33,8 +71,22 @@ function ChatPage() {
 
   return (
     <div className="chat-page">
-      <MessageList messages={messages} currentUserId={user?.id} />
-      <MessageInput onSend={handleSendMessage} disabled={false} />
+      {!e2eeReady && (
+        <div className="e2ee-warning">
+          ⚠️ E2EE инициализация...
+        </div>
+      )}
+      <MessageList
+        messages={messages}
+        currentUserId={user?.id}
+        peerUserId={peerUserId}
+      />
+      <MessageInput
+        chatId={chatId}
+        peerUserId={peerUserId}
+        onSend={handleSendMessage}
+        disabled={false}
+      />
     </div>
   );
 }
