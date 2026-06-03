@@ -79,7 +79,7 @@ func (s *ChatServer) CreateGroupChat(
 
 	participants = append(participants, userID)
 
-	chatID, err := s.chatService.CreateGroupChat(ctx, req.Name, participants)
+	chatID, err := s.chatService.CreateGroupChat(ctx, req.Name, participants, userID)
 	if err != nil {
 		return nil, err
 	}

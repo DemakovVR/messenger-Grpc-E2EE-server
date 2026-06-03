@@ -64,6 +64,7 @@ type UploadKeysRequest struct {
 	IdentityKeyPublic     string                 `protobuf:"bytes,2,opt,name=identity_key_public,json=identityKeyPublic,proto3" json:"identity_key_public,omitempty"`
 	SignedPrekeyPublic    string                 `protobuf:"bytes,3,opt,name=signed_prekey_public,json=signedPrekeyPublic,proto3" json:"signed_prekey_public,omitempty"`
 	SignedPrekeySignature string                 `protobuf:"bytes,4,opt,name=signed_prekey_signature,json=signedPrekeySignature,proto3" json:"signed_prekey_signature,omitempty"`
+	OneTimePrekeys        []*OneTimeKey          `protobuf:"bytes,5,rep,name=one_time_prekeys,json=oneTimePrekeys,proto3" json:"one_time_prekeys,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -124,6 +125,13 @@ func (x *UploadKeysRequest) GetSignedPrekeySignature() string {
 		return x.SignedPrekeySignature
 	}
 	return ""
+}
+
+func (x *UploadKeysRequest) GetOneTimePrekeys() []*OneTimeKey {
+	if x != nil {
+		return x.OneTimePrekeys
+	}
+	return nil
 }
 
 type GetPreKeyBundleRequest struct {
@@ -431,12 +439,13 @@ var File_proto_keys_proto protoreflect.FileDescriptor
 const file_proto_keys_proto_rawDesc = "" +
 	"\n" +
 	"\x10proto/keys.proto\x12\x04keys\x1a\x1cgoogle/api/annotations.proto\"\a\n" +
-	"\x05Empty\"\xca\x01\n" +
+	"\x05Empty\"\x86\x02\n" +
 	"\x11UploadKeysRequest\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12.\n" +
 	"\x13identity_key_public\x18\x02 \x01(\tR\x11identityKeyPublic\x120\n" +
 	"\x14signed_prekey_public\x18\x03 \x01(\tR\x12signedPrekeyPublic\x126\n" +
-	"\x17signed_prekey_signature\x18\x04 \x01(\tR\x15signedPrekeySignature\"1\n" +
+	"\x17signed_prekey_signature\x18\x04 \x01(\tR\x15signedPrekeySignature\x12:\n" +
+	"\x10one_time_prekeys\x18\x05 \x03(\v2\x10.keys.OneTimeKeyR\x0eoneTimePrekeys\"1\n" +
 	"\x16GetPreKeyBundleRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xb3\x02\n" +
 	"\fPreKeyBundle\x12\x17\n" +
@@ -490,20 +499,21 @@ var file_proto_keys_proto_goTypes = []any{
 	(*RotateSignedPreKeyRequest)(nil), // 6: keys.RotateSignedPreKeyRequest
 }
 var file_proto_keys_proto_depIdxs = []int32{
-	4, // 0: keys.UploadOneTimeKeysRequest.keys:type_name -> keys.OneTimeKey
-	1, // 1: keys.KeyService.UploadKeys:input_type -> keys.UploadKeysRequest
-	2, // 2: keys.KeyService.GetPreKeyBundle:input_type -> keys.GetPreKeyBundleRequest
-	5, // 3: keys.KeyService.UploadOneTimeKeys:input_type -> keys.UploadOneTimeKeysRequest
-	6, // 4: keys.KeyService.RotateSignedPreKey:input_type -> keys.RotateSignedPreKeyRequest
-	0, // 5: keys.KeyService.UploadKeys:output_type -> keys.Empty
-	3, // 6: keys.KeyService.GetPreKeyBundle:output_type -> keys.PreKeyBundle
-	0, // 7: keys.KeyService.UploadOneTimeKeys:output_type -> keys.Empty
-	0, // 8: keys.KeyService.RotateSignedPreKey:output_type -> keys.Empty
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: keys.UploadKeysRequest.one_time_prekeys:type_name -> keys.OneTimeKey
+	4, // 1: keys.UploadOneTimeKeysRequest.keys:type_name -> keys.OneTimeKey
+	1, // 2: keys.KeyService.UploadKeys:input_type -> keys.UploadKeysRequest
+	2, // 3: keys.KeyService.GetPreKeyBundle:input_type -> keys.GetPreKeyBundleRequest
+	5, // 4: keys.KeyService.UploadOneTimeKeys:input_type -> keys.UploadOneTimeKeysRequest
+	6, // 5: keys.KeyService.RotateSignedPreKey:input_type -> keys.RotateSignedPreKeyRequest
+	0, // 6: keys.KeyService.UploadKeys:output_type -> keys.Empty
+	3, // 7: keys.KeyService.GetPreKeyBundle:output_type -> keys.PreKeyBundle
+	0, // 8: keys.KeyService.UploadOneTimeKeys:output_type -> keys.Empty
+	0, // 9: keys.KeyService.RotateSignedPreKey:output_type -> keys.Empty
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_keys_proto_init() }

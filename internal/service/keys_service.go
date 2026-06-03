@@ -123,3 +123,9 @@ func (s *KeysService) RotateSignedPreKey(
 
 	return nil
 }
+
+func (s *KeysService) GetDeviceKeyIDByUserID(ctx context.Context,
+	userID uuid.UUID,
+) (uuid.UUID, error) {
+	return s.repo.GetDeviceKeyIDByUserID(ctx, userID)
+}

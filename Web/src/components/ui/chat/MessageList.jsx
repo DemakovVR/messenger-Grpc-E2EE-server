@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
-import { ensureSharedSecret, decryptMessage } from "../../../crypto/e2ee";
+import { decryptMessageFromPeer } from "../../../crypto/e2ee";
 
-export default function MessageList({ messages, currentUserId, peerUserId, users }) {
+export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey }) {
   const messagesEndRef = useRef(null);
   const [decryptedMessages, setDecryptedMessages] = useState([]);
 
@@ -12,36 +12,49 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
         return;
       }
 
-      let sharedSecret = null;
-      if (peerUserId) {
-        sharedSecret = await ensureSharedSecret(peerUserId);
-      }
+      const isGroupChat = chatType === "group";
 
       const decrypted = await Promise.all(
         messages.map(async (msg) => {
           let content = msg.encryptedContent || msg.content;
           let isDecrypted = false;
 
-          if (msg.isEncrypted && sharedSecret) {
+          if (msg.isEncrypted && !isGroupChat) {
             try {
-              const encrypted = JSON.parse(content);
-              const decryptedContent = decryptMessage(
-                sharedSecret,
-                encrypted.ciphertext,
-                encrypted.iv
-              );
-              if (decryptedContent) {
-                content = decryptedContent;
-                isDecrypted = true;
+              const encryptedData = JSON.parse(content);
+
+              if (msg.senderId !== currentUserId) {
+                const decryptedContent = await decryptMessageFromPeer(encryptedData, currentUserId);
+                if (decryptedContent) {
+                  content = decryptedContent;
+                  isDecrypted = true;
+                } else {
+                  content = "[Зашифрованное сообщение]";
+                }
+              } else {
+                if (encryptedData.ciphertextForSelf) {
+                  const selfEncryptedData = {
+                    ciphertext: encryptedData.ciphertextForSelf,
+                    iv: encryptedData.ivForSelf,
+                    ephemeralPublicKey: encryptedData.ephemeralPublicKeyForSelf
+                  };
+                  const decryptedContent = await decryptMessageFromPeer(selfEncryptedData, currentUserId);
+                  if (decryptedContent) {
+                    content = decryptedContent;
+                    isDecrypted = true;
+                  } else {
+                    content = "[Ошибка расшифровки]";
+                  }
+                } else {
+                  content = "[Отправлено]";
+                }
               }
             } catch (e) {
-              content = "[Зашифрованное сообщение]";
+              console.log("Failed to parse/decrypt:", e.message);
+              content = msg.senderId === currentUserId ? "[Отправлено]" : "[Зашифрованное сообщение]";
             }
-          } else if (msg.isEncrypted) {
-            content = "[Зашифрованное сообщение]";
           }
 
-          // Получаем имя отправителя
           let senderName = msg.senderId?.slice(0, 8);
           if (users && users[msg.senderId]) {
             senderName = users[msg.senderId].username || users[msg.senderId].display_name;
@@ -71,7 +84,7 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     };
 
     decryptMessages();
-  }, [messages, peerUserId, users]);
+  }, [messages, peerUserId, users, currentUserId, chatType]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -108,15 +121,19 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     <div className="message-list">
       {decryptedMessages.map((msg) => {
         const isOwn = msg.senderId === currentUserId;
+        const isGroupChat = chatType === "group";
         return (
           <div
             key={msg.id}
             className={`message ${isOwn ? "message-own" : "message-other"}`}
           >
             <div className="message-sender">
-              {isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8))}
-              {msg.isEncrypted && !msg.isDecrypted && <span className="ml-1 text-xs">🔒</span>}
-              {msg.isEncrypted && msg.isDecrypted && <span className="ml-1 text-xs">✓🔒</span>}
+              {isGroupChat && !isOwn && (msg.senderName || msg.senderId?.slice(0, 8))}
+              {isOwn && "Вы"}
+              {isGroupChat && isOwn && "Вы (вы)"}
+              {!isGroupChat && (isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8)))}
+              {msg.isEncrypted && !msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">🔒</span>}
+              {msg.isEncrypted && msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">✓🔒</span>}
             </div>
             <div className="message-content">
               {msg.displayContent || "ПУСТОЕ СООБЩЕНИЕ"}

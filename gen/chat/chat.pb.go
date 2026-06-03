@@ -70,6 +70,7 @@ type CreateGroupChatRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	ParticipantIds []string               `protobuf:"bytes,2,rep,name=participant_ids,json=participantIds,proto3" json:"participant_ids,omitempty"`
+	CreatedBy      string                 `protobuf:"bytes,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -116,6 +117,13 @@ func (x *CreateGroupChatRequest) GetParticipantIds() []string {
 		return x.ParticipantIds
 	}
 	return nil
+}
+
+func (x *CreateGroupChatRequest) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
 }
 
 type CreateChatResponse struct {
@@ -346,6 +354,7 @@ type Chat struct {
 	Participants  []*Participant         `protobuf:"bytes,4,rep,name=participants,proto3" json:"participants,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedBy     string                 `protobuf:"bytes,7,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -418,6 +427,13 @@ func (x *Chat) GetCreatedAt() string {
 func (x *Chat) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Chat) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
 	}
 	return ""
 }
@@ -724,10 +740,12 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\n" +
 	"\x10proto/chat.proto\x12\x04chat\x1a\x1cgoogle/api/annotations.proto\"3\n" +
 	"\x18CreatePrivateChatRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"U\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"t\n" +
 	"\x16CreateGroupChatRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12'\n" +
-	"\x0fparticipant_ids\x18\x02 \x03(\tR\x0eparticipantIds\"N\n" +
+	"\x0fparticipant_ids\x18\x02 \x03(\tR\x0eparticipantIds\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\x03 \x01(\tR\tcreatedBy\"N\n" +
 	"\x12CreateChatResponse\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x1f\n" +
 	"\vis_existing\x18\x02 \x01(\bR\n" +
@@ -740,7 +758,7 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\"1\n" +
 	"\x0fGetChatResponse\x12\x1e\n" +
 	"\x04chat\x18\x01 \x01(\v2\n" +
-	".chat.ChatR\x04chat\"\xb3\x01\n" +
+	".chat.ChatR\x04chat\"\xd2\x01\n" +
 	"\x04Chat\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
@@ -749,7 +767,9 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"{\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\a \x01(\tR\tcreatedBy\"{\n" +
 	"\vParticipant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -766,7 +786,7 @@ const file_proto_chat_proto_rawDesc = "" +
 	"\buser_ids\x18\x02 \x03(\tR\auserIds\",\n" +
 	"\x11LeaveGroupRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\a\n" +
-	"\x05Empty2\x90\x05\n" +
+	"\x05Empty2\x9a\x06\n" +
 	"\vChatService\x12l\n" +
 	"\x11CreatePrivateChat\x12\x1e.chat.CreatePrivateChatRequest\x1a\x18.chat.CreateChatResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/chats/private\x12f\n" +
 	"\x0fCreateGroupChat\x12\x1c.chat.CreateGroupChatRequest\x1a\x18.chat.CreateChatResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/chats/group\x12M\n" +
@@ -774,11 +794,11 @@ const file_proto_chat_proto_rawDesc = "" +
 	"/api/chats\x12T\n" +
 	"\aGetChat\x12\x14.chat.GetChatRequest\x1a\x15.chat.GetChatResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/chats/{chat_id}\x12P\n" +
 	"\n" +
-	"DeleteChat\x12\x17.chat.DeleteChatRequest\x1a\v.chat.Empty\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/api/chats/{chat_id}\x12<\n" +
-	"\x0fAddParticipants\x12\x1c.chat.AddParticipantsRequest\x1a\v.chat.Empty\x12B\n" +
-	"\x12RemoveParticipants\x12\x1f.chat.RemoveParticipantsRequest\x1a\v.chat.Empty\x122\n" +
+	"DeleteChat\x12\x17.chat.DeleteChatRequest\x1a\v.chat.Empty\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/api/chats/{chat_id}\x12j\n" +
+	"\x0fAddParticipants\x12\x1c.chat.AddParticipantsRequest\x1a\v.chat.Empty\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/chats/{chat_id}/participants\x12w\n" +
+	"\x12RemoveParticipants\x12\x1f.chat.RemoveParticipantsRequest\x1a\v.chat.Empty\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/chats/{chat_id}/participants/remove\x12Y\n" +
 	"\n" +
-	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\v.chat.EmptyB\x0fZ\rgen/chat;chatb\x06proto3"
+	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\v.chat.Empty\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/chats/{chat_id}/leaveB\x0fZ\rgen/chat;chatb\x06proto3"
 
 var (
 	file_proto_chat_proto_rawDescOnce sync.Once

@@ -48,23 +48,26 @@ func (r *KeysRepository) GetDeviceKeys(
 	ctx context.Context,
 	userID uuid.UUID,
 ) (models.DeviceKey, error) {
-
 	var k models.DeviceKey
 
 	err := r.db.QueryRow(ctx, `
-		SELECT 
-			id,
-			user_id, device_id,
-			identity_key_public,
-			signed_prekey_public,
-			signed_prekey_signature,
-			active,
-			created_at,
-			updated_at
-		FROM device_keys
-		WHERE user_id=$1 AND active=true
-		LIMIT 1
-	`, userID).Scan(
+        SELECT 
+            id,
+            user_id, device_id,
+            identity_key_public,
+            signed_prekey_public,
+            signed_prekey_signature,
+            active,
+            created_at,
+            updated_at
+        FROM device_keys
+        WHERE user_id = $1 
+        AND active = true 
+        AND identity_key_public != ''
+        AND signed_prekey_public != ''
+        ORDER BY created_at DESC
+        LIMIT 1
+    `, userID).Scan(
 		&k.ID,
 		&k.UserID,
 		&k.DeviceID,
@@ -92,14 +95,9 @@ func (r *KeysRepository) GetOneTimePreKey(
 		WHERE device_key_id=$1 AND used=false
 		ORDER BY key_id ASC
 		LIMIT 1
+		FOR UPDATE SKIP LOCKED
 	`, deviceKeyID).Scan(
-		&k.ID,
-		&k.DeviceKeyID,
-		&k.KeyID,
-		&k.PublicKey,
-		&k.Used,
-		&k.UsedAt,
-		&k.CreatedAt,
+		&k.ID, &k.DeviceKeyID, &k.KeyID, &k.PublicKey, &k.Used, &k.UsedAt, &k.CreatedAt,
 	)
 
 	return k, err
@@ -169,4 +167,18 @@ func (r *KeysRepository) UpdateSignedPreKey(
 	)
 
 	return err
+}
+
+func (r *KeysRepository) GetDeviceKeyIDByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) (uuid.UUID, error) {
+	var deviceKeyID uuid.UUID
+	err := r.db.QueryRow(ctx, `
+        SELECT id FROM device_keys
+		WHERE user_id = $1 AND active = true
+		ORDER BY created_at
+		DESC LIMIT 1
+    `, userID).Scan(&deviceKeyID)
+	return deviceKeyID, err
 }

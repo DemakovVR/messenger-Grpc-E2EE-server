@@ -46,10 +46,28 @@ func (s *MessageServer) SendMessage(
 		chatID,
 		userID,
 		req.EncryptedContent,
+		req.IsEncrypted,
 	)
 
 	if err != nil {
 		return nil, err
+	}
+
+	participants, err := s.messageService.GetChatParticipants(ctx, chatID)
+	if err == nil {
+		for _, participantID := range participants {
+			if participantID == userID {
+				continue
+			}
+			s.messageService.PublishMessage(
+				participantID,
+				messageID.String(),
+				chatID.String(),
+				userID.String(),
+				req.EncryptedContent,
+				req.IsEncrypted,
+			)
+		}
 	}
 
 	return &messagepb.SendMessageResponse{
@@ -92,7 +110,9 @@ func (s *MessageServer) GetMessages(
 			ChatId:           msg.ChatID.String(),
 			SenderId:         msg.SenderID.String(),
 			EncryptedContent: msg.EncryptedContent,
+			IsEncrypted:      msg.IsEncrypted,
 			SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
+			CreatedAt:        msg.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 
@@ -189,6 +209,7 @@ func (s *MessageServer) EditMessage(
 		messageID,
 		userID,
 		req.EncryptedContent,
+		req.IsEncrypted,
 	)
 
 	if err != nil {

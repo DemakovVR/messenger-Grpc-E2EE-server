@@ -24,6 +24,7 @@ func (r *MessageRepository) SendMessage(
 	chatID uuid.UUID,
 	senderID uuid.UUID,
 	content string,
+	isEncrypted bool,
 ) (uuid.UUID, error) {
 	var messageID uuid.UUID
 
@@ -34,16 +35,18 @@ func (r *MessageRepository) SendMessage(
 			chat_id,
 			sender_id,
 			encrypted_content,
+			is_encrypted,
 			sent_at,
 			created_at,
 			updated_at
 		)
-		VALUES ($1, $2, $3, NOW(), NOW(), NOW())
+		VALUES ($1, $2, $3, $4, NOW(), NOW(), NOW())
 		RETURNING id
 		`,
 		chatID,
 		senderID,
 		content,
+		isEncrypted,
 	).Scan(&messageID)
 
 	if err != nil {
@@ -70,6 +73,7 @@ func (r *MessageRepository) GetMessages(
 			encrypted_file_url,
 			is_edited,
 			is_deleted,
+			is_encrypted,
 			sent_at,
 			created_at,
 			updated_at
@@ -97,6 +101,7 @@ func (r *MessageRepository) GetMessages(
 			&msg.EncryptedFileURL,
 			&msg.IsEdited,
 			&msg.IsDeleted,
+			&msg.IsEncrypted,
 			&msg.SentAt,
 			&msg.CreatedAt,
 			&msg.UpdatedAt,
@@ -206,6 +211,7 @@ func (r *MessageRepository) EditMessage(
 	messageID uuid.UUID,
 	userID uuid.UUID,
 	content string,
+	isEncrypted bool,
 ) error {
 
 	commandTag, err := r.db.Exec(
@@ -214,13 +220,15 @@ func (r *MessageRepository) EditMessage(
 		UPDATE messages
 		SET
 			encrypted_content = $1,
+			is_encrypted = $2,
 			is_edited = true,
 			updated_at = NOW()
-		WHERE id = $2
-		AND sender_id = $3
+		WHERE id = $3
+		AND sender_id = $4
 		AND is_deleted = false
 		`,
 		content,
+		isEncrypted,
 		messageID,
 		userID,
 	)

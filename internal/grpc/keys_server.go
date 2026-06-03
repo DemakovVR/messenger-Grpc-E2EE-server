@@ -24,9 +24,7 @@ func (s *KeysServer) UploadKeys(
 	ctx context.Context,
 	req *keyspb.UploadKeysRequest,
 ) (*keyspb.Empty, error) {
-
 	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
@@ -40,8 +38,23 @@ func (s *KeysServer) UploadKeys(
 		req.SignedPrekeyPublic,
 		req.SignedPrekeySignature,
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return &keyspb.Empty{}, err
+	deviceKeyID, err := s.service.GetDeviceKeyIDByUserID(ctx, userID)
+	if err == nil && len(req.OneTimePrekeys) > 0 {
+		prekeys := make([]models.OneTimePreKey, len(req.OneTimePrekeys))
+		for i, p := range req.OneTimePrekeys {
+			prekeys[i] = models.OneTimePreKey{
+				KeyID:     int(p.KeyId),
+				PublicKey: p.PublicKey,
+			}
+		}
+		_ = s.service.UploadOneTimeKeys(ctx, deviceKeyID, prekeys)
+	}
+
+	return &keyspb.Empty{}, nil
 }
 
 func (s *KeysServer) GetPreKeyBundle(

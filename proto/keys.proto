@@ -42,6 +42,7 @@ message UploadKeysRequest {
   string identity_key_public = 2;
   string signed_prekey_public = 3;
   string signed_prekey_signature = 4;
+  repeated OneTimeKey one_time_prekeys = 5;
 }
 
 message GetPreKeyBundleRequest {

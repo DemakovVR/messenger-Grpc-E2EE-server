@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useMessages } from "../services/hooks/useMessages";
 import MessageList from "../components/ui/chat/MessageList";
 import MessageInput from "../components/ui/chat/MessageInput";
-import { publishPublicKey, getOrCreateKeys } from "../crypto/e2ee";
+import { publishKeys } from "../crypto/e2ee";
 import "../styles/chat.css";
 
 function ChatPage() {
@@ -14,14 +14,29 @@ function ChatPage() {
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [e2eeReady, setE2eeReady] = useState(false);
+  const [chatType, setChatType] = useState(null);
+  const [chatName, setChatName] = useState("");
+  const [groupCryptoKey, setGroupCryptoKey] = useState(null);
 
   useEffect(() => {
     const initE2EE = async () => {
-      getOrCreateKeys();
-      const published = await publishPublicKey();
+      const published = await publishKeys();
+      console.log("E2EE init result:", published);
       setE2eeReady(published);
     };
     initE2EE();
+
+    // Очищаем кэш публичных ключей других пользователей (но не свои ключи!)
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('e2eePeerSignedPrekey_') ||
+                  key.startsWith('e2eePeerIdentityKey_') ||
+                  key.startsWith('e2eePeerSignature_'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
   }, []);
 
   useEffect(() => {
@@ -38,14 +53,20 @@ function ChatPage() {
             let peerId = null;
             const usersMap = {};
             
+            setChatType(chat.type);
+            setChatName(chat.name || "");
+          
             if (chat.participants && chat.participants.length > 0) {
               chat.participants.forEach(p => {
-                usersMap[p.id] = p;
-                if (p.id !== user.id) {
+                usersMap[p.id] = { ...p, role: p.role || "member" };
+                if (p.id !== user.id && chat.type === "private") {
                   peerId = p.id;
                 }
               });
             }
+
+            console.log("ChatPage: Setting peerUserId =", peerId);
+            console.log("ChatPage: Chat type =", chat.type);
             setChatUsers(usersMap);
             setPeerUserId(peerId);
           }
@@ -56,6 +77,12 @@ function ChatPage() {
       fetchChat();
     }
   }, [chatId, user]);
+
+  useEffect(() => {
+    if (chatType === "group") {
+      setGroupCryptoKey(null);
+    }
+  }, [chatType]);
 
   const handleSendMessage = async (content, isEncrypted) => {
     try {
@@ -78,11 +105,24 @@ function ChatPage() {
     );
   }
 
+  const isGroupChat = chatType === "group";
+
   return (
     <div className="chat-page">
-      {!e2eeReady && (
+      <div className="chat-header">
+        <h3>{chatName || (isGroupChat ? "Group Chat" : "Private Chat")}</h3>
+        {isGroupChat && (
+          <div className="chat-type-badge">Группа (без E2EE)</div>
+        )}
+      </div>
+      {!e2eeReady && !isGroupChat && (
         <div className="e2ee-warning">
           ⚠️ E2EE инициализация...
+        </div>
+      )}
+      {isGroupChat && (
+        <div className="e2ee-info">
+          ℹ️ Сообщения в группе не шифруются
         </div>
       )}
       <MessageList
@@ -90,12 +130,16 @@ function ChatPage() {
         currentUserId={user?.id}
         peerUserId={peerUserId}
         users={chatUsers}
+        chatType={chatType}
+        groupCryptoKey={groupCryptoKey}
       />
       <MessageInput
         chatId={chatId}
         peerUserId={peerUserId}
         onSend={handleSendMessage}
         disabled={false}
+        chatType={chatType}
+        groupCryptoKey={groupCryptoKey}
       />
     </div>
   );

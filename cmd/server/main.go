@@ -169,6 +169,16 @@ func main() {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
+		err = authpb.RegisterUserServiceHandlerFromEndpoint(
+			ctx,
+			mux,
+			"localhost:"+cfg.ServerPort,
+			opts,
+		)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
 		err = chatpb.RegisterChatServiceHandlerFromEndpoint(
 			ctx,
 			mux,

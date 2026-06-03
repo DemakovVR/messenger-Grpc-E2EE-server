@@ -58,8 +58,33 @@ service UserService {
     };
   }
   
-  rpc UpdatePublicKey(UpdatePublicKeyRequest) returns (Empty);
-  rpc DeleteAccount(Empty) returns (Empty);
+  rpc GetPublicKey(GetPublicKeyRequest) returns (GetPublicKeyResponse) {
+    option (google.api.http) = {
+      get: "/api/users/{user_id}/public-key"
+    };
+  }
+
+  rpc UpdatePublicKey(UpdatePublicKeyRequest) returns (Empty) {
+    option (google.api.http) = {
+      put: "/api/auth/me/public-key"
+      body: "*"
+    };
+  }
+  
+  rpc DeleteAccount(Empty) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/auth/me"
+    };
+  }
+
+}
+
+message GetPublicKeyRequest {
+  string user_id = 1;
+}
+
+message GetPublicKeyResponse {
+  string public_key = 1;
 }
 
 message RegisterRequest {

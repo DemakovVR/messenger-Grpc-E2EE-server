@@ -96,6 +96,7 @@ func (r *ChatRepository) CreateGroupChat(
 	ctx context.Context,
 	name string,
 	participants []uuid.UUID,
+	createdBy uuid.UUID,
 ) (uuid.UUID, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -108,11 +109,12 @@ func (r *ChatRepository) CreateGroupChat(
 	err = tx.QueryRow(
 		ctx,
 		`
-		INSERT INTO chats(type, name)
-		VALUES('group', $1)
+		INSERT INTO chats(type, name, created_by)
+		VALUES('group', $1, $2)
 		RETURNING id
 		`,
 		name,
+		createdBy,
 	).Scan(&chatID)
 
 	if err != nil {

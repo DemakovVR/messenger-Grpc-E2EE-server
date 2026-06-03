@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { encryptMessageForPeer } from "../../../crypto/e2ee";
 
-export default function MessageInput({ onSend, disabled }) {
+export default function MessageInput({ chatId, peerUserId, onSend, disabled, chatType, groupCryptoKey }) {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef(null);
@@ -37,7 +38,31 @@ export default function MessageInput({ onSend, disabled }) {
     }
 
     try {
-      await onSend(messageText, false);
+      let contentToSend = messageText;
+      let isEncrypted = false;
+
+      const isGroupChat = chatType === "group";
+
+      if (!isGroupChat && peerUserId) {
+        console.log("E2EE: Encrypting message for peer:", peerUserId);
+        let encrypted = await encryptMessageForPeer(peerUserId, messageText, false);
+        if (!encrypted) {
+          console.log("E2EE: Encryption failed, retrying with forceRefresh=true");
+          encrypted = await encryptMessageForPeer(peerUserId, messageText, true);
+        }
+        if (encrypted) {
+          contentToSend = JSON.stringify(encrypted);
+          isEncrypted = true;
+          console.log("E2EE: Message encrypted");
+        } else {
+          console.log("E2EE: Encryption failed after retry, sending plaintext");
+        }
+      } else if (isGroupChat) {
+        console.log("Group chat: sending plaintext message");
+      }
+
+      await onSend(contentToSend, isEncrypted);
+      console.log("Message sent, isEncrypted =", isEncrypted);
     } catch (err) {
       console.error("Send failed:", err);
       setMessage(messageText);

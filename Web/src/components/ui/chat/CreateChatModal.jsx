@@ -43,59 +43,59 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
     setParticipants(participants.filter(p => p.id !== userId));
   };
 
-    const handleCreatePrivate = async () => {
+  const handleCreatePrivate = async () => {
     setLoading(true);
     setError("");
     try {
-        const data = await chatApi.createPrivateChat(selectedUser.id);
-        console.log("Create chat response:", data);
-        
-        if (data.isExisting === true) {
+      const data = await chatApi.createPrivateChat(selectedUser.id);
+      console.log("Create chat response:", data);
+      
+      if (data.isExisting === true) {
         setError("Чат с этим пользователем уже существует");
         setLoading(false);
-        } else if (data.chatId) {
+      } else if (data.chatId) {
         onChatCreated(data.chatId);
         onClose();
-        } else {
+      } else {
         setError("Ошибка: не получен ID чата");
         setLoading(false);
-        }
+      }
     } catch (err) {
-        console.error("Create error:", err);
-        setError(err.response?.data?.message || "Ошибка создания чата");
-        setLoading(false);
+      console.error("Create error:", err);
+      setError(err.response?.data?.message || "Ошибка создания чата");
+      setLoading(false);
     }
-    };
+  };
 
-    const handleCreateGroup = async () => {
+  const handleCreateGroup = async () => {
     if (!groupName.trim()) {
-        setError("Введите название группы");
-        return;
+      setError("Введите название группы");
+      return;
     }
     if (participants.length === 0) {
-        setError("Добавьте хотя бы одного участника");
-        return;
+      setError("Добавьте хотя бы одного участника");
+      return;
     }
     setLoading(true);
     setError("");
     try {
-        const participantIds = participants.map(p => p.id);
-        const data = await chatApi.createGroupChat(groupName, participantIds);
-        console.log("Create group response:", data);
-        
-        if (data.chatId) {
+      const participantIds = participants.map(p => p.id);
+      const data = await chatApi.createGroupChat(groupName, participantIds);
+      console.log("Create group response:", data);
+      
+      if (data.chatId) {
         onChatCreated(data.chatId);
         onClose();
-        } else {
+      } else {
         setError("Ошибка: не получен ID чата");
         setLoading(false);
-        }
+      }
     } catch (err) {
-        console.error("Create group error:", err);
-        setError(err.response?.data?.message || "Ошибка создания группы");
-        setLoading(false);
+      console.error("Create group error:", err);
+      setError(err.response?.data?.message || "Ошибка создания группы");
+      setLoading(false);
     }
-    };
+  };
 
   const reset = () => {
     setStep("search");
@@ -120,140 +120,143 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
           <button className="modal-close" onClick={handleClose}>×</button>
         </div>
 
-        <div className="chat-type-selector">
-          <button
-            type="button"
-            className={chatType === "private" ? "active" : ""}
-            onClick={() => { reset(); setChatType("private"); }}
-          >
-            Личный чат
-          </button>
-          <button
-            type="button"
-            className={chatType === "group" ? "active" : ""}
-            onClick={() => { reset(); setChatType("group"); }}
-          >
-            Групповой чат
-          </button>
-        </div>
+        <div className="modal-body">
+          <div className="chat-type-selector">
+            <button
+              type="button"
+              className={chatType === "private" ? "active" : ""}
+              onClick={() => { reset(); setChatType("private"); }}
+            >
+              Личный чат
+            </button>
+            <button
+              type="button"
+              className={chatType === "group" ? "active" : ""}
+              onClick={() => { reset(); setChatType("group"); }}
+            >
+              Групповой чат
+            </button>
+          </div>
 
-        {chatType === "private" ? (
-          <>
-            {step === "search" && (
-              <>
-                <div className="form-group">
-                  <label>Поиск пользователя</label>
-                  <div className="search-container">
-                    <input
-                      type="text"
-                      placeholder="Введите username или email..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <button type="button" onClick={searchUsers}>Найти</button>
+          {chatType === "private" ? (
+            <>
+              {step === "search" && (
+                <>
+                  <div className="form-group">
+                    <label>Поиск пользователя</label>
+                    <div className="search-container">
+                      <input
+                        type="text"
+                        placeholder="Введите username или email..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      <button type="button" className="btn-primary btn-search" onClick={searchUsers}>Найти</button>
+                    </div>
                   </div>
-                </div>
 
+                  {loading && <div className="loading-text">Поиск...</div>}
+
+                  {searchResults.length > 0 && (
+                    <div className="search-results">
+                      {searchResults.map(user => (
+                        <div key={user.id} className="search-result-item" onClick={() => selectUser(user)}>
+                          <span>{user.username}</span>
+                          <span className="user-email">{user.email}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {searchResults.length === 0 && searchQuery && !loading && (
+                    <div className="no-results">Пользователи не найдены</div>
+                  )}
+                </>
+              )}
+
+              {step === "confirm" && selectedUser && (
+                <>
+                  <div className="selected-user">
+                    <p>Выбран пользователь:</p>
+                    <div className="selected-user-info">
+                      <strong>{selectedUser.username}</strong>
+                      <span className="user-email">{selectedUser.email}</span>
+                    </div>
+                  </div>
+
+                  {error && <div className="error-message">{error}</div>}
+
+                  <div className="modal-buttons text-right">
+                    <button type="button" className="btn-secondary" onClick={() => setStep("search")}>Назад</button>
+                    <button type="button" className="btn-primary" onClick={handleCreatePrivate} disabled={loading}>
+                      {loading ? "Создание..." : "Создать чат"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label>Название группы</label>
+                <input
+                  type="text"
+                  placeholder="Введите название группы..."
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Добавить участников</label>
+                <div className="search-container">
+                  <input
+                    type="text"
+                    placeholder="Введите username или email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button type="button" className="btn-primary btn-search" onClick={searchUsers}>Найти</button>
+                </div>
+                
                 {loading && <div className="loading-text">Поиск...</div>}
 
                 {searchResults.length > 0 && (
                   <div className="search-results">
                     {searchResults.map(user => (
-                      <div key={user.id} className="search-result-item" onClick={() => selectUser(user)}>
+                      <div key={user.id} className="search-result-item" onClick={() => addParticipant(user)}>
                         <span>{user.username}</span>
                         <span className="user-email">{user.email}</span>
                       </div>
                     ))}
                   </div>
                 )}
-
-                {searchResults.length === 0 && searchQuery && !loading && (
-                  <div className="no-results">Пользователи не найдены</div>
-                )}
-              </>
-            )}
-
-            {step === "confirm" && selectedUser && (
-              <>
-                <div className="selected-user">
-                  <p>Выбран пользователь:</p>
-                  <div className="selected-user-info">
-                    <strong>{selectedUser.username}</strong>
-                    <span className="user-email">{selectedUser.email}</span>
-                  </div>
-                </div>
-
-                {error && <div className="error-message">{error}</div>}
-
-                <div className="modal-buttons">
-                  <button type="button" onClick={() => setStep("search")}>Назад</button>
-                  <button type="button" onClick={handleCreatePrivate} disabled={loading}>
-                    {loading ? "Создание..." : "Создать чат"}
-                  </button>
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="form-group">
-              <label>Название группы</label>
-              <input
-                type="text"
-                placeholder="Введите название группы..."
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Добавить участников</label>
-              <div className="search-container">
-                <input
-                  type="text"
-                  placeholder="Поиск пользователей..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button type="button" onClick={searchUsers}>Найти</button>
               </div>
-              
-              {loading && <div className="loading-text">Поиск...</div>}
 
-              {searchResults.length > 0 && (
-                <div className="search-results">
-                  {searchResults.map(user => (
-                    <div key={user.id} className="search-result-item" onClick={() => addParticipant(user)}>
-                      <span>{user.username}</span>
-                      <span className="user-email">{user.email}</span>
-                    </div>
-                  ))}
+              {participants.length > 0 && (
+                <div className="participants-list">
+                  <label>Участники ({participants.length})</label>
+                  <div className="participants-scroll">
+                    {participants.map(user => (
+                      <div key={user.id} className="participant-item">
+                        <span>{user.username}</span>
+                        <button type="button" className="btn-remove" onClick={() => removeParticipant(user.id)}>×</button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
 
-            {participants.length > 0 && (
-              <div className="participants-list">
-                <label>Участники ({participants.length})</label>
-                {participants.map(user => (
-                  <div key={user.id} className="participant-item">
-                    <span>{user.username}</span>
-                    <button type="button" onClick={() => removeParticipant(user.id)}>×</button>
-                  </div>
-                ))}
+              {error && <div className="error-message">{error}</div>}
+
+              <div className="modal-buttons text-full">
+                <button type="button" className="btn-primary" onClick={handleCreateGroup} disabled={loading}>
+                  {loading ? "Создание..." : "Создать группу"}
+                </button>
               </div>
-            )}
-
-            {error && <div className="error-message">{error}</div>}
-
-            <div className="modal-buttons">
-              <button type="button" onClick={handleClose}>Отмена</button>
-              <button type="button" onClick={handleCreateGroup} disabled={loading}>
-                {loading ? "Создание..." : "Создать группу"}
-              </button>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -34,13 +34,9 @@ func (s *ChatService) CreateGroupChat(
 	ctx context.Context,
 	name string,
 	participants []uuid.UUID,
+	createdBy uuid.UUID,
 ) (uuid.UUID, error) {
-
-	return s.repo.CreateGroupChat(
-		ctx,
-		name,
-		participants,
-	)
+	return s.repo.CreateGroupChat(ctx, name, participants, createdBy)
 }
 
 func (s *ChatService) GetChats(

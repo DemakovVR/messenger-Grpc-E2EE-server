@@ -46,6 +46,7 @@ func (s *MessageService) SendMessage(
 	chatID uuid.UUID,
 	userID uuid.UUID,
 	content string,
+	isEncrypted bool,
 ) (uuid.UUID, error) {
 
 	ok, err := s.repo.IsParticipant(ctx, chatID, userID)
@@ -62,6 +63,7 @@ func (s *MessageService) SendMessage(
 		chatID,
 		userID,
 		content,
+		isEncrypted,
 	)
 	if err != nil {
 		return uuid.Nil, err
@@ -83,7 +85,9 @@ func (s *MessageService) SendMessage(
 					ChatId:           chatID.String(),
 					SenderId:         userID.String(),
 					EncryptedContent: content,
+					IsEncrypted:      isEncrypted,
 					SentAt:           time.Now().Format(time.RFC3339),
+					CreatedAt:        time.Now().Format(time.RFC3339),
 				},
 			)
 		}
@@ -128,6 +132,7 @@ func (s *MessageService) EditMessage(
 	messageID uuid.UUID,
 	userID uuid.UUID,
 	content string,
+	isEncrypted bool,
 ) error {
 
 	return s.repo.EditMessage(
@@ -135,5 +140,35 @@ func (s *MessageService) EditMessage(
 		messageID,
 		userID,
 		content,
+		isEncrypted,
+	)
+}
+
+func (s *MessageService) GetChatParticipants(
+	ctx context.Context,
+	chatID uuid.UUID,
+) ([]uuid.UUID, error) {
+	return s.repo.GetChatParticipants(ctx, chatID)
+}
+
+func (s *MessageService) PublishMessage(
+	peerUserID uuid.UUID,
+	messageID string,
+	chatID string,
+	senderID string,
+	content string,
+	isEncrypted bool,
+) {
+	s.manager.Publish(
+		peerUserID,
+		&messagepb.MessageResponse{
+			Id:               messageID,
+			ChatId:           chatID,
+			SenderId:         senderID,
+			EncryptedContent: content,
+			IsEncrypted:      isEncrypted,
+			SentAt:           time.Now().Format(time.RFC3339),
+			CreatedAt:        time.Now().Format(time.RFC3339),
+		},
 	)
 }
