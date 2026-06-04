@@ -118,13 +118,8 @@ func (s *MessageService) DeleteMessage(
 	ctx context.Context,
 	messageID uuid.UUID,
 	userID uuid.UUID,
-) error {
-
-	return s.repo.DeleteMessage(
-		ctx,
-		messageID,
-		userID,
-	)
+) (uuid.UUID, error) {
+	return s.repo.DeleteMessage(ctx, messageID, userID)
 }
 
 func (s *MessageService) EditMessage(
@@ -133,15 +128,8 @@ func (s *MessageService) EditMessage(
 	userID uuid.UUID,
 	content string,
 	isEncrypted bool,
-) error {
-
-	return s.repo.EditMessage(
-		ctx,
-		messageID,
-		userID,
-		content,
-		isEncrypted,
-	)
+) (uuid.UUID, error) {
+	return s.repo.EditMessage(ctx, messageID, userID, content, isEncrypted)
 }
 
 func (s *MessageService) GetChatParticipants(
@@ -167,6 +155,51 @@ func (s *MessageService) PublishMessage(
 			SenderId:         senderID,
 			EncryptedContent: content,
 			IsEncrypted:      isEncrypted,
+			SentAt:           time.Now().Format(time.RFC3339),
+			CreatedAt:        time.Now().Format(time.RFC3339),
+			IsDeleted:        false,
+			IsEdited:         false,
+		},
+	)
+}
+
+func (s *MessageService) PublishDeletion(
+	peerUserID uuid.UUID,
+	messageID string,
+	chatID string,
+	senderID string,
+) {
+	s.manager.Publish(
+		peerUserID,
+		&messagepb.MessageResponse{
+			Id:               messageID,
+			ChatId:           chatID,
+			SenderId:         senderID,
+			EncryptedContent: "",
+			IsDeleted:        true,
+			SentAt:           time.Now().Format(time.RFC3339),
+			CreatedAt:        time.Now().Format(time.RFC3339),
+		},
+	)
+}
+
+func (s *MessageService) PublishEdit(
+	peerUserID uuid.UUID,
+	messageID string,
+	chatID string,
+	senderID string,
+	content string,
+	isEncrypted bool,
+) {
+	s.manager.Publish(
+		peerUserID,
+		&messagepb.MessageResponse{
+			Id:               messageID,
+			ChatId:           chatID,
+			SenderId:         senderID,
+			EncryptedContent: content,
+			IsEncrypted:      isEncrypted,
+			IsEdited:         true,
 			SentAt:           time.Now().Format(time.RFC3339),
 			CreatedAt:        time.Now().Format(time.RFC3339),
 		},

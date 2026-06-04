@@ -178,9 +178,10 @@ func (r *MessageRepository) DeleteMessage(
 	ctx context.Context,
 	messageID uuid.UUID,
 	userID uuid.UUID,
-) error {
+) (uuid.UUID, error) {
+	var chatID uuid.UUID
 
-	commandTag, err := r.db.Exec(
+	err := r.db.QueryRow(
 		ctx,
 		`
 		UPDATE messages
@@ -190,20 +191,17 @@ func (r *MessageRepository) DeleteMessage(
 			updated_at = NOW()
 		WHERE id = $1
 		AND sender_id = $2
+		RETURNING chat_id
 		`,
 		messageID,
 		userID,
-	)
+	).Scan(&chatID)
 
 	if err != nil {
-		return err
+		return uuid.Nil, errors.New("message not found or access denied")
 	}
 
-	if commandTag.RowsAffected() == 0 {
-		return errors.New("message not found or access denied")
-	}
-
-	return nil
+	return chatID, nil
 }
 
 func (r *MessageRepository) EditMessage(
@@ -212,9 +210,10 @@ func (r *MessageRepository) EditMessage(
 	userID uuid.UUID,
 	content string,
 	isEncrypted bool,
-) error {
+) (uuid.UUID, error) {
+	var chatID uuid.UUID
 
-	commandTag, err := r.db.Exec(
+	err := r.db.QueryRow(
 		ctx,
 		`
 		UPDATE messages
@@ -226,22 +225,17 @@ func (r *MessageRepository) EditMessage(
 		WHERE id = $3
 		AND sender_id = $4
 		AND is_deleted = false
+		RETURNING chat_id
 		`,
 		content,
 		isEncrypted,
 		messageID,
 		userID,
-	)
+	).Scan(&chatID)
 
 	if err != nil {
-		return err
+		return uuid.Nil, errors.New("message not found or access denied")
 	}
 
-	if commandTag.RowsAffected() == 0 {
-		return errors.New(
-			"message not found or access denied",
-		)
-	}
-
-	return nil
+	return chatID, nil
 }

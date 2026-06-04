@@ -231,6 +231,8 @@ type MessageResponse struct {
 	IsEncrypted      bool                   `protobuf:"varint,5,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 	SentAt           string                 `protobuf:"bytes,6,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
 	CreatedAt        string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	IsEdited         bool                   `protobuf:"varint,8,opt,name=is_edited,json=isEdited,proto3" json:"is_edited,omitempty"`
+	IsDeleted        bool                   `protobuf:"varint,9,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -312,6 +314,20 @@ func (x *MessageResponse) GetCreatedAt() string {
 		return x.CreatedAt
 	}
 	return ""
+}
+
+func (x *MessageResponse) GetIsEdited() bool {
+	if x != nil {
+		return x.IsEdited
+	}
+	return false
+}
+
+func (x *MessageResponse) GetIsDeleted() bool {
+	if x != nil {
+		return x.IsDeleted
+	}
+	return false
 }
 
 type GetMessagesResponse struct {
@@ -514,7 +530,7 @@ const file_proto_message_proto_rawDesc = "" +
 	"\x12GetMessagesRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\xdf\x01\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\x9b\x02\n" +
 	"\x0fMessageResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\achat_id\x18\x02 \x01(\tR\x06chatId\x12\x1b\n" +
@@ -523,7 +539,10 @@ const file_proto_message_proto_rawDesc = "" +
 	"\fis_encrypted\x18\x05 \x01(\bR\visEncrypted\x12\x17\n" +
 	"\asent_at\x18\x06 \x01(\tR\x06sentAt\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\a \x01(\tR\tcreatedAt\"K\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1b\n" +
+	"\tis_edited\x18\b \x01(\bR\bisEdited\x12\x1d\n" +
+	"\n" +
+	"is_deleted\x18\t \x01(\bR\tisDeleted\"K\n" +
 	"\x13GetMessagesResponse\x124\n" +
 	"\bmessages\x18\x01 \x03(\v2\x18.message.MessageResponseR\bmessages\"5\n" +
 	"\x14DeleteMessageRequest\x12\x1d\n" +

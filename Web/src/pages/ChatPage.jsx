@@ -4,13 +4,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { useMessages } from "../services/hooks/useMessages";
 import MessageList from "../components/ui/chat/MessageList";
 import MessageInput from "../components/ui/chat/MessageInput";
-import { publishKeys } from "../crypto/e2ee";
+import { publishKeys, encryptMessageForPeer } from "../crypto/e2ee";
 import "../styles/chat.css";
 
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { messages, loading, sendMessage, uploadFile, realtimeConnected } = useMessages(chatId);
+  const { messages, loading, sendMessage, uploadFile, deleteMessage, editMessage, realtimeConnected } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [e2eeReady, setE2eeReady] = useState(false);
@@ -92,6 +92,39 @@ function ChatPage() {
     }
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      await deleteMessage(messageId);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Ошибка удаления сообщения");
+    }
+  };
+
+  const handleEditMessage = async (messageId, newContent, wasEncrypted) => {
+    try {
+      let contentToSend = newContent;
+      let isEncrypted = wasEncrypted;
+      const isGroupChat = chatType === "group";
+
+      if (!isGroupChat && peerUserId && wasEncrypted) {
+        let encrypted = await encryptMessageForPeer(peerUserId, newContent, false);
+        if (!encrypted) {
+          encrypted = await encryptMessageForPeer(peerUserId, newContent, true);
+        }
+        if (encrypted) {
+          contentToSend = JSON.stringify(encrypted);
+          isEncrypted = true;
+        }
+      }
+
+      await editMessage(messageId, contentToSend, isEncrypted);
+    } catch (err) {
+      console.error("Edit failed:", err);
+      alert("Ошибка редактирования сообщения");
+    }
+  };
+
   if (loading) {
     return <div className="chat-page-loading">Loading messages...</div>;
   }
@@ -134,6 +167,8 @@ function ChatPage() {
         users={chatUsers}
         chatType={chatType}
         groupCryptoKey={groupCryptoKey}
+        onDeleteMessage={handleDeleteMessage}
+        onEditMessage={handleEditMessage}
       />
       <MessageInput
         chatId={chatId}

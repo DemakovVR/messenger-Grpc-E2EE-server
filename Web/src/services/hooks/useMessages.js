@@ -51,15 +51,27 @@ export function useMessages(chatId) {
   useEffect(() => {
     if (!chatId) return;
 
-    const handleNewMessage = (newMessage) => {
-      if (newMessage.chatId === chatId) {
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.id === newMessage.id);
-          if (exists) return prev;
-          return [...prev, newMessage];
-        });
+const handleNewMessage = (newMessage) => {
+  const msgChatId = newMessage.chatId || newMessage.chat_id;
+  const currentChatId = chatId;
+
+  if (String(msgChatId) === String(currentChatId)) {
+    setMessages((prev) => {
+      const exists = prev.some((m) => String(m.id) === String(newMessage.id));
+      const isMsgDeleted = newMessage.isDeleted || newMessage.is_deleted;
+
+      if (exists) {
+        if (isMsgDeleted) {
+          return prev.filter((m) => String(m.id) !== String(newMessage.id));
+        }
+        return prev.map((m) => String(m.id) === String(newMessage.id) ? newMessage : m);
       }
-    };
+
+      if (isMsgDeleted) return prev;
+      return [...prev, newMessage];
+    });
+  }
+};
 
     grpcClient.subscribe(chatId, handleNewMessage);
     setRealtimeConnected(grpcClient.isConnected());

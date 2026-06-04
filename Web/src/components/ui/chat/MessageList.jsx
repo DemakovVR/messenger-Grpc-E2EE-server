@@ -2,9 +2,71 @@ import { useRef, useEffect, useState } from "react";
 import { decryptMessageFromPeer } from "../../../crypto/e2ee";
 import { grpcClient } from "../../../services/grpcClient";
 
-function MessageContentRender({ content }) {
+function MessageActions({ message, isOwn, onEdit, onDelete }) {
+  const [showActions, setShowActions] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowActions(false);
+      }
+    }
+    if (showActions) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showActions]);
+
+  if (!isOwn) return null;
+
+  return (
+    <div className="message-actions" ref={menuRef} style={{ position: "relative", display: "inline-block", marginLeft: "10px" }}>
+      <button
+        onClick={() => setShowActions(!showActions)}
+        className="message-actions-trigger"
+        style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: "0 5px", color: "inherit" }}
+      >
+        ⋮
+      </button>
+      {showActions && (
+        <div style={{
+          position: "absolute",
+          top: "25px",
+          right: "0",
+          background: "#ffffff",
+          borderRadius: "8px",
+          padding: "6px 0",
+          zIndex: 100,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          minWidth: "170px",
+          border: "1px solid #e0e0e0"
+        }}>
+          <button
+            onClick={() => { onEdit(message); setShowActions(false); }}
+            style={{ display: "block", width: "100%", padding: "10px 16px", background: "none", border: "none", color: "#333333", cursor: "pointer", textAlign: "left", fontSize: "14px", whiteSpace: "nowrap" }}
+          >
+            ✏️ Редактировать
+          </button>
+          <button
+            onClick={() => { onDelete(message.id); setShowActions(false); }}
+            style={{ display: "block", width: "100%", padding: "10px 16px", background: "none", border: "none", color: "#ff4d4d", cursor: "pointer", textAlign: "left", fontSize: "14px", whiteSpace: "nowrap" }}
+          >
+            🗑️ Удалить
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MessageContentRender({ content, onEdit, onDelete, message, isOwn }) {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState("");
 
   const getCleanFileName = (rawPath) => {
     if (!rawPath) return "";
@@ -26,8 +88,8 @@ function MessageContentRender({ content }) {
           setDownloading(true);
           setProgress(0);
           try {
-          const localBlobUrl = await grpcClient.downloadFile(fileUrl, (count) => {
-            setProgress(Math.min(count, 100));
+            const localBlobUrl = await grpcClient.downloadFile(fileUrl, (count) => {
+              setProgress(Math.min(count, 100));
             });
             const link = document.createElement("a");
             link.href = localBlobUrl;
@@ -56,20 +118,16 @@ function MessageContentRender({ content }) {
               }}
               title={downloading ? `Скачивание: ${progress}%` : "Скачать файл"}
             >
-              {downloading ? (
-                <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span>
-              ) : (
-                "📄"
-              )}
+              {downloading ? <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span> : "📄"}
             </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <span style={{ wordBreak: "break-all" }}>{displayName || "Файл без имени"}</span>
             </div>
+            <MessageActions message={message} isOwn={isOwn} onEdit={onEdit} onDelete={onDelete} />
           </div>
         );
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i;
@@ -105,29 +163,69 @@ function MessageContentRender({ content }) {
             cursor: downloading ? "default" : "pointer", 
             fontSize: "24px", 
             display: "flex", 
-                alignItems: "center", 
+            alignItems: "center", 
             justifyContent: "center",
             userSelect: "none"
           }}
           title={downloading ? `Скачивание: ${progress}%` : "Скачать файл"}
         >
-          {downloading ? (
-            <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span>
-          ) : (
-            "📄"
-          )}
+          {downloading ? <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span> : "📄"}
         </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <span style={{ wordBreak: "break-all" }}>{displayName}</span>
         </div>
+        <MessageActions message={message} isOwn={isOwn} onEdit={onEdit} onDelete={onDelete} />
       </div>
     );
   }
 
-  return <span>{content}</span>;
+  if (isEditing) {
+    return (
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
+        <input
+          type="text"
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onEdit(message, editText);
+              setIsEditing(false);
+            }
+            if (e.key === "Escape") {
+              setIsEditing(false);
+            }
+          }}
+          style={{ 
+            flex: 1, 
+            padding: "8px 12px", 
+            borderRadius: "6px", 
+            border: "1px solid #ccc", 
+            background: "#ffffff", 
+            color: "#000000", 
+            fontSize: "14px"
+          }}
+          autoFocus
+        />
+        <button onClick={() => { onEdit(message, editText); setIsEditing(false); }} style={{ padding: "8px 12px", background: "#4c5cff", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>💾</button>
+        <button 
+          onClick={() => setIsEditing(false)} 
+          style={{ padding: "8px 12px", background: "#f0f0f0", border: "1px solid #ccc", borderRadius: "6px", color: "#333333", cursor: "pointer" }}
+        >
+          ✖
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+      <span style={{ flex: 1 }}>{content}</span>
+      <MessageActions message={message} isOwn={isOwn} onEdit={() => { setEditText(content); setIsEditing(true); }} onDelete={onDelete} />
+    </div>
+  );
 }
 
-export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey }) {
+export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey, onDeleteMessage, onEditMessage }) {
   const messagesEndRef = useRef(null);
   const [decryptedMessages, setDecryptedMessages] = useState([]);
 
@@ -142,14 +240,19 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
 
       const decrypted = await Promise.all(
         messages.map(async (msg) => {
-          let content = msg.encryptedContent || msg.content;
+          const id = msg.id;
+          const senderId = msg.senderId || msg.sender_id;
+          const isEncrypted = msg.isEncrypted || msg.is_encrypted;
+          const isDeleted = msg.isDeleted || msg.is_deleted;
+          const isEdited = msg.isEdited || msg.is_edited;
+          
+          let content = msg.encryptedContent || msg.encrypted_content || msg.content;
           let isDecrypted = false;
 
-          if (msg.isEncrypted && !isGroupChat) {
+          if (isEncrypted && !isGroupChat) {
             try {
               const encryptedData = JSON.parse(content);
-
-              if (msg.senderId !== currentUserId) {
+              if (senderId !== currentUserId) {
                 const decryptedContent = await decryptMessageFromPeer(encryptedData, currentUserId);
                 if (decryptedContent) {
                   content = decryptedContent;
@@ -176,27 +279,30 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
                 }
               }
             } catch (e) {
-              content = msg.senderId === currentUserId ? "[Отправлено]" : "[Зашифрованное сообщение]";
+              content = senderId === currentUserId ? "[Отправлено]" : "[Зашифрованное сообщение]";
             }
           }
 
-          let senderName = msg.senderId?.slice(0, 8);
-          if (users && users[msg.senderId]) {
-            senderName = users[msg.senderId].username || users[msg.senderId].display_name;
+          let senderName = senderId?.slice(0, 8);
+          if (users && users[senderId]) {
+            senderName = users[senderId].username || users[senderId].display_name;
           }
 
-          let sentAt = msg.sentAt || msg.createdAt;
+          let sentAt = msg.sentAt || msg.createdAt || msg.sent_at || msg.created_at;
           let validDate = true;
           try {
-            if (new Date(sentAt).toString() === "Invalid Date") {
-              validDate = false;
-            }
+            if (new Date(sentAt).toString() === "Invalid Date") validDate = false;
           } catch {
             validDate = false;
           }
 
           return {
             ...msg,
+            id,
+            senderId,
+            isEncrypted,
+            isDeleted,
+            isEdited,
             displayContent: content,
             isDecrypted,
             senderName,
@@ -234,33 +340,56 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     }
   };
 
-  if (decryptedMessages.length === 0) {
-    return (
-      <div className="message-list-empty">
-        Нет сообщений. Напишите первое сообщение!
-      </div>
-    );
+  const handleDelete = async (messageId) => {
+    if (window.confirm("Удалить сообщение?")) {
+      await onDeleteMessage(messageId);
+    }
+  };
+
+  const handleEdit = async (message, newContent) => {
+    if (!newContent || newContent === message.displayContent) return;
+    await onEditMessage(message.id, newContent, message.isEncrypted);
+  };
+
+  const activeMessages = decryptedMessages.filter(msg => {
+    if (msg.isDeleted) return false;
+    
+    console.log("Бэкенд прислал сообщение:", msg);
+
+    const hasText = msg.displayContent && msg.displayContent.trim() !== "";
+    if (!hasText) return false; 
+
+    return true;
+  });
+
+  if (activeMessages.length === 0) {
+    return <div className="message-list-empty">Нет сообщений. Напишите первое сообщение!</div>;
   }
 
   return (
     <div className="message-list">
-      {decryptedMessages.map((msg) => {
+      {activeMessages.map((msg) => {
         const isOwn = msg.senderId === currentUserId;
         const isGroupChat = chatType === "group";
+
         return (
-          <div
-            key={msg.id}
-            className={`message ${isOwn ? "message-own" : "message-other"}`}
-          >
+          <div key={String(msg.id)} className={`message ${isOwn ? "message-own" : "message-other"}`}>
             <div className="message-sender">
               {isGroupChat && !isOwn && (msg.senderName || msg.senderId?.slice(0, 8))}
-              {isGroupChat && isOwn && "Вы"}
+              {isOwn && "Вы"}
               {!isGroupChat && (isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8)))}
               {msg.isEncrypted && !msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">🔒</span>}
               {msg.isEncrypted && msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">✓🔒</span>}
+              {msg.isEdited && <span className="ml-1 text-xs" style={{ color: "#000000" }}> (ред.)</span>}
             </div>
             <div className="message-content">
-              <MessageContentRender content={msg.displayContent || "ПУСТОЕ СООБЩЕНИЕ"} />
+              <MessageContentRender 
+                content={msg.displayContent || ""} 
+                message={msg}
+                isOwn={isOwn}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             </div>
             <div className="message-time">
               {formatTime(msg.sentAt)}

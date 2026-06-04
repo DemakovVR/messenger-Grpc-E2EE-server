@@ -89,18 +89,12 @@ func (s *MessageServer) GetMessages(
 	}
 
 	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
 	}
 
-	messages, err := s.messageService.GetMessages(
-		ctx,
-		chatID,
-		userID,
-	)
-
+	messages, err := s.messageService.GetMessages(ctx, chatID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +108,8 @@ func (s *MessageServer) GetMessages(
 			SenderId:         msg.SenderID.String(),
 			EncryptedContent: msg.EncryptedContent,
 			IsEncrypted:      msg.IsEncrypted,
+			IsEdited:         msg.IsEdited,
+			IsDeleted:        msg.IsDeleted,
 			SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
@@ -177,10 +173,7 @@ func (s *MessageServer) DeleteMessage(
 	req *messagepb.DeleteMessageRequest,
 ) (*messagepb.Empty, error) {
 
-	userIDStr := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
-
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
@@ -191,14 +184,24 @@ func (s *MessageServer) DeleteMessage(
 		return nil, err
 	}
 
-	err = s.messageService.DeleteMessage(
-		ctx,
-		messageID,
-		userID,
-	)
-
+	chatID, err := s.messageService.DeleteMessage(ctx, messageID, userID)
 	if err != nil {
 		return nil, err
+	}
+
+	participants, err := s.messageService.GetChatParticipants(ctx, chatID)
+	if err == nil {
+		for _, participantID := range participants {
+			if participantID == userID {
+				continue
+			}
+			s.messageService.PublishDeletion(
+				participantID,
+				messageID.String(),
+				chatID.String(),
+				userID.String(),
+			)
+		}
 	}
 
 	return &messagepb.Empty{}, nil
@@ -209,10 +212,7 @@ func (s *MessageServer) EditMessage(
 	req *messagepb.EditMessageRequest,
 ) (*messagepb.Empty, error) {
 
-	userIDStr := ctx.Value(
-		middleware.UserIDKey,
-	).(string)
-
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
@@ -223,16 +223,32 @@ func (s *MessageServer) EditMessage(
 		return nil, err
 	}
 
-	err = s.messageService.EditMessage(
+	chatID, err := s.messageService.EditMessage(
 		ctx,
 		messageID,
 		userID,
 		req.EncryptedContent,
 		req.IsEncrypted,
 	)
-
 	if err != nil {
 		return nil, err
+	}
+
+	participants, err := s.messageService.GetChatParticipants(ctx, chatID)
+	if err == nil {
+		for _, participantID := range participants {
+			if participantID == userID {
+				continue
+			}
+			s.messageService.PublishEdit(
+				participantID,
+				messageID.String(),
+				chatID.String(),
+				userID.String(),
+				req.EncryptedContent,
+				req.IsEncrypted,
+			)
+		}
 	}
 
 	return &messagepb.Empty{}, nil

@@ -62,6 +62,8 @@ message MessageResponse {
     bool is_encrypted = 5;
     string sent_at = 6;
     string created_at = 7;
+    bool is_edited = 8;
+    bool is_deleted = 9;
 }
 
 message GetMessagesResponse {
