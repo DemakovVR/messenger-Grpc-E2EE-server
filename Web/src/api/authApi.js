@@ -40,4 +40,21 @@ export const authApi = {
 
     return res.data;
   },
+
+  refresh: async (refreshToken) => {
+    const res = await httpClient.post("/auth/refresh", {
+      refreshToken: refreshToken,
+    });
+    return res.data;
+  },
+
+  changePassword: async (oldPassword, newPassword) => {
+  const res = await httpClient.post("/auth/change-password", {
+    oldPassword: oldPassword,
+    newPassword: newPassword,
+  });
+  return res.data;
+},
+
 };
+  

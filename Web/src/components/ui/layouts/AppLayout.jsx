@@ -3,6 +3,7 @@ import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useChats } from "../../../services/hooks/useChats";
 import CreateChatModal from "../chat/CreateChatModal";
+import ChangePasswordModal from "../modals/ChangePasswordModal";
 import "../../../styles/chat.css";
 
 function AppLayout() {
@@ -10,6 +11,8 @@ function AppLayout() {
   const { chats, loading, fetchChats, createPrivateChat, createGroupChat } = useChats();
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -21,46 +24,87 @@ function AppLayout() {
     navigate(`/app/chat/${chatId}`);
   };
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="logo">SecureTalk</div>
 
-        <button className="create-chat-btn" onClick={() => setShowCreateModal(true)}>
-          + Новый чат
-        </button>
+        {!menuOpen && (
+          <button className="create-chat-btn" onClick={() => setShowCreateModal(true)}>
+            + Новый чат
+          </button>
+        )}
 
-        <div className="chat-list">
-          {loading && <div className="chat-list-loading">Loading...</div>}
-          
-          {!loading && chats.length === 0 && (
-            <div className="chat-list-empty">No chats yet</div>
-          )}
-          
-          {chats.map((chat) => (
-            <NavLink
-              key={chat.id}
-              to={`/app/chat/${chat.id}`}
-              className={({ isActive }) =>
-                isActive ? "chat-list-item active" : "chat-list-item"
-              }
-            >
-              <div className="chat-list-item-name">
-                {chat.type === "private" ? "💬" : "👥"} {chat.name || (chat.type === "private" ? "Private Chat" : "Group Chat")}
-              </div>
-              <div className="chat-list-item-type">
-                {chat.type === "private" ? "Личный" : "Группа"}
-              </div>
-            </NavLink>
-          ))}
-        </div>
+        {!menuOpen ? (
+          <div className="chat-list">
+            {loading && <div className="chat-list-loading">Loading...</div>}
+            
+            {!loading && chats.length === 0 && (
+              <div className="chat-list-empty">No chats yet</div>
+            )}
+            
+            {chats.map((chat) => (
+              <NavLink
+                key={chat.id}
+                to={`/app/chat/${chat.id}`}
+                className={({ isActive }) =>
+                  isActive ? "chat-list-item active" : "chat-list-item"
+                }
+              >
+                <div className="chat-list-item-name">
+                  {chat.type === "private" ? "💬" : "👥"} {chat.name || (chat.type === "private" ? "Private Chat" : "Group Chat")}
+                </div>
+                <div className="chat-list-item-type">
+                  {chat.type === "private" ? "Личный" : "Группа"}
+                </div>
+              </NavLink>
+            ))}
+          </div>
+        ) : (
+          <div className="menu-list">
+            <div className="menu-header">
+              <div className="user-avatar">👤</div>
+              <div className="user-name">{user?.username || "Пользователь"}</div>
+              <div className="user-email">{user?.email || ""}</div>
+            </div>
+            
+            <div className="menu-items">
+              <button 
+                className="menu-item"
+                onClick={() => setShowChangePasswordModal(true)}
+              >
+                <span className="menu-icon">🔒</span>
+                <span className="menu-text">Сменить пароль</span>
+              </button>
+              
+              <button 
+                className="menu-item logout"
+                onClick={handleLogout}
+              >
+                <span className="menu-icon">🚪</span>
+                <span className="menu-text">Выйти</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="sidebar-footer">
-          <div className="user-info">
-            <span>{user?.username || "Пользователь"}</span>
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            Выйти
+          <button onClick={toggleMenu} className="menu-toggle-btn">
+            {menuOpen ? (
+              <>
+                <span className="menu-icon">←</span>
+                <span>Назад к чатам</span>
+              </>
+            ) : (
+              <>
+                <span className="menu-icon">☰</span>
+                <span>Меню</span>
+              </>
+            )}
           </button>
         </div>
       </aside>
@@ -80,6 +124,12 @@ function AppLayout() {
         <CreateChatModal
           onClose={() => setShowCreateModal(false)}
           onChatCreated={handleChatCreated}
+        />
+      )}
+
+      {showChangePasswordModal && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePasswordModal(false)}
         />
       )}
     </div>

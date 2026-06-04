@@ -114,6 +114,15 @@ class GrpcClientService {
     this.subscribers.delete(chatId);
   }
 
+updateToken(newToken) {
+    this.token = newToken;
+    if (this.stream) {
+      this.disconnect();
+      this.userId = localStorage.getItem("user_id"); 
+      this.startStream();
+    }
+  }
+
   disconnect() {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.stream) { 

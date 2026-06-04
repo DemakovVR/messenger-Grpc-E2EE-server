@@ -51,7 +51,10 @@ func AuthStreamInterceptor(jwtSecret string) grpc.StreamServerInterceptor {
 }
 
 func isPublic(method string) bool {
-	return strings.Contains(method, "Register") || strings.Contains(method, "Login")
+	return strings.Contains(method, "Register") ||
+		strings.Contains(method, "Login") ||
+		strings.Contains(method, "Refresh") ||
+		strings.Contains(method, "Logout")
 }
 
 func authorize(ctx context.Context, jwtSecret string) (string, error) {

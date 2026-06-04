@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     if (!userId) {
       try {
         const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-        userId = payload.user_id;
+        userId = payload.userId;
         userName = payload.username || username;
         localStorage.setItem("user_id", userId);
         localStorage.setItem("username", userName);
@@ -73,26 +73,38 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
 
     grpcClient.disconnect();
 
     setUser(null);
   }, []);
 
-  const setupInterceptors = useCallback((httpClient) => {
-    const interceptor = httpClient.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        if (error.response?.status === 401) {
-          await logout();
-          window.location.href = "/";
-        }
-        return Promise.reject(error);
-      }
-    );
+  const refreshAccessToken = useCallback(async () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (!refreshToken) throw new Error("No refresh token");
+    
+    const data = await authApi.refresh(refreshToken);
+    const newAccessToken = data.accessToken;
+    
+    localStorage.setItem("access_token", newAccessToken);
+    
+    if (user) {
+      setUser({ ...user, token: newAccessToken });
+    }
+    
+    grpcClient.updateToken(newAccessToken);
+    
+    return newAccessToken;
+  }, [user]);
 
-    return () => httpClient.interceptors.response.eject(interceptor);
-  }, [logout]);
+  const changePassword = useCallback(async (oldPassword, newPassword) => {
+    return await authApi.changePassword(oldPassword, newPassword);
+  }, []);
+
+  const setupInterceptors = useCallback(() => {
+    return () => {};
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -102,6 +114,8 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        refreshAccessToken,
+        changePassword,
         isAuth: !!user,
         setupInterceptors,
       }}
