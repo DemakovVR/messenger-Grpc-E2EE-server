@@ -1,0 +1,157 @@
+.profile-modal {
+  width: 450px;
+  max-width: 90%;
+}
+
+.profile-modal .form-group {
+  margin-bottom: 20px;
+}
+
+.profile-modal .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.profile-modal .form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.profile-modal .form-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.btn-full {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.profile-modal .btn-primary {
+  background-color: #3b82f6;
+  border: none;
+  color: white;
+  margin-top: 8px;
+}
+
+.profile-modal .btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.profile-modal .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-modal .success-message {
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #065f46;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.profile-modal .modal-footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-top: 16px;
+}
+
+.profile-modal .delete-account-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.profile-modal .delete-account-btn:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+.delete-confirm {
+  text-align: center;
+}
+
+.delete-warning {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: #dc2626;
+}
+
+.delete-confirm p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.delete-confirm .delete-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.delete-confirm .btn-danger {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-sizing: border-box;
+}
+
+.delete-confirm .btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+.delete-confirm .btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-modal .error-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 16px;
+}

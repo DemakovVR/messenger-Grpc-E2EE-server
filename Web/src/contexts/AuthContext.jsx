@@ -13,9 +13,10 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("access_token");
     const userId = localStorage.getItem("user_id");
     const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
 
     if (token && userId) {
-      setUser({ token, id: userId, username });
+      setUser({ token, id: userId, username, email });
       grpcClient.connect(userId, token);
     }
 
@@ -30,26 +31,31 @@ export function AuthProvider({ children }) {
     
     let userId = data.userId;
     let userName = data.username || username;
+    let userEmail = data.email || "";
     
     if (!userId) {
       try {
         const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
         userId = payload.userId;
         userName = payload.username || username;
+        userEmail = payload.email || "";
         localStorage.setItem("user_id", userId);
         localStorage.setItem("username", userName);
+        localStorage.setItem("email", userEmail);
       } catch (e) {
         console.error("Failed to decode token", e);
       }
     } else {
       localStorage.setItem("user_id", userId);
       localStorage.setItem("username", userName);
+      localStorage.setItem("email", userEmail);
     }
 
     setUser({
       token: data.accessToken,
       id: userId,
       username: userName,
+      email: userEmail,
     });
 
     grpcClient.connect(userId, data.accessToken);
@@ -74,6 +80,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
+    localStorage.removeItem("email");
 
     grpcClient.disconnect();
 
@@ -102,6 +109,38 @@ export function AuthProvider({ children }) {
     return await authApi.changePassword(oldPassword, newPassword);
   }, []);
 
+  const getProfile = useCallback(async () => {
+    return await authApi.getProfile();
+  }, []);
+
+  const updateProfile = useCallback(async (username, email) => {
+    const data = await authApi.updateProfile(username, email);
+    
+    localStorage.setItem("username", username);
+    localStorage.setItem("email", email);
+    
+    if (user) {
+      setUser({ ...user, username, email });
+    }
+    
+    return data;
+  }, [user]);
+
+  const deleteAccount = useCallback(async () => {
+    await authApi.deleteAccount();
+    
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    
+    grpcClient.disconnect();
+    setUser(null);
+    
+    return true;
+  }, []);
+
   const setupInterceptors = useCallback(() => {
     return () => {};
   }, []);
@@ -116,6 +155,9 @@ export function AuthProvider({ children }) {
         logout,
         refreshAccessToken,
         changePassword,
+        getProfile,
+        updateProfile,
+        deleteAccount,
         isAuth: !!user,
         setupInterceptors,
       }}

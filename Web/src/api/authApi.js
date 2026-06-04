@@ -56,5 +56,23 @@ export const authApi = {
   return res.data;
 },
 
+  getProfile: async () => {
+    const res = await httpClient.get("/auth/me");
+    return res.data;
+  },
+
+  updateProfile: async (username, email) => {
+    const res = await httpClient.put("/auth/me", {
+      username: username,
+      email: email,
+    });
+    return res.data;
+  },
+
+  deleteAccount: async () => {
+    const res = await httpClient.delete("/auth/me");
+    return res.data;
+  },
+
 };
   

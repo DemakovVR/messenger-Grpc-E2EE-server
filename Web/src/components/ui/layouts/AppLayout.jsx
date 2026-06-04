@@ -4,14 +4,16 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useChats } from "../../../services/hooks/useChats";
 import CreateChatModal from "../chat/CreateChatModal";
 import ChangePasswordModal from "../modals/ChangePasswordModal";
+import ProfileModal from "../modals/ProfileModal";
 import "../../../styles/chat.css";
 
 function AppLayout() {
   const { logout, user } = useAuth();
-  const { chats, loading, fetchChats, createPrivateChat, createGroupChat } = useChats();
+  const { chats, loading, fetchChats } = useChats();
   const navigate = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -75,6 +77,14 @@ function AppLayout() {
             <div className="menu-items">
               <button 
                 className="menu-item"
+                onClick={() => setShowProfileModal(true)}
+              >
+                <span className="menu-icon">👤</span>
+                <span className="menu-text">Профиль</span>
+              </button>
+              
+              <button 
+                className="menu-item"
                 onClick={() => setShowChangePasswordModal(true)}
               >
                 <span className="menu-icon">🔒</span>
@@ -130,6 +140,12 @@ function AppLayout() {
       {showChangePasswordModal && (
         <ChangePasswordModal
           onClose={() => setShowChangePasswordModal(false)}
+        />
+      )}
+
+      {showProfileModal && (
+        <ProfileModal
+          onClose={() => setShowProfileModal(false)}
         />
       )}
     </div>
