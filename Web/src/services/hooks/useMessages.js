@@ -52,7 +52,6 @@ export function useMessages(chatId) {
     if (!chatId) return;
 
     const handleNewMessage = (newMessage) => {
-      console.log("useMessages: New message received via gRPC", newMessage);
       if (newMessage.chatId === chatId) {
         setMessages((prev) => {
           const exists = prev.some((m) => m.id === newMessage.id);
@@ -65,14 +64,8 @@ export function useMessages(chatId) {
     grpcClient.subscribe(chatId, handleNewMessage);
     setRealtimeConnected(grpcClient.isConnected());
 
-    const onConnect = () => {
-      console.log("useMessages: gRPC connected");
-      setRealtimeConnected(true);
-    };
-    const onDisconnect = () => {
-      console.log("useMessages: gRPC disconnected");
-      setRealtimeConnected(false);
-    };
+    const onConnect = () => setRealtimeConnected(true);
+    const onDisconnect = () => setRealtimeConnected(false);
 
     grpcClient.on('connect', onConnect);
     grpcClient.on('disconnect', onDisconnect);
@@ -90,9 +83,33 @@ export function useMessages(chatId) {
       await fetchMessages();
       return data.messageId;
     } catch (err) {
-      console.error("Send message error:", err);
       throw err;
     }
+  };
+
+  const uploadFile = async (file) => {
+    const token = localStorage.getItem("access_token");
+    const base64Data = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+
+    const response = await fetch("http://localhost:8080/api/files/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        chunk: base64Data,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Upload failed");
+    const data = await response.json();
+    return data.fileUrl;
   };
 
   const deleteMessage = async (messageId) => {
@@ -100,7 +117,6 @@ export function useMessages(chatId) {
       await chatApi.deleteMessage(messageId);
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
     } catch (err) {
-      console.error("Delete message error:", err);
       throw err;
     }
   };
@@ -110,7 +126,6 @@ export function useMessages(chatId) {
       await chatApi.editMessage(messageId, encryptedContent, isEncrypted);
       await fetchMessages();
     } catch (err) {
-      console.error("Edit message error:", err);
       throw err;
     }
   };
@@ -121,6 +136,7 @@ export function useMessages(chatId) {
     error,
     fetchMessages,
     sendMessage,
+    uploadFile,
     deleteMessage,
     editMessage,
     realtimeConnected,

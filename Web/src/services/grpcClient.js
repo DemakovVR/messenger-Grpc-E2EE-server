@@ -1,5 +1,7 @@
 import * as messagePb from "../proto/message_pb";
 import * as grpcWebPb from "../proto/message_grpc_web_pb";
+import * as filePb from "../proto/file_pb";
+import * as fileGrpcWebPb from "../proto/file_grpc_web_pb";
 
 const ConnectRequest = 
   messagePb.ConnectRequest || 
@@ -13,7 +15,19 @@ const MessageServiceClient =
   (grpcWebPb.default && (grpcWebPb.default.MessageServiceClient || grpcWebPb.default.message?.MessageServiceClient)) ||
   window.proto?.message?.MessageServiceClient;
 
-export class GrpcClient {
+const DownloadFileRequest = 
+  filePb.DownloadFileRequest || 
+  filePb.file?.DownloadFileRequest || 
+  (filePb.default && (filePb.default.DownloadFileRequest || filePb.default.file?.DownloadFileRequest)) ||
+  window.proto?.file?.DownloadFileRequest;
+
+const FileServiceClient = 
+  fileGrpcWebPb.FileServiceClient || 
+  fileGrpcWebPb.file?.FileServiceClient || 
+  (fileGrpcWebPb.default && (fileGrpcWebPb.default.FileServiceClient || fileGrpcWebPb.default.file?.FileServiceClient)) ||
+  window.proto?.file?.FileServiceClient;
+
+class GrpcClientService {
   constructor() {
     this.host = "http://localhost:8081";
     this.client = null;
@@ -27,11 +41,7 @@ export class GrpcClient {
   }
 
   connect(userId, token) {
-    console.log("GrpcClient.connect()", { userId, token: token ? token.slice(0, 20) + "..." : null });
-    if (!userId) {
-      console.error("Невозможно подключиться, userId отсутствует");
-      return;
-    }
+    if (!userId) return;
     if (this.stream) this.disconnect();
     this.userId = userId;
     this.token = token;
@@ -39,13 +49,7 @@ export class GrpcClient {
   }
 
   startStream() {
-    console.log("🚀 GrpcClient.startStream()");
-
-    if (!ConnectRequest || !MessageServiceClient) {
-      console.error("Критическая ошибка: Не удалось обнаружить ConnectRequest или MessageServiceClient в proto-файлах.");
-      console.log("Диагностические данные:", { messagePb, grpcWebPb, globalProto: window.proto });
-      return;
-    }
+    if (!ConnectRequest || !MessageServiceClient) return;
 
     const request = new ConnectRequest();
     const metadata = { authorization: `Bearer ${this.token}` };
@@ -56,7 +60,6 @@ export class GrpcClient {
 
       this.stream.on("data", (message) => {
         const chatId = message.getChatId();
-        console.log(`gRPC Stream: Получено сообщение для чата: ${chatId}`);
         const callback = this.subscribers.get(chatId);
         if (callback) {
           callback({
@@ -72,20 +75,17 @@ export class GrpcClient {
       });
 
       this.stream.on("status", (status) => {
-        console.log("gRPC Stream статус:", status.code, status.details);
         if (status.code === 0 && !this.connected) {
           this.connected = true;
           this.emit('connect');
         }
       });
 
-      this.stream.on("error", (err) => {
-        console.error("Ошибка gRPC стрима:", err);
+      this.stream.on("error", () => {
         this.handleDisconnect();
       });
 
       this.stream.on("end", () => {
-        console.warn("gRPC Stream закрыт сервером (end)");
         this.handleDisconnect();
       });
 
@@ -93,7 +93,7 @@ export class GrpcClient {
       this.emit('connect');
 
     } catch (error) {
-      console.error("Ошибка при инициализации стрима:", error);
+      console.error(error);
     }
   }
 
@@ -107,17 +107,14 @@ export class GrpcClient {
   }
 
   subscribe(chatId, callback) {
-    console.log(`Subscribe для chatId: ${chatId}`);
     this.subscribers.set(chatId, callback);
   }
 
   unsubscribe(chatId) {
-    console.log(`Unsubscribe для chatId: ${chatId}`);
     this.subscribers.delete(chatId);
   }
 
   disconnect() {
-    console.log("Disconnect");
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.stream) { 
       this.stream.cancel();
@@ -128,10 +125,42 @@ export class GrpcClient {
     this.token = null;
   }
 
+  downloadFile(fileUrl, onProgress) {
+    return new Promise((resolve, reject) => {
+      if (!DownloadFileRequest || !FileServiceClient) {
+        return reject("Components missing");
+      }
+
+      const client = new FileServiceClient(this.host, null, null);
+      const request = new DownloadFileRequest();
+      request.setFileUrl(fileUrl);
+
+      const metadata = { authorization: `Bearer ${this.token}` };
+      const stream = client.downloadFile(request, metadata);
+      let chunks = [];
+
+      stream.on("data", (response) => {
+        const chunk = response.getChunk();
+        chunks.push(chunk);
+        if (onProgress) onProgress(chunks.length);
+      });
+
+      stream.on("end", () => {
+        const blob = new Blob(chunks, { type: "application/octet-stream" });
+        const downloadUrl = URL.createObjectURL(blob);
+        resolve(downloadUrl);
+      });
+
+      stream.on("error", (err) => {
+        reject(err);
+      });
+    });
+  }
+
   isConnected() { return this.connected; }
   on(event, callback) { if (!this.listeners[event]) this.listeners[event] = []; this.listeners[event].push(callback); }
   off(event, callback) { if (!this.listeners[event]) return; this.listeners[event] = this.listeners[event].filter(cb => cb !== callback); }
   emit(event) { if (this.listeners[event]) this.listeners[event].forEach(cb => cb()); }
 }
 
-export const grpcClient = new GrpcClient();
+export const grpcClient = new GrpcClientService();

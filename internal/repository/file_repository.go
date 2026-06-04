@@ -13,8 +13,10 @@ type FileRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewFileRepository() *FileRepository {
-	return &FileRepository{}
+func NewFileRepository(db *pgxpool.Pool) *FileRepository {
+	return &FileRepository{
+		db: db,
+	}
 }
 
 func (r *FileRepository) SaveFile(path string, data []byte) error {

@@ -1,5 +1,131 @@
 import { useRef, useEffect, useState } from "react";
 import { decryptMessageFromPeer } from "../../../crypto/e2ee";
+import { grpcClient } from "../../../services/grpcClient";
+
+function MessageContentRender({ content }) {
+  const [downloading, setDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const getCleanFileName = (rawPath) => {
+    if (!rawPath) return "";
+    const baseName = rawPath.substring(rawPath.lastIndexOf('/') + 1);
+    const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i;
+    return baseName.replace(uuidRegex, "");
+  };
+
+  if (typeof content === "string" && content.trim().startsWith("{")) {
+    try {
+      const fileData = JSON.parse(content);
+      if (fileData && (fileData.is_file || fileData.file_url || fileData.file_name || fileData.fileName)) {
+        const rawFileName = fileData.file_name || fileData.fileName || "";
+        const displayName = getCleanFileName(rawFileName);
+        const fileUrl = fileData.file_url || rawFileName;
+
+        const handleDownload = async () => {
+          if (downloading) return;
+          setDownloading(true);
+          setProgress(0);
+          try {
+          const localBlobUrl = await grpcClient.downloadFile(fileUrl, (count) => {
+            setProgress(Math.min(count, 100));
+            });
+            const link = document.createElement("a");
+            link.href = localBlobUrl;
+            link.setAttribute("download", displayName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+          } catch (err) {
+            console.error("Ошибка скачивания файла:", err);
+          } finally {
+            setDownloading(false);
+          }
+        };
+
+        return (
+          <div className="file-attachment" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px 0" }}>
+            <div 
+              onClick={handleDownload} 
+              style={{ 
+                cursor: downloading ? "default" : "pointer", 
+                fontSize: "24px", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                userSelect: "none"
+              }}
+              title={downloading ? `Скачивание: ${progress}%` : "Скачать файл"}
+            >
+              {downloading ? (
+                <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span>
+              ) : (
+                "📄"
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ wordBreak: "break-all" }}>{displayName || "Файл без имени"}</span>
+            </div>
+          </div>
+        );
+      }
+    } catch (e) {
+    }
+  }
+
+  const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i;
+  if (typeof content === "string" && uuidRegex.test(content)) {
+    const displayName = getCleanFileName(content);
+
+    const handleDownload = async () => {
+      if (downloading) return;
+      setDownloading(true);
+      setProgress(0);
+      try {
+        const localBlobUrl = await grpcClient.downloadFile(content, (count) => {
+          setProgress(count);
+        });
+        const link = document.createElement("a");
+        link.href = localBlobUrl;
+        link.setAttribute("download", displayName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        console.error("Ошибка скачивания файла:", err);
+      } finally {
+        setDownloading(false);
+      }
+    };
+
+    return (
+      <div className="file-attachment" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px 0" }}>
+        <div 
+          onClick={handleDownload} 
+          style={{ 
+            cursor: downloading ? "default" : "pointer", 
+            fontSize: "24px", 
+            display: "flex", 
+                alignItems: "center", 
+            justifyContent: "center",
+            userSelect: "none"
+          }}
+          title={downloading ? `Скачивание: ${progress}%` : "Скачать файл"}
+        >
+          {downloading ? (
+            <span style={{ fontSize: "12px", fontWeight: "bold" }}>{progress}%</span>
+          ) : (
+            "📄"
+          )}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ wordBreak: "break-all" }}>{displayName}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <span>{content}</span>;
+}
 
 export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey }) {
   const messagesEndRef = useRef(null);
@@ -50,7 +176,6 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
                 }
               }
             } catch (e) {
-              console.log("Failed to parse/decrypt:", e.message);
               content = msg.senderId === currentUserId ? "[Отправлено]" : "[Зашифрованное сообщение]";
             }
           }
@@ -129,14 +254,13 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
           >
             <div className="message-sender">
               {isGroupChat && !isOwn && (msg.senderName || msg.senderId?.slice(0, 8))}
-              {isOwn && "Вы"}
-              {isGroupChat && isOwn && "Вы (вы)"}
+              {isGroupChat && isOwn && "Вы"}
               {!isGroupChat && (isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8)))}
               {msg.isEncrypted && !msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">🔒</span>}
               {msg.isEncrypted && msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">✓🔒</span>}
             </div>
             <div className="message-content">
-              {msg.displayContent || "ПУСТОЕ СООБЩЕНИЕ"}
+              <MessageContentRender content={msg.displayContent || "ПУСТОЕ СООБЩЕНИЕ"} />
             </div>
             <div className="message-time">
               {formatTime(msg.sentAt)}

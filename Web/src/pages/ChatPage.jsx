@@ -10,7 +10,7 @@ import "../styles/chat.css";
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { messages, loading, sendMessage, realtimeConnected } = useMessages(chatId);
+  const { messages, loading, sendMessage, uploadFile, realtimeConnected } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [e2eeReady, setE2eeReady] = useState(false);
@@ -139,6 +139,7 @@ function ChatPage() {
         chatId={chatId}
         peerUserId={peerUserId}
         onSend={handleSendMessage}
+        uploadFile={uploadFile}
         disabled={false}
         chatType={chatType}
         groupCryptoKey={groupCryptoKey}

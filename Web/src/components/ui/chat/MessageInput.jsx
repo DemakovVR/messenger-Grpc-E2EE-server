@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { encryptMessageForPeer } from "../../../crypto/e2ee";
 
-export default function MessageInput({ chatId, peerUserId, onSend, disabled, chatType, groupCryptoKey }) {
+export default function MessageInput({ chatId, peerUserId, onSend, disabled, chatType, groupCryptoKey, uploadFile }) {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -26,6 +27,44 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
     }
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || disabled || sending || !uploadFile) return;
+
+    setSending(true);
+    try {
+      const fileUrl = await uploadFile(file);
+      const filePayload = JSON.stringify({
+        is_file: true,
+        fileName: file.name,
+        file_url: fileUrl,
+        file_size: file.size
+      });
+
+      let contentToSend = filePayload;
+      let isEncrypted = false;
+      const isGroupChat = chatType === "group";
+
+      if (!isGroupChat && peerUserId) {
+        let encrypted = await encryptMessageForPeer(peerUserId, filePayload, false);
+        if (!encrypted) {
+          encrypted = await encryptMessageForPeer(peerUserId, filePayload, true);
+        }
+        if (encrypted) {
+          contentToSend = JSON.stringify(encrypted);
+          isEncrypted = true;
+        }
+      }
+
+      await onSend(contentToSend, isEncrypted);
+    } catch (err) {
+      console.error("Ошибка при отправке файла:", err);
+    } finally {
+      setSending(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleSend = async () => {
     if (!message.trim() || disabled || sending) return;
 
@@ -44,35 +83,53 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
       const isGroupChat = chatType === "group";
 
       if (!isGroupChat && peerUserId) {
-        console.log("E2EE: Encrypting message for peer:", peerUserId);
         let encrypted = await encryptMessageForPeer(peerUserId, messageText, false);
         if (!encrypted) {
-          console.log("E2EE: Encryption failed, retrying with forceRefresh=true");
           encrypted = await encryptMessageForPeer(peerUserId, messageText, true);
         }
         if (encrypted) {
           contentToSend = JSON.stringify(encrypted);
           isEncrypted = true;
-          console.log("E2EE: Message encrypted");
-        } else {
-          console.log("E2EE: Encryption failed after retry, sending plaintext");
         }
-      } else if (isGroupChat) {
-        console.log("Group chat: sending plaintext message");
       }
 
       await onSend(contentToSend, isEncrypted);
-      console.log("Message sent, isEncrypted =", isEncrypted);
     } catch (err) {
-      console.error("Send failed:", err);
+      console.error(err);
       setMessage(messageText);
     } finally {
       setSending(false);
     }
   };
 
-  return (
-    <div className="message-input-form">
+return (
+    <div className="message-input-form" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        style={{ display: "none" }} 
+      />
+      <button 
+        type="button" 
+        onClick={() => fileInputRef.current?.click()} 
+        disabled={disabled || sending}
+        className="file-attach-btn"
+        style={{
+          cursor: (disabled || sending) ? "default" : "pointer",
+          fontSize: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          userSelect: "none",
+          border: "none",
+          outline: "none",
+          background: "none",
+          padding: "0"
+        }}
+      >
+        📌
+      </button>
       <textarea
         ref={textareaRef}
         className="message-input"
@@ -82,6 +139,7 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
         onKeyDown={handleKeyDown}
         disabled={disabled || sending}
         rows={1}
+        style={{ flex: 1 }}
       />
       <button
         className="message-send-btn"

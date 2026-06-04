@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
+	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"Server/configs"
 
@@ -21,9 +24,8 @@ import (
 	"Server/internal/middleware"
 	"Server/internal/repository"
 	"Server/internal/service"
-	"crypto/tls"
-
 	tlsutil "Server/internal/tls"
+	stdruntime "runtime"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
@@ -48,8 +50,23 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func maxBytesMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, 105*1024*1024)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	cfg := configs.LoadConfig()
+
+	if conn, err := net.Dial("tcp", ":8080"); err == nil {
+		conn.Close()
+		if stdruntime.GOOS == "windows" {
+			exec.Command("powershell", "-Command", "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess -Force").Run()
+			time.Sleep(1 * time.Second)
+		}
+	}
 
 	logger.InitLogger(cfg.LogLevel, cfg.LogEncoding)
 	defer logger.Sync()
@@ -79,7 +96,7 @@ func main() {
 	chatRepo := repository.NewChatRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 	keysRepo := repository.NewKeysRepository(db)
-	fileRepo := repository.NewFileRepository()
+	fileRepo := repository.NewFileRepository(db)
 	auditRepo := repository.NewAuditRepository(db)
 	refreshRepo := repository.NewRefreshRepository(db)
 
@@ -123,8 +140,12 @@ func main() {
 		logger.Log.Fatal("Listen error", zap.Error(err))
 	}
 
+	const maxMsgSize = 105 * 1024 * 1024
+
 	grpcServer := grpcserver.NewServer(
 		grpcserver.Creds(creds),
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize),
 		grpc.StreamInterceptor(middleware.AuthStreamInterceptor(cfg.JWTSecret)),
 		grpcserver.ChainUnaryInterceptor(
 			middleware.AuthInterceptor(cfg.JWTSecret),
@@ -135,7 +156,6 @@ func main() {
 
 	authpb.RegisterAuthServiceServer(grpcServer, authServer)
 	authpb.RegisterUserServiceServer(grpcServer, userServer)
-
 	contactpb.RegisterContactServiceServer(grpcServer, contactServer)
 	chatpb.RegisterChatServiceServer(grpcServer, chatServer)
 	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
@@ -155,81 +175,51 @@ func main() {
 			grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
 				InsecureSkipVerify: true,
 			})),
+			grpc.WithDefaultCallOptions(
+				grpc.MaxCallRecvMsgSize(maxMsgSize),
+				grpc.MaxCallSendMsgSize(maxMsgSize),
+			),
 		}
 
-		err = authpb.RegisterAuthServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = authpb.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = authpb.RegisterUserServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = authpb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = chatpb.RegisterChatServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = chatpb.RegisterChatServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = messagepb.RegisterMessageServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = messagepb.RegisterMessageServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = contactpb.RegisterContactServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = contactpb.RegisterContactServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = filepb.RegisterFileServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = filepb.RegisterFileServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
-		err = keyspb.RegisterKeyServiceHandlerFromEndpoint(
-			ctx,
-			mux,
-			"localhost:"+cfg.ServerPort,
-			opts,
-		)
+		err = keyspb.RegisterKeyServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}
 
 		logger.Log.Info("HTTP gateway started on :8080")
 
-		if err := http.ListenAndServe(":8080", corsMiddleware(mux)); err != nil {
+		handlerChain := corsMiddleware(maxBytesMiddleware(mux))
+		if err := http.ListenAndServe(":8080", handlerChain); err != nil {
 			logger.Log.Fatal("HTTP server error", zap.Error(err))
 		}
 	}()

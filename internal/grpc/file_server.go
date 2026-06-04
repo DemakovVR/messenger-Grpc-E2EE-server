@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 
 	filepb "Server/gen/file"
 	"Server/internal/middleware"
@@ -80,6 +81,25 @@ func (s *FileServer) DownloadFile(
 	req *filepb.DownloadFileRequest,
 	stream filepb.FileService_DownloadFileServer,
 ) error {
+	userIDStr, ok := stream.Context().Value(middleware.UserIDKey).(string)
+	if !ok {
+		return errors.New("unauthorized: missing user id")
+	}
+
+	_, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return errors.New("unauthorized: invalid user id")
+	}
+
+	if strings.Contains(req.FileUrl, "..") {
+		return errors.New("permission denied: invalid file path")
+	}
+
+	if strings.Contains(req.FileUrl, ":") || strings.HasPrefix(req.FileUrl, "/") {
+		if !strings.HasPrefix(req.FileUrl, "uploads") && !strings.HasPrefix(req.FileUrl, "./uploads") {
+			return errors.New("permission denied: absolute paths are not allowed")
+		}
+	}
 
 	file, err := os.Open(req.FileUrl)
 	if err != nil {
@@ -87,18 +107,7 @@ func (s *FileServer) DownloadFile(
 	}
 	defer file.Close()
 
-	userIDStr, ok := stream.Context().Value(middleware.UserIDKey).(string)
-	if !ok {
-		return errors.New("unauthorized: missing user id")
-	}
-
-	_, err = uuid.Parse(userIDStr)
-	if err != nil {
-		return errors.New("unauthorized: invalid user id")
-	}
-
-	buf := make([]byte, 32*1024)
-
+	buf := make([]byte, 64*1024)
 	for {
 		n, err := file.Read(buf)
 
