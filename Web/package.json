@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@improbable-eng/grpc-web": "^0.15.0",
     "axios": "^1.16.1",
     "crypto-js": "^4.2.0",
+    "google-protobuf": "^4.0.2",
+    "grpc-web": "^2.0.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-icons": "^5.6.0",
@@ -19,6 +22,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
     "@types/crypto-js": "^4.2.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -27,6 +32,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
-    "vite": "^8.0.12"
+    "protoc-gen-grpc-web": "^1.5.0",
+    "vite": "^8.0.12",
+    "vite-plugin-commonjs": "^0.10.4"
   }
 }

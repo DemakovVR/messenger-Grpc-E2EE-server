@@ -12,30 +12,31 @@ export const chatApi = {
   },
 
   createPrivateChat: async (userId) => {
-    const res = await httpClient.post("/chats/private", { userId });
+    const res = await httpClient.post("/chats/private", { userId: userId });
     return res.data;
   },
 
   createGroupChat: async (name, participantIds) => {
     const res = await httpClient.post("/chats/group", {
-      name,
-      participantIds,
+      name: name,
+      participantIds: participantIds,
     });
     return res.data;
   },
 
-  getMessages: async (chatId, limit = 50, offset = 0) => {
+  getMessages: async (chatId, options = {}) => {
     const res = await httpClient.get(`/chats/${chatId}/messages`, {
-      params: { limit, offset },
+      params: { limit: 50, offset: 0 },
+      signal: options.signal,
     });
     return res.data;
   },
 
-  sendMessage: async (chatId, encryptedContent, isEncrypted = false) => {
+  sendMessage: async (chatId, encryptedContent, isEncrypted) => {
     const res = await httpClient.post("/messages", {
-      chatId,
-      encryptedContent,
-      isEncrypted,
+      chatId: chatId,
+      encryptedContent: encryptedContent,
+      isEncrypted: isEncrypted,
     });
     return res.data;
   },
@@ -47,8 +48,8 @@ export const chatApi = {
 
   editMessage: async (messageId, encryptedContent, isEncrypted = false) => {
     const res = await httpClient.put(`/messages/${messageId}`, {
-      encryptedContent,
-      isEncrypted,
+      encryptedContent: encryptedContent,
+      isEncrypted: isEncrypted,
     });
     return res.data;
   },
@@ -59,7 +60,7 @@ export const chatApi = {
   },
 
   addContact: async (contactId) => {
-    const res = await httpClient.post("/contacts", { contactId });
+    const res = await httpClient.post("/contacts", { contactId: contactId });
     return res.data;
   },
 

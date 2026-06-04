@@ -10,7 +10,7 @@ import "../styles/chat.css";
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { messages, loading, sendMessage } = useMessages(chatId);
+  const { messages, loading, sendMessage, realtimeConnected } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [e2eeReady, setE2eeReady] = useState(false);
@@ -26,7 +26,6 @@ function ChatPage() {
     };
     initE2EE();
 
-    // Очищаем кэш публичных ключей других пользователей (но не свои ключи!)
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -111,6 +110,9 @@ function ChatPage() {
     <div className="chat-page">
       <div className="chat-header">
         <h3>{chatName || (isGroupChat ? "Group Chat" : "Private Chat")}</h3>
+        {realtimeConnected && (
+          <div className="realtime-badge">● В реальном времени</div>
+        )}
         {isGroupChat && (
           <div className="chat-type-badge">Группа (без E2EE)</div>
         )}

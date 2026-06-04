@@ -366,3 +366,9 @@
   padding: 4px;
   font-size: 11px;
 }
+
+.realtime-badge {
+  font-size: 12px;
+  color: #4cff4c;
+  margin-left: 10px;
+}

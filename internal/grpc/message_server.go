@@ -2,12 +2,15 @@ package grpc
 
 import (
 	"context"
+	"log"
 
 	messagepb "Server/gen/message"
 	"Server/internal/middleware"
 	"Server/internal/service"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type MessageServer struct {
@@ -125,27 +128,43 @@ func (s *MessageServer) ConnectMessages(
 	req *messagepb.ConnectRequest,
 	stream messagepb.MessageService_ConnectMessagesServer,
 ) error {
+	log.Printf("ConnectMessages called")
 
-	userIDStr := stream.Context().Value(middleware.UserIDKey).(string)
+	val := stream.Context().Value(middleware.UserIDKey)
+	if val == nil {
+		log.Printf("UserID not found in context (nil)")
+		return status.Errorf(codes.Unauthenticated, "user ID missing in context")
+	}
+
+	userIDStr, ok := val.(string)
+	if !ok {
+		log.Printf("UserID in context is not a string, type is %T", val)
+		return status.Errorf(codes.Unauthenticated, "invalid user ID format")
+	}
+
+	log.Printf("UserID from context: %s", userIDStr)
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		return err
+		log.Printf("Failed to parse userID: %v", err)
+		return status.Errorf(codes.InvalidArgument, "invalid user ID format: %v", err)
 	}
 
 	ch := s.messageService.Subscribe(userID)
+	log.Printf("Subscribed user %s, channel created", userID)
 
 	defer func() {
 		s.messageService.Unsubscribe(userID, ch)
+		log.Printf("Unsubscribed user %s", userID)
 	}()
 
 	for {
 		select {
-
 		case <-stream.Context().Done():
+			log.Printf("Stream context done for user %s", userID)
 			return nil
-
 		case msg := <-ch:
+			log.Printf("Sending message to user %s: %+v", userID, msg)
 			if err := stream.Send(msg); err != nil {
 				return err
 			}

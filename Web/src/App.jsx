@@ -1,9 +1,13 @@
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router";
+import { AuthProvider } from "./contexts/AuthContext";
+
 function App() {
   return (
-    <div>
-      <h1>SecureTalk</h1>
-    </div>
-  )
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

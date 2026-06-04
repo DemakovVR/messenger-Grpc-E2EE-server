@@ -16,12 +16,12 @@ import (
 	filepb "Server/gen/file"
 	keyspb "Server/gen/keys"
 	messagepb "Server/gen/message"
-
 	internalgrpc "Server/internal/grpc"
 	"Server/internal/logger"
 	"Server/internal/middleware"
 	"Server/internal/repository"
 	"Server/internal/service"
+	"crypto/tls"
 
 	tlsutil "Server/internal/tls"
 
@@ -125,6 +125,7 @@ func main() {
 
 	grpcServer := grpcserver.NewServer(
 		grpcserver.Creds(creds),
+		grpc.StreamInterceptor(middleware.AuthStreamInterceptor(cfg.JWTSecret)),
 		grpcserver.ChainUnaryInterceptor(
 			middleware.AuthInterceptor(cfg.JWTSecret),
 			middleware.RateLimitInterceptor(rateLimiter),
@@ -150,13 +151,10 @@ func main() {
 
 		mux := runtime.NewServeMux()
 
-		creds, err := credentials.NewClientTLSFromFile(cfg.TLSCertFile, "")
-		if err != nil {
-			logger.Log.Fatal("failed to load TLS cert for gateway", zap.Error(err))
-		}
-
 		opts := []grpc.DialOption{
-			grpc.WithTransportCredentials(creds),
+			grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+				InsecureSkipVerify: true,
+			})),
 		}
 
 		err = authpb.RegisterAuthServiceHandlerFromEndpoint(

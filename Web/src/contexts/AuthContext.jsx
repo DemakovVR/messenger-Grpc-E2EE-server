@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../api/authApi";
+import { grpcClient } from "../services/grpcClient";
 
 const AuthContext = createContext();
 
@@ -15,43 +16,46 @@ export function AuthProvider({ children }) {
 
     if (token && userId) {
       setUser({ token, id: userId, username });
+      grpcClient.connect(userId, token);
     }
 
     setLoading(false);
   }, []);
 
   const login = async (username, password) => {
-  const data = await authApi.login(username, password);
+    const data = await authApi.login(username, password);
 
-  localStorage.setItem("access_token", data.accessToken);
-  localStorage.setItem("refresh_token", data.refreshToken);
-  
-  let userId = data.userId;
-  let userName = data.username || username;
-  
-  if (!userId) {
-    try {
-      const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-      userId = payload.user_id;
-      userName = payload.username || username;
+    localStorage.setItem("access_token", data.accessToken);
+    localStorage.setItem("refresh_token", data.refreshToken);
+    
+    let userId = data.userId;
+    let userName = data.username || username;
+    
+    if (!userId) {
+      try {
+        const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+        userId = payload.user_id;
+        userName = payload.username || username;
+        localStorage.setItem("user_id", userId);
+        localStorage.setItem("username", userName);
+      } catch (e) {
+        console.error("Failed to decode token", e);
+      }
+    } else {
       localStorage.setItem("user_id", userId);
       localStorage.setItem("username", userName);
-    } catch (e) {
-      console.error("Failed to decode token", e);
     }
-  } else {
-    localStorage.setItem("user_id", userId);
-    localStorage.setItem("username", userName);
-  }
 
-  setUser({
-    token: data.accessToken,
-    id: userId,
-    username: userName,
-  });
+    setUser({
+      token: data.accessToken,
+      id: userId,
+      username: userName,
+    });
 
-  return data;
-};
+    grpcClient.connect(userId, data.accessToken);
+
+    return data;
+  };
 
   const register = async (username, email, password) => {
     return await authApi.register(username, email, password);
@@ -69,6 +73,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_id");
+
+    grpcClient.disconnect();
 
     setUser(null);
   }, []);

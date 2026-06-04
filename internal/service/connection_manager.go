@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"sync"
 
 	messagepb "Server/gen/message"
@@ -23,6 +24,8 @@ func NewConnectionManager() *ConnectionManager {
 func (m *ConnectionManager) Subscribe(
 	userID uuid.UUID,
 ) chan *messagepb.MessageResponse {
+
+	log.Println("SUBSCRIBE:", userID)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -69,6 +72,13 @@ func (m *ConnectionManager) Publish(
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	log.Println(
+		"PUBLISH:",
+		userID,
+		"subscribers:",
+		len(m.clients[userID]),
+	)
 
 	for _, ch := range m.clients[userID] {
 
