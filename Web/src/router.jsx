@@ -6,7 +6,7 @@ import AppLayout from "./components/ui/layouts/AppLayout";
 import ChatPage from "./pages/ChatPage";
 
 function ChatsPage() {
-  return <div className="flex-1 flex items-center justify-center text-gray-500 text-base">Выберите чат из списка</div>;
+  return <div className="flex-1 flex items-center justify-center text-gray-500 text-base"></div>;
 }
 
 export const router = createBrowserRouter([

@@ -12,7 +12,32 @@ export function useChats() {
 
     try {
       const data = await chatApi.getChats();
-      setChats(data.chats || []);
+      const rawChats = data.chats || [];
+
+      const enrichedChats = await Promise.all(
+        rawChats.map(async (chat) => {
+          if (chat.type === "private") {
+            try {
+              const chatDetails = await chatApi.getChat(chat.id);
+              const currentUserId = localStorage.getItem("user_id");
+              const otherParticipant = chatDetails.chat?.participants?.find(
+                (p) => p.id !== currentUserId
+              );
+              if (otherParticipant) {
+                return {
+                  ...chat,
+                  displayName: otherParticipant.username || otherParticipant.display_name,
+                };
+              }
+            } catch (err) {
+              console.error(`Failed to load details for private chat ${chat.id}`, err);
+            }
+          }
+          return { ...chat, displayName: chat.name || null };
+        })
+      );
+
+      setChats(enrichedChats);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load chats");
       console.error("Fetch chats error:", err);
@@ -25,9 +50,9 @@ export function useChats() {
     fetchChats();
   }, [fetchChats]);
 
-  const createPrivateChat = async (username) => {
+  const createPrivateChat = async (userId) => {
     try {
-      const data = await chatApi.createPrivateChat(username);
+      const data = await chatApi.createPrivateChat(userId);
       await fetchChats();
       return data.chatId;
     } catch (err) {

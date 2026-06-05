@@ -15,6 +15,7 @@ function AppLayout() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [chatTitle, setChatTitle] = useState("");
 
   const handleLogout = async () => {
     await logout();
@@ -44,27 +45,29 @@ function AppLayout() {
         {!menuOpen ? (
           <div className="chat-list">
             {loading && <div className="chat-list-loading">Loading...</div>}
-            
-            {!loading && chats.length === 0 && (
-              <div className="chat-list-empty">No chats yet</div>
-            )}
-            
-            {chats.map((chat) => (
-              <NavLink
-                key={chat.id}
-                to={`/app/chat/${chat.id}`}
-                className={({ isActive }) =>
-                  isActive ? "chat-list-item active" : "chat-list-item"
-                }
-              >
-                <div className="chat-list-item-name">
-                  {chat.type === "private" ? "💬" : "👥"} {chat.name || (chat.type === "private" ? "Private Chat" : "Group Chat")}
-                </div>
-                <div className="chat-list-item-type">
-                  {chat.type === "private" ? "Личный" : "Группа"}
-                </div>
-              </NavLink>
-            ))}
+            {!loading && chats.length === 0 && <div className="chat-list-empty">No chats yet</div>}
+            {chats.map((chat) => {
+              let displayName = chat.name;
+              if (chat.type === "private") {
+                displayName = chat.displayName || "Private Chat";
+              }
+              return (
+                <NavLink
+                  key={chat.id}
+                  to={`/app/chat/${chat.id}`}
+                  className={({ isActive }) =>
+                    isActive ? "chat-list-item active" : "chat-list-item"
+                  }
+                >
+                  <div className="chat-list-item-name">
+                    {chat.type === "private" ? "💬" : "👥"} {displayName}
+                  </div>
+                  <div className="chat-list-item-type">
+                    {chat.type === "private" ? "Личный" : "Группа"}
+                  </div>
+                </NavLink>
+              );
+            })}
           </div>
         ) : (
           <div className="menu-list">
@@ -73,28 +76,16 @@ function AppLayout() {
               <div className="user-name">{user?.username || "Пользователь"}</div>
               <div className="user-email">{user?.email || ""}</div>
             </div>
-            
             <div className="menu-items">
-              <button 
-                className="menu-item"
-                onClick={() => setShowProfileModal(true)}
-              >
+              <button className="menu-item" onClick={() => setShowProfileModal(true)}>
                 <span className="menu-icon">👤</span>
                 <span className="menu-text">Профиль</span>
               </button>
-              
-              <button 
-                className="menu-item"
-                onClick={() => setShowChangePasswordModal(true)}
-              >
+              <button className="menu-item" onClick={() => setShowChangePasswordModal(true)}>
                 <span className="menu-icon">🔒</span>
                 <span className="menu-text">Сменить пароль</span>
               </button>
-              
-              <button 
-                className="menu-item logout"
-                onClick={handleLogout}
-              >
+              <button className="menu-item logout" onClick={handleLogout}>
                 <span className="menu-icon">🚪</span>
                 <span className="menu-text">Выйти</span>
               </button>
@@ -121,32 +112,24 @@ function AppLayout() {
 
       <div className="main">
         <header className="topbar">
-          <div className="title">Chat</div>
-          <div className="user">User</div>
+          <div className="topbar-left">{chatTitle}</div>
+          <div className="topbar-right">
+            <span className="user-name-display">{user?.username || "Гость"}</span>
+          </div>
         </header>
-
         <div className="content">
-          <Outlet />
+          <Outlet context={{ setChatTitle }} />
         </div>
       </div>
 
       {showCreateModal && (
-        <CreateChatModal
-          onClose={() => setShowCreateModal(false)}
-          onChatCreated={handleChatCreated}
-        />
+        <CreateChatModal onClose={() => setShowCreateModal(false)} onChatCreated={handleChatCreated} />
       )}
-
       {showChangePasswordModal && (
-        <ChangePasswordModal
-          onClose={() => setShowChangePasswordModal(false)}
-        />
+        <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />
       )}
-
       {showProfileModal && (
-        <ProfileModal
-          onClose={() => setShowProfileModal(false)}
-        />
+        <ProfileModal onClose={() => setShowProfileModal(false)} />
       )}
     </div>
   );

@@ -361,10 +361,6 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     return true;
   });
 
-  if (activeMessages.length === 0) {
-    return <div className="message-list-empty">Нет сообщений. Напишите первое сообщение!</div>;
-  }
-
   return (
     <div className="message-list">
       {activeMessages.map((msg) => {
@@ -374,11 +370,9 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
         return (
           <div key={String(msg.id)} className={`message ${isOwn ? "message-own" : "message-other"}`}>
             <div className="message-sender">
-              {isGroupChat && !isOwn && (msg.senderName || msg.senderId?.slice(0, 8))}
-              {isOwn && "Вы"}
-              {!isGroupChat && (isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8)))}
-              {msg.isEncrypted && !msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">🔒</span>}
-              {msg.isEncrypted && msg.isDecrypted && !isGroupChat && <span className="ml-1 text-xs">✓🔒</span>}
+              {isOwn ? "Вы" : (msg.senderName || msg.senderId?.slice(0, 8))}
+              {!isGroupChat && msg.isEncrypted && !msg.isDecrypted && <span className="ml-1 text-xs">🔒</span>}
+              {!isGroupChat && msg.isEncrypted && msg.isDecrypted && <span className="ml-1 text-xs">✓🔒</span>}
               {msg.isEdited && <span className="ml-1 text-xs" style={{ color: "#000000" }}> (ред.)</span>}
             </div>
             <div className="message-content">

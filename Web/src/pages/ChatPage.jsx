@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useOutletContext } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useMessages } from "../services/hooks/useMessages";
 import MessageList from "../components/ui/chat/MessageList";
@@ -10,19 +10,16 @@ import "../styles/chat.css";
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { messages, loading, sendMessage, uploadFile, deleteMessage, editMessage, realtimeConnected } = useMessages(chatId);
+  const { setChatTitle } = useOutletContext();
+  const { messages, loading, sendMessage, uploadFile, deleteMessage, editMessage } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
-  const [e2eeReady, setE2eeReady] = useState(false);
   const [chatType, setChatType] = useState(null);
   const [chatName, setChatName] = useState("");
-  const [groupCryptoKey, setGroupCryptoKey] = useState(null);
 
   useEffect(() => {
     const initE2EE = async () => {
-      const published = await publishKeys();
-      console.log("E2EE init result:", published);
-      setE2eeReady(published);
+      await publishKeys();
     };
     initE2EE();
 
@@ -63,9 +60,6 @@ function ChatPage() {
                 }
               });
             }
-
-            console.log("ChatPage: Setting peerUserId =", peerId);
-            console.log("ChatPage: Chat type =", chat.type);
             setChatUsers(usersMap);
             setPeerUserId(peerId);
           }
@@ -79,9 +73,15 @@ function ChatPage() {
 
   useEffect(() => {
     if (chatType === "group") {
-      setGroupCryptoKey(null);
+      setChatTitle(chatName || "Групповой чат");
+    } else if (chatType === "private" && peerUserId && chatUsers[peerUserId]) {
+      setChatTitle(chatUsers[peerUserId].username || "Личный чат");
+    } else if (chatType === "private") {
+      setChatTitle("Личный чат");
+    } else {
+      setChatTitle("Чат");
     }
-  }, [chatType]);
+  }, [chatType, chatName, peerUserId, chatUsers, setChatTitle]);
 
   const handleSendMessage = async (content, isEncrypted) => {
     try {
@@ -126,47 +126,23 @@ function ChatPage() {
   };
 
   if (loading) {
-    return <div className="chat-page-loading">Loading messages...</div>;
+    return <div className="chat-page-loading">Загрузка сообщений...</div>;
   }
 
   if (!chatId) {
-    return (
-      <div className="no-chat-selected">
-        Select a chat to start messaging
-      </div>
-    );
+    return <div className="no-chat-selected">Выберите чат из списка</div>;
   }
 
   const isGroupChat = chatType === "group";
 
   return (
     <div className="chat-page">
-      <div className="chat-header">
-        <h3>{chatName || (isGroupChat ? "Group Chat" : "Private Chat")}</h3>
-        {realtimeConnected && (
-          <div className="realtime-badge">● В реальном времени</div>
-        )}
-        {isGroupChat && (
-          <div className="chat-type-badge">Группа (без E2EE)</div>
-        )}
-      </div>
-      {!e2eeReady && !isGroupChat && (
-        <div className="e2ee-warning">
-          ⚠️ E2EE инициализация...
-        </div>
-      )}
-      {isGroupChat && (
-        <div className="e2ee-info">
-          ℹ️ Сообщения в группе не шифруются
-        </div>
-      )}
       <MessageList
         messages={messages}
         currentUserId={user?.id}
         peerUserId={peerUserId}
         users={chatUsers}
         chatType={chatType}
-        groupCryptoKey={groupCryptoKey}
         onDeleteMessage={handleDeleteMessage}
         onEditMessage={handleEditMessage}
       />
@@ -177,7 +153,6 @@ function ChatPage() {
         uploadFile={uploadFile}
         disabled={false}
         chatType={chatType}
-        groupCryptoKey={groupCryptoKey}
       />
     </div>
   );
