@@ -7,6 +7,7 @@ import ChangePasswordModal from "../modals/ChangePasswordModal";
 import ProfileModal from "../modals/ProfileModal";
 import ChatInfoModal from "../modals/ChatInfoModal";
 import "../../../styles/chat.css";
+import ContactsModal from "../modals/ContactsModal";
 
 function AppLayout() {
   const { logout, user } = useAuth();
@@ -21,6 +22,7 @@ function AppLayout() {
   const [currentChatType, setCurrentChatType] = useState(null);
   const [currentChatCreatedBy, setCurrentChatCreatedBy] = useState(null);
   const [showChatInfoModal, setShowChatInfoModal] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -74,6 +76,10 @@ function AppLayout() {
               <div className="user-email">{user?.email || ""}</div>
             </div>
             <div className="menu-items">
+              <button className="menu-item" onClick={() => setShowContactsModal(true)}>
+                <span className="menu-icon">📇</span>
+                <span className="menu-text">Контакты</span>
+              </button>
               <button className="menu-item" onClick={() => setShowProfileModal(true)}>
                 <span className="menu-icon">👤</span>
                 <span className="menu-text">Профиль</span>
@@ -121,6 +127,8 @@ function AppLayout() {
       {showCreateModal && <CreateChatModal onClose={() => setShowCreateModal(false)} onChatCreated={handleChatCreated} />}
       {showChangePasswordModal && <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />}
       {showProfileModal && <ProfileModal onClose={() => setShowProfileModal(false)} />}
+      {showContactsModal && (<ContactsModal onClose={() => setShowContactsModal(false)} />)}  
+      
       {showChatInfoModal && (
         <ChatInfoModal
           chatId={currentChatId}

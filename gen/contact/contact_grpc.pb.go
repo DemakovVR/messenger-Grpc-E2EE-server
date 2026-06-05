@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ContactService_SearchUsers_FullMethodName   = "/contact.ContactService/SearchUsers"
-	ContactService_AddContact_FullMethodName    = "/contact.ContactService/AddContact"
-	ContactService_GetContacts_FullMethodName   = "/contact.ContactService/GetContacts"
-	ContactService_DeleteContact_FullMethodName = "/contact.ContactService/DeleteContact"
-	ContactService_BlockContact_FullMethodName  = "/contact.ContactService/BlockContact"
+	ContactService_SearchUsers_FullMethodName     = "/contact.ContactService/SearchUsers"
+	ContactService_AddContact_FullMethodName      = "/contact.ContactService/AddContact"
+	ContactService_GetContacts_FullMethodName     = "/contact.ContactService/GetContacts"
+	ContactService_DeleteContact_FullMethodName   = "/contact.ContactService/DeleteContact"
+	ContactService_BlockContact_FullMethodName    = "/contact.ContactService/BlockContact"
+	ContactService_GetBlockedUsers_FullMethodName = "/contact.ContactService/GetBlockedUsers"
+	ContactService_UnblockContact_FullMethodName  = "/contact.ContactService/UnblockContact"
 )
 
 // ContactServiceClient is the client API for ContactService service.
@@ -35,6 +37,8 @@ type ContactServiceClient interface {
 	GetContacts(ctx context.Context, in *GetContactsRequest, opts ...grpc.CallOption) (*GetContactsResponse, error)
 	DeleteContact(ctx context.Context, in *DeleteContactRequest, opts ...grpc.CallOption) (*DeleteContactResponse, error)
 	BlockContact(ctx context.Context, in *BlockContactRequest, opts ...grpc.CallOption) (*BlockContactResponse, error)
+	GetBlockedUsers(ctx context.Context, in *GetBlockedUsersRequest, opts ...grpc.CallOption) (*GetBlockedUsersResponse, error)
+	UnblockContact(ctx context.Context, in *UnblockContactRequest, opts ...grpc.CallOption) (*UnblockContactResponse, error)
 }
 
 type contactServiceClient struct {
@@ -95,6 +99,26 @@ func (c *contactServiceClient) BlockContact(ctx context.Context, in *BlockContac
 	return out, nil
 }
 
+func (c *contactServiceClient) GetBlockedUsers(ctx context.Context, in *GetBlockedUsersRequest, opts ...grpc.CallOption) (*GetBlockedUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBlockedUsersResponse)
+	err := c.cc.Invoke(ctx, ContactService_GetBlockedUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) UnblockContact(ctx context.Context, in *UnblockContactRequest, opts ...grpc.CallOption) (*UnblockContactResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnblockContactResponse)
+	err := c.cc.Invoke(ctx, ContactService_UnblockContact_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContactServiceServer is the server API for ContactService service.
 // All implementations must embed UnimplementedContactServiceServer
 // for forward compatibility.
@@ -104,6 +128,8 @@ type ContactServiceServer interface {
 	GetContacts(context.Context, *GetContactsRequest) (*GetContactsResponse, error)
 	DeleteContact(context.Context, *DeleteContactRequest) (*DeleteContactResponse, error)
 	BlockContact(context.Context, *BlockContactRequest) (*BlockContactResponse, error)
+	GetBlockedUsers(context.Context, *GetBlockedUsersRequest) (*GetBlockedUsersResponse, error)
+	UnblockContact(context.Context, *UnblockContactRequest) (*UnblockContactResponse, error)
 	mustEmbedUnimplementedContactServiceServer()
 }
 
@@ -128,6 +154,12 @@ func (UnimplementedContactServiceServer) DeleteContact(context.Context, *DeleteC
 }
 func (UnimplementedContactServiceServer) BlockContact(context.Context, *BlockContactRequest) (*BlockContactResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BlockContact not implemented")
+}
+func (UnimplementedContactServiceServer) GetBlockedUsers(context.Context, *GetBlockedUsersRequest) (*GetBlockedUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBlockedUsers not implemented")
+}
+func (UnimplementedContactServiceServer) UnblockContact(context.Context, *UnblockContactRequest) (*UnblockContactResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnblockContact not implemented")
 }
 func (UnimplementedContactServiceServer) mustEmbedUnimplementedContactServiceServer() {}
 func (UnimplementedContactServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +272,42 @@ func _ContactService_BlockContact_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContactService_GetBlockedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlockedUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).GetBlockedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_GetBlockedUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).GetBlockedUsers(ctx, req.(*GetBlockedUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_UnblockContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockContactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).UnblockContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_UnblockContact_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).UnblockContact(ctx, req.(*UnblockContactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ContactService_ServiceDesc is the grpc.ServiceDesc for ContactService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +334,14 @@ var ContactService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BlockContact",
 			Handler:    _ContactService_BlockContact_Handler,
+		},
+		{
+			MethodName: "GetBlockedUsers",
+			Handler:    _ContactService_GetBlockedUsers_Handler,
+		},
+		{
+			MethodName: "UnblockContact",
+			Handler:    _ContactService_UnblockContact_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

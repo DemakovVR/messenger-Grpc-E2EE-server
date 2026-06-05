@@ -8,6 +8,14 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [blockedUsers, setBlockedUsers] = useState(() => {
+    const saved = localStorage.getItem("blockedUsers");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("blockedUsers", JSON.stringify(blockedUsers));
+  }, [blockedUsers]);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -36,9 +44,7 @@ export function AuthProvider({ children }) {
     if (!userId) {
       try {
         const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-        
         userId = payload.user_id || payload.id || payload.userId;
-        
         userName = data.username || payload.username || username;
         userEmail = data.email || payload.email || ""; 
       } catch (e) {
@@ -82,9 +88,11 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
+    localStorage.removeItem("blockedUsers");
 
     grpcClient.disconnect();
     setUser(null);
+    setBlockedUsers([]);
   }, []);
 
   const refreshAccessToken = useCallback(async () => {
@@ -151,11 +159,23 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
+    localStorage.removeItem("blockedUsers");
     
     grpcClient.disconnect();
     setUser(null);
+    setBlockedUsers([]);
     
     return true;
+  }, []);
+
+  const updateBlockedUsers = useCallback((userId, isBlocked) => {
+    setBlockedUsers(prev => {
+      if (isBlocked) {
+        return prev.includes(userId) ? prev : [...prev, userId];
+      } else {
+        return prev.filter(id => id !== userId);
+      }
+    });
   }, []);
 
   const setupInterceptors = useCallback(() => {
@@ -175,6 +195,8 @@ export function AuthProvider({ children }) {
         getProfile,
         updateProfile,
         deleteAccount,
+        blockedUsers,
+        updateBlockedUsers,
         isAuth: !!user,
         setupInterceptors,
       }}

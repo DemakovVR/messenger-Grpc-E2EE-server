@@ -171,3 +171,62 @@ func (s *ContactServer) BlockContact(
 		Message: "user blocked",
 	}, nil
 }
+
+func (s *ContactServer) UnblockContact(
+	ctx context.Context,
+	req *contactpb.UnblockContactRequest,
+) (*contactpb.UnblockContactResponse, error) {
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	blockedID, err := uuid.Parse(req.ContactId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.contactService.UnblockContact(ctx, userID, blockedID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &contactpb.UnblockContactResponse{
+		Message: "user unblocked",
+	}, nil
+}
+
+func (s *ContactServer) GetBlockedUsers(
+	ctx context.Context,
+	req *contactpb.GetBlockedUsersRequest,
+) (*contactpb.GetBlockedUsersResponse, error) {
+
+	userIDStr := ctx.Value(middleware.UserIDKey).(string)
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, err
+	}
+
+	users, err := s.contactService.GetBlockedUsers(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*contactpb.User
+
+	for _, user := range users {
+		result = append(result, &contactpb.User{
+			Id:       user.ID.String(),
+			Username: user.Username,
+			Email:    user.Email,
+		})
+	}
+
+	return &contactpb.GetBlockedUsersResponse{
+		Users: result,
+	}, nil
+}

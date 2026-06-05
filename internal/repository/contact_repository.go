@@ -162,3 +162,63 @@ func (r *ContactRepository) BlockContact(
 
 	return err
 }
+
+func (r *ContactRepository) UnblockContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	blockedID uuid.UUID,
+) error {
+
+	_, err := r.db.Exec(ctx, `
+        DELETE FROM blocked_contacts 
+        WHERE user_id = $1 AND blocked_user_id = $2
+    `, userID, blockedID)
+
+	return err
+}
+
+func (r *ContactRepository) GetBlockedUsers(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]models.User, error) {
+
+	sql := `
+        SELECT
+            u.id,
+            u.username,
+            u.email,
+            u.password_hash,
+            u.role
+        FROM blocked_contacts b
+        JOIN users u
+            ON u.id = b.blocked_user_id
+        WHERE b.user_id = $1
+    `
+
+	rows, err := r.db.Query(ctx, sql, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var blockedUsers []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		blockedUsers = append(blockedUsers, user)
+	}
+
+	return blockedUsers, nil
+}

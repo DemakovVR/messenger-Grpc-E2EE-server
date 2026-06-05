@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { encryptMessageForPeer } from "../../../crypto/e2ee";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function MessageInput({ chatId, peerUserId, onSend, disabled, chatType, groupCryptoKey, uploadFile }) {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const { blockedUsers } = useAuth();
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -30,6 +32,12 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file || disabled || sending || !uploadFile) return;
+
+    if (chatType !== "group" && peerUserId && blockedUsers.includes(peerUserId)) {
+      alert("Вы не можете отправлять файлы заблокированному пользователю");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     setSending(true);
     try {
@@ -68,6 +76,11 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
   const handleSend = async () => {
     if (!message.trim() || disabled || sending) return;
 
+    if (chatType !== "group" && peerUserId && blockedUsers.includes(peerUserId)) {
+      alert("Вы не можете отправлять сообщения заблокированному пользователю");
+      return;
+    }
+
     const messageText = message.trim();
     setMessage("");
     setSending(true);
@@ -102,7 +115,7 @@ export default function MessageInput({ chatId, peerUserId, onSend, disabled, cha
     }
   };
 
-return (
+  return (
     <div className="message-input-form" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
       <input 
         type="file" 

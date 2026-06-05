@@ -79,3 +79,23 @@ func (s *ContactService) BlockContact(
 
 	return s.repo.BlockContact(ctx, userID, blockedID)
 }
+
+func (s *ContactService) UnblockContact(
+	ctx context.Context,
+	userID uuid.UUID,
+	blockedID uuid.UUID,
+) error {
+
+	if userID == blockedID {
+		return errors.New("cannot unblock yourself")
+	}
+
+	return s.repo.UnblockContact(ctx, userID, blockedID)
+}
+
+func (s *ContactService) GetBlockedUsers(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]models.User, error) {
+	return s.repo.GetBlockedUsers(ctx, userID)
+}

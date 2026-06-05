@@ -5,7 +5,7 @@ import { authApi } from "../../../api/authApi";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const globalUserCache = {};
-const inFlightRequests = {}; // <-- 2. Защита от спама дублирующими запросами к бэкенду
+const inFlightRequests = {};
 
 function MessageActions({ message, isOwn, onEdit, onDelete }) {
   const [showActions, setShowActions] = useState(false);
@@ -233,7 +233,7 @@ function MessageContentRender({ content, onEdit, onDelete, message, isOwn }) {
 export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey, onDeleteMessage, onEditMessage }) {
   const messagesEndRef = useRef(null);
   const [decryptedMessages, setDecryptedMessages] = useState([]);
-  const { user: authUser } = useAuth();
+  const { user: authUser, blockedUsers } = useAuth();
 
   const checkIfOwn = (senderId, senderName) => {
     if (!senderId) return false;
@@ -277,14 +277,12 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
 
           let senderName = senderId?.slice(0, 8);
 
-          // 3. Обновленная логика получения имен ушедших пользователей через authApi
           if (globalUserCache[senderId]) {
             senderName = globalUserCache[senderId].username || globalUserCache[senderId].userName;
           } 
           else {
             try {
               if (typeof authApi?.getUserById === 'function') {
-                // Если запрос для этого ID уже выполняется параллельно, переиспользуем его
                 if (!inFlightRequests[senderId]) {
                   inFlightRequests[senderId] = authApi.getUserById(senderId);
                 }
@@ -299,7 +297,7 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
               }
             } catch (err) {
               console.warn("Failed to load public profile for sender:", senderId, err.message || err);
-              senderName = senderId?.slice(0, 8); // Плавный fallback на хэш, если бэк не готов
+              senderName = senderId?.slice(0, 8);
             }
           }
 
@@ -386,12 +384,9 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
 
   const activeMessages = decryptedMessages.filter(msg => {
     if (msg.isDeleted) return false;
-    
-    console.log("Бэкенд прислал сообщение:", msg);
-
+    if (blockedUsers.includes(msg.senderId)) return false;
     const hasText = msg.displayContent && msg.displayContent.trim() !== "";
-    if (!hasText) return false; 
-
+    if (!hasText) return false;
     return true;
   });
 

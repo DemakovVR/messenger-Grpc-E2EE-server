@@ -38,6 +38,19 @@ service ContactService {
       body: "*"
     };
   }
+
+  rpc GetBlockedUsers(GetBlockedUsersRequest) returns (GetBlockedUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/contacts/blocked"
+    };
+  }
+
+  rpc UnblockContact(UnblockContactRequest) returns (UnblockContactResponse) {
+    option (google.api.http) = {
+      delete: "/api/contacts/{contact_id}/block"
+    };
+  }
+
 }
 
 message User {
@@ -84,4 +97,18 @@ message BlockContactRequest {
 
 message BlockContactResponse {
   string message = 1;
+}
+
+message UnblockContactRequest {
+  string contact_id = 1;
+}
+
+message UnblockContactResponse {
+  string message = 1;
+}
+
+message GetBlockedUsersRequest {}
+
+message GetBlockedUsersResponse {
+  repeated User users = 1;
 }

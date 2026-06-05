@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { chatApi } from "../../../api/chatApi";
+import { useAuth } from "../../../contexts/AuthContext";
 import "../../../styles/CreateChatModal.css";
 
 export default function CreateChatModal({ onClose, onChatCreated }) {
+  const { user } = useAuth();
   const [chatType, setChatType] = useState("private");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -18,7 +20,8 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
     setLoading(true);
     try {
       const data = await chatApi.searchUsers(searchQuery);
-      setSearchResults(data.users || []);
+      const filtered = (data.users || []).filter(u => u.id !== user?.id);
+      setSearchResults(filtered);
     } catch (err) {
       console.error("Search error:", err);
     } finally {
@@ -26,14 +29,23 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
     }
   };
 
-  const selectUser = (user) => {
-    setSelectedUser(user);
+  const selectUser = (userData) => {
+    if (userData.id === user?.id) {
+      setError("Нельзя создать чат с самим собой");
+      return;
+    }
+    setSelectedUser(userData);
     setStep("confirm");
   };
 
-  const addParticipant = (user) => {
-    if (!participants.find(p => p.id === user.id)) {
-      setParticipants([...participants, user]);
+  const addParticipant = (userData) => {
+    if (userData.id === user?.id) {
+      setError("Нельзя добавить самого себя в участники группы");
+      setTimeout(() => setError(""), 2000);
+      return;
+    }
+    if (!participants.find(p => p.id === userData.id)) {
+      setParticipants([...participants, userData]);
     }
     setSearchQuery("");
     setSearchResults([]);
@@ -44,6 +56,12 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
   };
 
   const handleCreatePrivate = async () => {
+    if (selectedUser.id === user?.id) {
+      setError("Нельзя создать чат с самим собой");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -159,10 +177,10 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
 
                   {searchResults.length > 0 && (
                     <div className="search-results">
-                      {searchResults.map(user => (
-                        <div key={user.id} className="search-result-item" onClick={() => selectUser(user)}>
-                          <span>{user.username}</span>
-                          <span className="user-email">{user.email}</span>
+                      {searchResults.map(userData => (
+                        <div key={userData.id} className="search-result-item" onClick={() => selectUser(userData)}>
+                          <span>{userData.username}</span>
+                          <span className="user-email">{userData.email}</span>
                         </div>
                       ))}
                     </div>
@@ -223,10 +241,10 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
 
                 {searchResults.length > 0 && (
                   <div className="search-results">
-                    {searchResults.map(user => (
-                      <div key={user.id} className="search-result-item" onClick={() => addParticipant(user)}>
-                        <span>{user.username}</span>
-                        <span className="user-email">{user.email}</span>
+                    {searchResults.map(userData => (
+                      <div key={userData.id} className="search-result-item" onClick={() => addParticipant(userData)}>
+                        <span>{userData.username}</span>
+                        <span className="user-email">{userData.email}</span>
                       </div>
                     ))}
                   </div>
@@ -237,10 +255,10 @@ export default function CreateChatModal({ onClose, onChatCreated }) {
                 <div className="participants-list">
                   <label>Участники ({participants.length})</label>
                   <div className="participants-scroll">
-                    {participants.map(user => (
-                      <div key={user.id} className="participant-item">
-                        <span>{user.username}</span>
-                        <button type="button" className="btn-remove" onClick={() => removeParticipant(user.id)}>×</button>
+                    {participants.map(userData => (
+                      <div key={userData.id} className="participant-item">
+                        <span>{userData.username}</span>
+                        <button type="button" className="btn-remove" onClick={() => removeParticipant(userData.id)}>×</button>
                       </div>
                     ))}
                   </div>

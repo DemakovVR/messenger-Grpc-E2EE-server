@@ -69,16 +69,36 @@ export const chatApi = {
     return res.data;
   },
 
+  deleteContact: async (contactId) => {
+    const res = await httpClient.delete(`/contacts/${contactId}`);
+    return res.data;
+  },
+ 
+  getBlockedUsers: async () => {
+    const res = await httpClient.get("/contacts/blocked");
+    return res.data;
+  },
+
+  blockContact: async (contactId) => {
+    const res = await httpClient.post(`/contacts/${contactId}/block`, {});
+    return res.data;
+  },
+
+  unblockUser: async (userId) => {
+    const res = await httpClient.delete(`/contacts/${userId}/block`);
+    return res.data;
+  },
+
   addParticipants: async (chatId, userIds) => {
     const res = await httpClient.post(`/chats/${chatId}/participants`, {
-      userIds: userIds,
+      userId: userIds,
     });
     return res.data;
   },
 
   removeParticipants: async (chatId, userIds) => {
     const res = await httpClient.post(`/chats/${chatId}/participants/remove`, {
-      userIds: userIds,
+      userId: userIds,
     });
     return res.data;
   },
