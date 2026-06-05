@@ -273,11 +273,12 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	UserService_GetProfile_FullMethodName      = "/auth.UserService/GetProfile"
-	UserService_UpdateProfile_FullMethodName   = "/auth.UserService/UpdateProfile"
-	UserService_GetPublicKey_FullMethodName    = "/auth.UserService/GetPublicKey"
-	UserService_UpdatePublicKey_FullMethodName = "/auth.UserService/UpdatePublicKey"
-	UserService_DeleteAccount_FullMethodName   = "/auth.UserService/DeleteAccount"
+	UserService_GetProfile_FullMethodName       = "/auth.UserService/GetProfile"
+	UserService_UpdateProfile_FullMethodName    = "/auth.UserService/UpdateProfile"
+	UserService_GetPublicKey_FullMethodName     = "/auth.UserService/GetPublicKey"
+	UserService_UpdatePublicKey_FullMethodName  = "/auth.UserService/UpdatePublicKey"
+	UserService_GetPublicProfile_FullMethodName = "/auth.UserService/GetPublicProfile"
+	UserService_DeleteAccount_FullMethodName    = "/auth.UserService/DeleteAccount"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -288,6 +289,7 @@ type UserServiceClient interface {
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPublicKey(ctx context.Context, in *GetPublicKeyRequest, opts ...grpc.CallOption) (*GetPublicKeyResponse, error)
 	UpdatePublicKey(ctx context.Context, in *UpdatePublicKeyRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetPublicProfile(ctx context.Context, in *GetPublicProfileRequest, opts ...grpc.CallOption) (*GetPublicProfileResponse, error)
 	DeleteAccount(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -339,6 +341,16 @@ func (c *userServiceClient) UpdatePublicKey(ctx context.Context, in *UpdatePubli
 	return out, nil
 }
 
+func (c *userServiceClient) GetPublicProfile(ctx context.Context, in *GetPublicProfileRequest, opts ...grpc.CallOption) (*GetPublicProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicProfileResponse)
+	err := c.cc.Invoke(ctx, UserService_GetPublicProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) DeleteAccount(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -357,6 +369,7 @@ type UserServiceServer interface {
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*Empty, error)
 	GetPublicKey(context.Context, *GetPublicKeyRequest) (*GetPublicKeyResponse, error)
 	UpdatePublicKey(context.Context, *UpdatePublicKeyRequest) (*Empty, error)
+	GetPublicProfile(context.Context, *GetPublicProfileRequest) (*GetPublicProfileResponse, error)
 	DeleteAccount(context.Context, *Empty) (*Empty, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -379,6 +392,9 @@ func (UnimplementedUserServiceServer) GetPublicKey(context.Context, *GetPublicKe
 }
 func (UnimplementedUserServiceServer) UpdatePublicKey(context.Context, *UpdatePublicKeyRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePublicKey not implemented")
+}
+func (UnimplementedUserServiceServer) GetPublicProfile(context.Context, *GetPublicProfileRequest) (*GetPublicProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicProfile not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteAccount(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAccount not implemented")
@@ -476,6 +492,24 @@ func _UserService_UpdatePublicKey_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetPublicProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetPublicProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetPublicProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetPublicProfile(ctx, req.(*GetPublicProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_DeleteAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -516,6 +550,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePublicKey",
 			Handler:    _UserService_UpdatePublicKey_Handler,
+		},
+		{
+			MethodName: "GetPublicProfile",
+			Handler:    _UserService_GetPublicProfile_Handler,
 		},
 		{
 			MethodName: "DeleteAccount",

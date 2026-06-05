@@ -5,6 +5,7 @@ import { useChats } from "../../../services/hooks/useChats";
 import CreateChatModal from "../chat/CreateChatModal";
 import ChangePasswordModal from "../modals/ChangePasswordModal";
 import ProfileModal from "../modals/ProfileModal";
+import ChatInfoModal from "../modals/ChatInfoModal";
 import "../../../styles/chat.css";
 
 function AppLayout() {
@@ -16,6 +17,10 @@ function AppLayout() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [chatTitle, setChatTitle] = useState("");
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [currentChatType, setCurrentChatType] = useState(null);
+  const [currentChatCreatedBy, setCurrentChatCreatedBy] = useState(null);
+  const [showChatInfoModal, setShowChatInfoModal] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -27,37 +32,29 @@ function AppLayout() {
     navigate(`/app/chat/${chatId}`);
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="logo">SecureTalk</div>
-
         {!menuOpen && (
           <button className="create-chat-btn" onClick={() => setShowCreateModal(true)}>
             + Новый чат
           </button>
         )}
-
         {!menuOpen ? (
           <div className="chat-list">
             {loading && <div className="chat-list-loading">Loading...</div>}
             {!loading && chats.length === 0 && <div className="chat-list-empty">No chats yet</div>}
             {chats.map((chat) => {
               let displayName = chat.name;
-              if (chat.type === "private") {
-                displayName = chat.displayName || "Private Chat";
-              }
+              if (chat.type === "private") displayName = chat.displayName || "Private Chat";
               return (
                 <NavLink
                   key={chat.id}
                   to={`/app/chat/${chat.id}`}
-                  className={({ isActive }) =>
-                    isActive ? "chat-list-item active" : "chat-list-item"
-                  }
+                  className={({ isActive }) => isActive ? "chat-list-item active" : "chat-list-item"}
                 >
                   <div className="chat-list-item-name">
                     {chat.type === "private" ? "💬" : "👥"} {displayName}
@@ -92,19 +89,12 @@ function AppLayout() {
             </div>
           </div>
         )}
-
         <div className="sidebar-footer">
           <button onClick={toggleMenu} className="menu-toggle-btn">
             {menuOpen ? (
-              <>
-                <span className="menu-icon">←</span>
-                <span>Назад к чатам</span>
-              </>
+              <><span className="menu-icon">←</span><span>Назад к чатам</span></>
             ) : (
-              <>
-                <span className="menu-icon">☰</span>
-                <span>Меню</span>
-              </>
+              <><span className="menu-icon">☰</span><span>Меню</span></>
             )}
           </button>
         </div>
@@ -112,24 +102,34 @@ function AppLayout() {
 
       <div className="main">
         <header className="topbar">
-          <div className="topbar-left">{chatTitle}</div>
+          <div className="topbar-left">
+            {chatTitle && (
+              <button className="chat-title-btn" onClick={() => setShowChatInfoModal(true)}>
+                {chatTitle}
+              </button>
+            )}
+          </div>
           <div className="topbar-right">
             <span className="user-name-display">{user?.username || "Гость"}</span>
           </div>
         </header>
         <div className="content">
-          <Outlet context={{ setChatTitle }} />
+          <Outlet context={{ setChatTitle, setCurrentChatId, setCurrentChatType, setCurrentChatCreatedBy }} />
         </div>
       </div>
 
-      {showCreateModal && (
-        <CreateChatModal onClose={() => setShowCreateModal(false)} onChatCreated={handleChatCreated} />
-      )}
-      {showChangePasswordModal && (
-        <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />
-      )}
-      {showProfileModal && (
-        <ProfileModal onClose={() => setShowProfileModal(false)} />
+      {showCreateModal && <CreateChatModal onClose={() => setShowCreateModal(false)} onChatCreated={handleChatCreated} />}
+      {showChangePasswordModal && <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />}
+      {showProfileModal && <ProfileModal onClose={() => setShowProfileModal(false)} />}
+      {showChatInfoModal && (
+        <ChatInfoModal
+          chatId={currentChatId}
+          chatType={currentChatType}
+          chatName={chatTitle}
+          chatCreatedBy={currentChatCreatedBy}
+          onClose={() => setShowChatInfoModal(false)}
+          onUpdate={() => {}}
+        />
       )}
     </div>
   );

@@ -156,21 +156,20 @@ func (r *ChatRepository) GetChats(
 			c.type,
 			COALESCE(c.name, '') as name,
 			c.created_at,
-			c.updated_at
+			c.updated_at,
+			COALESCE(c.created_by, '00000000-0000-0000-0000-000000000000') as created_by
 		FROM chats c
 		JOIN chat_participants cp ON cp.chat_id = c.id
 		WHERE cp.user_id = $1
 		`,
 		userID,
 	)
-
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var chats []models.Chat
-
 	for rows.Next() {
 		var chat models.Chat
 		err := rows.Scan(
@@ -179,14 +178,37 @@ func (r *ChatRepository) GetChats(
 			&chat.Name,
 			&chat.CreatedAt,
 			&chat.UpdatedAt,
+			&chat.CreatedBy,
 		)
 		if err != nil {
 			return nil, err
 		}
 		chats = append(chats, chat)
 	}
-
 	return chats, nil
+}
+
+func (r *ChatRepository) GetChat(
+	ctx context.Context,
+	chatID uuid.UUID,
+) (*models.Chat, error) {
+	var chat models.Chat
+	err := r.db.QueryRow(ctx, `
+		SELECT id, type, COALESCE(name, ''), created_at, updated_at, COALESCE(created_by, '00000000-0000-0000-0000-000000000000') as created_by
+		FROM chats
+		WHERE id = $1
+	`, chatID).Scan(
+		&chat.ID,
+		&chat.Type,
+		&chat.Name,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+		&chat.CreatedBy,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &chat, nil
 }
 
 func (r *ChatRepository) DeleteChat(
@@ -252,28 +274,6 @@ func (r *ChatRepository) CountParticipants(
 	`, chatID).Scan(&count)
 
 	return count, err
-}
-
-func (r *ChatRepository) GetChat(
-	ctx context.Context,
-	chatID uuid.UUID,
-) (*models.Chat, error) {
-	var chat models.Chat
-	err := r.db.QueryRow(ctx, `
-		SELECT id, type, COALESCE(name, ''), created_at, updated_at
-		FROM chats
-		WHERE id = $1
-	`, chatID).Scan(
-		&chat.ID,
-		&chat.Type,
-		&chat.Name,
-		&chat.CreatedAt,
-		&chat.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &chat, nil
 }
 
 func (r *ChatRepository) IsParticipant(

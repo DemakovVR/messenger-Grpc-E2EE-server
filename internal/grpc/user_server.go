@@ -10,6 +10,8 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserServer struct {
@@ -147,5 +149,26 @@ func (s *UserServer) GetPublicKey(ctx context.Context, req *authpb.GetPublicKeyR
 
 	return &authpb.GetPublicKeyResponse{
 		PublicKey: publicKey,
+	}, nil
+}
+
+func (s *UserServer) GetPublicProfile(
+	ctx context.Context,
+	req *authpb.GetPublicProfileRequest,
+) (*authpb.GetPublicProfileResponse, error) {
+
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user id format")
+	}
+
+	user, err := s.userService.GetProfile(ctx, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "user not found")
+	}
+
+	return &authpb.GetPublicProfileResponse{
+		Id:       user.ID.String(),
+		Username: user.Username,
 	}, nil
 }

@@ -718,6 +718,102 @@ func (x *GetProfileResponse) GetRole() string {
 	return ""
 }
 
+type GetPublicProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicProfileRequest) Reset() {
+	*x = GetPublicProfileRequest{}
+	mi := &file_proto_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicProfileRequest) ProtoMessage() {}
+
+func (x *GetPublicProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicProfileRequest.ProtoReflect.Descriptor instead.
+func (*GetPublicProfileRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetPublicProfileRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetPublicProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPublicProfileResponse) Reset() {
+	*x = GetPublicProfileResponse{}
+	mi := &file_proto_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPublicProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublicProfileResponse) ProtoMessage() {}
+
+func (x *GetPublicProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublicProfileResponse.ProtoReflect.Descriptor instead.
+func (*GetPublicProfileResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetPublicProfileResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetPublicProfileResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -726,7 +822,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_proto_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -738,7 +834,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -751,7 +847,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_proto_auth_proto_rawDescGZIP(), []int{14}
+	return file_proto_auth_proto_rawDescGZIP(), []int{16}
 }
 
 var File_proto_auth_proto protoreflect.FileDescriptor
@@ -798,20 +894,26 @@ const file_proto_auth_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
-	"\x04role\x18\x04 \x01(\tR\x04role\"\a\n" +
+	"\x04role\x18\x04 \x01(\tR\x04role\"2\n" +
+	"\x17GetPublicProfileRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"F\n" +
+	"\x18GetPublicProfileResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\"\a\n" +
 	"\x05Empty2\xc5\x03\n" +
 	"\vAuthService\x12X\n" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/auth/register\x12L\n" +
 	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/api/auth/login\x12c\n" +
 	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/auth/refresh\x12G\n" +
 	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\v.auth.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/auth/logout\x12`\n" +
-	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\v.auth.Empty\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/auth/change-password2\xca\x03\n" +
+	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\v.auth.Empty\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/auth/change-password2\xc3\x04\n" +
 	"\vUserService\x12U\n" +
 	"\n" +
 	"GetProfile\x12\x17.auth.GetProfileRequest\x1a\x18.auth.GetProfileResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/api/auth/me\x12Q\n" +
 	"\rUpdateProfile\x12\x1a.auth.UpdateProfileRequest\x1a\v.auth.Empty\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\x1a\f/api/auth/me\x12n\n" +
 	"\fGetPublicKey\x12\x19.auth.GetPublicKeyRequest\x1a\x1a.auth.GetPublicKeyResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/api/users/{user_id}/public-key\x12`\n" +
-	"\x0fUpdatePublicKey\x12\x1c.auth.UpdatePublicKeyRequest\x1a\v.auth.Empty\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\x1a\x17/api/auth/me/public-key\x12?\n" +
+	"\x0fUpdatePublicKey\x12\x1c.auth.UpdatePublicKeyRequest\x1a\v.auth.Empty\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\x1a\x17/api/auth/me/public-key\x12w\n" +
+	"\x10GetPublicProfile\x12\x1d.auth.GetPublicProfileRequest\x1a\x1e.auth.GetPublicProfileResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/users/{user_id}/profile\x12?\n" +
 	"\rDeleteAccount\x12\v.auth.Empty\x1a\v.auth.Empty\"\x14\x82\xd3\xe4\x93\x02\x0e*\f/api/auth/meB\x0fZ\rgen/auth;authb\x06proto3"
 
 var (
@@ -826,23 +928,25 @@ func file_proto_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_proto_rawDescData
 }
 
-var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_proto_auth_proto_goTypes = []any{
-	(*GetPublicKeyRequest)(nil),    // 0: auth.GetPublicKeyRequest
-	(*GetPublicKeyResponse)(nil),   // 1: auth.GetPublicKeyResponse
-	(*RegisterRequest)(nil),        // 2: auth.RegisterRequest
-	(*RegisterResponse)(nil),       // 3: auth.RegisterResponse
-	(*LoginRequest)(nil),           // 4: auth.LoginRequest
-	(*LoginResponse)(nil),          // 5: auth.LoginResponse
-	(*RefreshTokenRequest)(nil),    // 6: auth.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),   // 7: auth.RefreshTokenResponse
-	(*LogoutRequest)(nil),          // 8: auth.LogoutRequest
-	(*ChangePasswordRequest)(nil),  // 9: auth.ChangePasswordRequest
-	(*UpdateProfileRequest)(nil),   // 10: auth.UpdateProfileRequest
-	(*UpdatePublicKeyRequest)(nil), // 11: auth.UpdatePublicKeyRequest
-	(*GetProfileRequest)(nil),      // 12: auth.GetProfileRequest
-	(*GetProfileResponse)(nil),     // 13: auth.GetProfileResponse
-	(*Empty)(nil),                  // 14: auth.Empty
+	(*GetPublicKeyRequest)(nil),      // 0: auth.GetPublicKeyRequest
+	(*GetPublicKeyResponse)(nil),     // 1: auth.GetPublicKeyResponse
+	(*RegisterRequest)(nil),          // 2: auth.RegisterRequest
+	(*RegisterResponse)(nil),         // 3: auth.RegisterResponse
+	(*LoginRequest)(nil),             // 4: auth.LoginRequest
+	(*LoginResponse)(nil),            // 5: auth.LoginResponse
+	(*RefreshTokenRequest)(nil),      // 6: auth.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),     // 7: auth.RefreshTokenResponse
+	(*LogoutRequest)(nil),            // 8: auth.LogoutRequest
+	(*ChangePasswordRequest)(nil),    // 9: auth.ChangePasswordRequest
+	(*UpdateProfileRequest)(nil),     // 10: auth.UpdateProfileRequest
+	(*UpdatePublicKeyRequest)(nil),   // 11: auth.UpdatePublicKeyRequest
+	(*GetProfileRequest)(nil),        // 12: auth.GetProfileRequest
+	(*GetProfileResponse)(nil),       // 13: auth.GetProfileResponse
+	(*GetPublicProfileRequest)(nil),  // 14: auth.GetPublicProfileRequest
+	(*GetPublicProfileResponse)(nil), // 15: auth.GetPublicProfileResponse
+	(*Empty)(nil),                    // 16: auth.Empty
 }
 var file_proto_auth_proto_depIdxs = []int32{
 	2,  // 0: auth.AuthService.Register:input_type -> auth.RegisterRequest
@@ -854,19 +958,21 @@ var file_proto_auth_proto_depIdxs = []int32{
 	10, // 6: auth.UserService.UpdateProfile:input_type -> auth.UpdateProfileRequest
 	0,  // 7: auth.UserService.GetPublicKey:input_type -> auth.GetPublicKeyRequest
 	11, // 8: auth.UserService.UpdatePublicKey:input_type -> auth.UpdatePublicKeyRequest
-	14, // 9: auth.UserService.DeleteAccount:input_type -> auth.Empty
-	3,  // 10: auth.AuthService.Register:output_type -> auth.RegisterResponse
-	5,  // 11: auth.AuthService.Login:output_type -> auth.LoginResponse
-	7,  // 12: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
-	14, // 13: auth.AuthService.Logout:output_type -> auth.Empty
-	14, // 14: auth.AuthService.ChangePassword:output_type -> auth.Empty
-	13, // 15: auth.UserService.GetProfile:output_type -> auth.GetProfileResponse
-	14, // 16: auth.UserService.UpdateProfile:output_type -> auth.Empty
-	1,  // 17: auth.UserService.GetPublicKey:output_type -> auth.GetPublicKeyResponse
-	14, // 18: auth.UserService.UpdatePublicKey:output_type -> auth.Empty
-	14, // 19: auth.UserService.DeleteAccount:output_type -> auth.Empty
-	10, // [10:20] is the sub-list for method output_type
-	0,  // [0:10] is the sub-list for method input_type
+	14, // 9: auth.UserService.GetPublicProfile:input_type -> auth.GetPublicProfileRequest
+	16, // 10: auth.UserService.DeleteAccount:input_type -> auth.Empty
+	3,  // 11: auth.AuthService.Register:output_type -> auth.RegisterResponse
+	5,  // 12: auth.AuthService.Login:output_type -> auth.LoginResponse
+	7,  // 13: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
+	16, // 14: auth.AuthService.Logout:output_type -> auth.Empty
+	16, // 15: auth.AuthService.ChangePassword:output_type -> auth.Empty
+	13, // 16: auth.UserService.GetProfile:output_type -> auth.GetProfileResponse
+	16, // 17: auth.UserService.UpdateProfile:output_type -> auth.Empty
+	1,  // 18: auth.UserService.GetPublicKey:output_type -> auth.GetPublicKeyResponse
+	16, // 19: auth.UserService.UpdatePublicKey:output_type -> auth.Empty
+	15, // 20: auth.UserService.GetPublicProfile:output_type -> auth.GetPublicProfileResponse
+	16, // 21: auth.UserService.DeleteAccount:output_type -> auth.Empty
+	11, // [11:22] is the sub-list for method output_type
+	0,  // [0:11] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -883,7 +989,7 @@ func file_proto_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_proto_rawDesc), len(file_proto_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

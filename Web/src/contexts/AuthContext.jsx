@@ -109,7 +109,6 @@ export function AuthProvider({ children }) {
     return await authApi.changePassword(oldPassword, newPassword);
   }, []);
 
-  // 3. Автоматическое обновление данных контекста при ручном запросе профиля
   const getProfile = useCallback(async () => {
     const profileData = await authApi.getProfile();
     if (profileData) {

@@ -10,19 +10,17 @@ import "../styles/chat.css";
 function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
-  const { setChatTitle } = useOutletContext();
+  const { setChatTitle, setCurrentChatId, setCurrentChatType, setCurrentChatCreatedBy } = useOutletContext();
   const { messages, loading, sendMessage, uploadFile, deleteMessage, editMessage } = useMessages(chatId);
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [chatType, setChatType] = useState(null);
   const [chatName, setChatName] = useState("");
+  const [createdBy, setCreatedBy] = useState(null);
 
   useEffect(() => {
-    const initE2EE = async () => {
-      await publishKeys();
-    };
+    const initE2EE = async () => { await publishKeys(); };
     initE2EE();
-
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -48,16 +46,14 @@ function ChatPage() {
             const chat = data.chat;
             let peerId = null;
             const usersMap = {};
-            
             setChatType(chat.type);
             setChatName(chat.name || "");
-          
+            setCreatedBy(chat.createdBy || null);
+            setCurrentChatCreatedBy(chat.createdBy || null);
             if (chat.participants && chat.participants.length > 0) {
               chat.participants.forEach(p => {
                 usersMap[p.id] = { ...p, role: p.role || "member" };
-                if (p.id !== user.id && chat.type === "private") {
-                  peerId = p.id;
-                }
+                if (p.id !== user.id && chat.type === "private") peerId = p.id;
               });
             }
             setChatUsers(usersMap);
@@ -69,7 +65,7 @@ function ChatPage() {
       };
       fetchChat();
     }
-  }, [chatId, user?.id]);
+  }, [chatId, user?.id, setCurrentChatCreatedBy]);
 
   useEffect(() => {
     if (chatType === "group") {
@@ -81,24 +77,20 @@ function ChatPage() {
     } else {
       setChatTitle("Чат");
     }
-  }, [chatType, chatName, peerUserId, chatUsers, setChatTitle]);
+    if (chatId) {
+      setCurrentChatId(chatId);
+      setCurrentChatType(chatType);
+    }
+  }, [chatType, chatName, peerUserId, chatUsers, chatId, setChatTitle, setCurrentChatId, setCurrentChatType]);
 
   const handleSendMessage = async (content, isEncrypted) => {
-    try {
-      await sendMessage(content, isEncrypted);
-    } catch (err) {
-      console.error("Send failed:", err);
-      throw err;
-    }
+    try { await sendMessage(content, isEncrypted); }
+    catch (err) { console.error("Send failed:", err); throw err; }
   };
 
   const handleDeleteMessage = async (messageId) => {
-    try {
-      await deleteMessage(messageId);
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Ошибка удаления сообщения");
-    }
+    try { await deleteMessage(messageId); }
+    catch (err) { console.error("Delete failed:", err); alert("Ошибка удаления сообщения"); }
   };
 
   const handleEditMessage = async (messageId, newContent, wasEncrypted) => {
@@ -106,18 +98,14 @@ function ChatPage() {
       let contentToSend = newContent;
       let isEncrypted = wasEncrypted;
       const isGroupChat = chatType === "group";
-
       if (!isGroupChat && peerUserId && wasEncrypted) {
         let encrypted = await encryptMessageForPeer(peerUserId, newContent, false);
-        if (!encrypted) {
-          encrypted = await encryptMessageForPeer(peerUserId, newContent, true);
-        }
+        if (!encrypted) encrypted = await encryptMessageForPeer(peerUserId, newContent, true);
         if (encrypted) {
           contentToSend = JSON.stringify(encrypted);
           isEncrypted = true;
         }
       }
-
       await editMessage(messageId, contentToSend, isEncrypted);
     } catch (err) {
       console.error("Edit failed:", err);
@@ -125,15 +113,8 @@ function ChatPage() {
     }
   };
 
-  if (loading) {
-    return <div className="chat-page-loading">Загрузка сообщений...</div>;
-  }
-
-  if (!chatId) {
-    return <div className="no-chat-selected">Выберите чат из списка</div>;
-  }
-
-  const isGroupChat = chatType === "group";
+  if (loading) return <div className="chat-page-loading">Загрузка сообщений...</div>;
+  if (!chatId) return <div className="no-chat-selected">Выберите чат из списка</div>;
 
   return (
     <div className="chat-page">

@@ -68,4 +68,28 @@ export const chatApi = {
     const res = await httpClient.get("/contacts");
     return res.data;
   },
+
+  addParticipants: async (chatId, userIds) => {
+    const res = await httpClient.post(`/chats/${chatId}/participants`, {
+      userIds: userIds,
+    });
+    return res.data;
+  },
+
+  removeParticipants: async (chatId, userIds) => {
+    const res = await httpClient.post(`/chats/${chatId}/participants/remove`, {
+      userIds: userIds,
+    });
+    return res.data;
+  },
+
+  leaveGroup: async (chatId) => {
+    const res = await httpClient.post(`/chats/${chatId}/leave`, {});
+    return res.data;
+  },
+
+  deleteChat: async (chatId) => {
+    const res = await httpClient.delete(`/chats/${chatId}`);
+    return res.data;
+  },
 };

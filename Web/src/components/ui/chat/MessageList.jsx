@@ -1,7 +1,11 @@
 import { useRef, useEffect, useState } from "react";
 import { decryptMessageFromPeer } from "../../../crypto/e2ee";
 import { grpcClient } from "../../../services/grpcClient";
+import { authApi } from "../../../api/authApi";
 import { useAuth } from "../../../contexts/AuthContext";
+
+const globalUserCache = {};
+const inFlightRequests = {}; // <-- 2. Защита от спама дублирующими запросами к бэкенду
 
 function MessageActions({ message, isOwn, onEdit, onDelete }) {
   const [showActions, setShowActions] = useState(false);
@@ -244,6 +248,14 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
   };
 
   useEffect(() => {
+    if (users) {
+      Object.entries(users).forEach(([id, userInfo]) => {
+        if (userInfo) {
+          globalUserCache[id] = userInfo;
+        }
+      });
+    }
+
     const decryptMessages = async () => {
       if (!messages.length) {
         setDecryptedMessages([]);
@@ -264,8 +276,31 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
           let isDecrypted = false;
 
           let senderName = senderId?.slice(0, 8);
-          if (users && users[senderId]) {
-            senderName = users[senderId].username || users[senderId].display_name;
+
+          // 3. Обновленная логика получения имен ушедших пользователей через authApi
+          if (globalUserCache[senderId]) {
+            senderName = globalUserCache[senderId].username || globalUserCache[senderId].userName;
+          } 
+          else {
+            try {
+              if (typeof authApi?.getUserById === 'function') {
+                // Если запрос для этого ID уже выполняется параллельно, переиспользуем его
+                if (!inFlightRequests[senderId]) {
+                  inFlightRequests[senderId] = authApi.getUserById(senderId);
+                }
+                const data = await inFlightRequests[senderId];
+                
+                if (data) {
+                  globalUserCache[senderId] = data;
+                  senderName = data.username || data.userName;
+                }
+              } else {
+                throw new Error("authApi.getUserById is not implemented yet");
+              }
+            } catch (err) {
+              console.warn("Failed to load public profile for sender:", senderId, err.message || err);
+              senderName = senderId?.slice(0, 8); // Плавный fallback на хэш, если бэк не готов
+            }
           }
 
           const isOwnMessage = checkIfOwn(senderId, senderName);
@@ -273,7 +308,6 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
           if (isEncrypted && !isGroupChat) {
             try {
               const encryptedData = JSON.parse(content);
-              
               const decryptedContent = await decryptMessageFromPeer(encryptedData, currentUserId, senderId);
               
               if (decryptedContent) {

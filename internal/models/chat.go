@@ -12,6 +12,7 @@ type Chat struct {
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	CreatedBy uuid.UUID `db:"created_by"`
 }
 
 type ChatParticipant struct {

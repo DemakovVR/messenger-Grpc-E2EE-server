@@ -71,6 +71,12 @@ service UserService {
     };
   }
   
+  rpc GetPublicProfile(GetPublicProfileRequest) returns (GetPublicProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/users/{user_id}/profile"
+    };
+  }
+
   rpc DeleteAccount(Empty) returns (Empty) {
     option (google.api.http) = {
       delete: "/api/auth/me"
@@ -142,6 +148,15 @@ message GetProfileResponse {
   string username = 2;
   string email = 3;
   string role = 4;
+}
+
+message GetPublicProfileRequest {
+  string user_id = 1;
+}
+
+message GetPublicProfileResponse {
+  string id = 1;
+  string username = 2;
 }
 
 message Empty {}
