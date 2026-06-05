@@ -1,3 +1,16 @@
+function getUserIdFromToken() {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) return "";
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    return payload.user_id || payload.id || payload.sub || "";
+  } catch (e) {
+    return "";
+  }
+}
+
 export async function generateKeyPair() {
   const keyPair = await crypto.subtle.generateKey(
     { name: "ECDSA", namedCurve: "P-256" },
@@ -8,7 +21,6 @@ export async function generateKeyPair() {
   const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
   const privateKey = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
   
-  console.log("E2EE: Generated identity key pair (ECDSA)");
   return {
     privateKey: btoa(String.fromCharCode(...new Uint8Array(privateKey))),
     publicKey: btoa(String.fromCharCode(...new Uint8Array(publicKey)))
@@ -24,8 +36,6 @@ export async function generateSignedPreKey() {
   
   const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
   const privateKey = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
-  
-  console.log("E2EE: Generated signed prekey using Web Crypto (ECDH)");
   
   return {
     privateKey: btoa(String.fromCharCode(...new Uint8Array(privateKey))),
@@ -47,7 +57,6 @@ export async function generateOneTimePreKeys(count = 20) {
     
     keys.push({ keyId: i, publicKey: publicKeyB64 });
   }
-  console.log(`E2EE: Generated ${count} one-time prekeys (ECDH)`);
   return keys;
 }
 
@@ -95,7 +104,6 @@ export async function verifySignature(publicKeyB64, dataString, signatureB64) {
       dataBytes
     );
   } catch (error) {
-    console.error("E2EE: Signature verification error:", error);
     return false;
   }
 }
@@ -107,7 +115,6 @@ export function getOrCreateDeviceId() {
     crypto.getRandomValues(randomBuffer);
     deviceId = Array.from(randomBuffer, b => b.toString(16).padStart(2, "0")).join("");
     localStorage.setItem("deviceId", deviceId);
-    console.log("E2EE: Created new device ID:", deviceId);
   }
   return deviceId;
 }
@@ -122,8 +129,6 @@ export async function generateEphemeralKeyPair() {
   const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
   const publicKeyB64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
   
-  console.log("E2EE: Generated ephemeral key pair using Web Crypto");
-  
   return {
     privateKey: null,
     publicKey: publicKeyB64,
@@ -132,8 +137,7 @@ export async function generateEphemeralKeyPair() {
 }
 
 export async function encryptMessageForPeer(peerUserId, message, forceRefresh = false) {
-  console.log("E2EE: encryptMessageForPeer called for peer:", peerUserId, "forceRefresh:", forceRefresh);
-  
+  const currentUserId = getUserIdFromToken();
   const ephemeralPeer = await generateEphemeralKeyPair();
   
   let peerSignedPrekeyPublic = localStorage.getItem(`e2eePeerSignedPrekey_${peerUserId}`);
@@ -141,7 +145,6 @@ export async function encryptMessageForPeer(peerUserId, message, forceRefresh = 
   let peerSignedPrekeySignature = localStorage.getItem(`e2eePeerSignature_${peerUserId}`);
   
   if (forceRefresh || !peerSignedPrekeyPublic) {
-    console.log("E2EE: Fetching fresh prekey bundle for", peerUserId);
     const bundle = await fetchPreKeyBundle(peerUserId);
     if (!bundle || !bundle.signedPrekeyPublic) return null;
     
@@ -157,7 +160,6 @@ export async function encryptMessageForPeer(peerUserId, message, forceRefresh = 
   if (peerIdentityKeyPublic && peerSignedPrekeySignature) {
     const isSignatureValid = await verifySignature(peerIdentityKeyPublic, peerSignedPrekeyPublic, peerSignedPrekeySignature);
     if (!isSignatureValid) {
-      console.error("E2EE: Signature verification failed!");
       localStorage.removeItem(`e2eePeerSignedPrekey_${peerUserId}`);
       return null;
     }
@@ -182,7 +184,7 @@ export async function encryptMessageForPeer(peerUserId, message, forceRefresh = 
     { name: "AES-GCM", iv: ivPeer }, aesKeyPeer, encodedMessage
   );
 
-  const mySignedPrekeyPublic = localStorage.getItem("e2eeSignedPrekeyPublic");
+  const mySignedPrekeyPublic = localStorage.getItem(`e2ee_${currentUserId}_SignedPrekeyPublic`) || localStorage.getItem("e2eeSignedPrekeyPublic");
   let encryptedSelfB64 = null;
   let ivSelfB64 = null;
   let ephemeralPublicKeySelfB64 = null;
@@ -211,12 +213,8 @@ export async function encryptMessageForPeer(peerUserId, message, forceRefresh = 
       encryptedSelfB64 = btoa(String.fromCharCode(...new Uint8Array(encryptedSelf)));
       ivSelfB64 = btoa(String.fromCharCode(...ivSelf));
       ephemeralPublicKeySelfB64 = ephemeralSelf.publicKey;
-    } catch (e) {
-      console.error("E2EE: Failed to encrypt for self:", e);
-    }
+    } catch (e) {}
   }
-
-  console.log("E2EE: Message encrypted for both peer and self");
   
   return {
     ciphertext: btoa(String.fromCharCode(...new Uint8Array(encryptedPeer))),
@@ -229,12 +227,28 @@ export async function encryptMessageForPeer(peerUserId, message, forceRefresh = 
   };
 }
 
-export async function decryptMessageFromPeer(encryptedData, myUserId) {
-  console.log("E2EE: decryptMessageFromPeer called");
+export async function decryptMessageFromPeer(encryptedData, myUserId, senderId) {
+  const userId = myUserId || getUserIdFromToken();
   
-  const { ciphertext, iv: ivBase64, ephemeralPublicKey } = encryptedData;
+  const isMyOwnMessage = senderId ? (userId === senderId) : false;
   
-  let signedPrekeyCryptoKey = localStorage.getItem("e2eeSignedPrekeyCryptoKey");
+  const ciphertext = (isMyOwnMessage && encryptedData.ciphertextForSelf) 
+    ? encryptedData.ciphertextForSelf 
+    : encryptedData.ciphertext;
+    
+  const ivBase64 = (isMyOwnMessage && encryptedData.ivForSelf) 
+    ? encryptedData.ivForSelf 
+    : encryptedData.iv;
+    
+  const ephemeralPublicKey = (isMyOwnMessage && encryptedData.ephemeralPublicKeyForSelf) 
+    ? encryptedData.ephemeralPublicKeyForSelf 
+    : encryptedData.ephemeralPublicKey;
+  
+  if (!ciphertext || !ivBase64 || !ephemeralPublicKey) {
+    return null;
+  }
+  
+  let signedPrekeyCryptoKey = localStorage.getItem(`e2ee_${userId}_SignedPrekeyCryptoKey`) || localStorage.getItem("e2eeSignedPrekeyCryptoKey");
   let mySignedPrekeyPrivate;
   
   if (signedPrekeyCryptoKey) {
@@ -246,9 +260,8 @@ export async function decryptMessageFromPeer(encryptedData, myUserId) {
   }
   
   if (!mySignedPrekeyPrivate) {
-    const mySignedPrekeyPrivateB64 = localStorage.getItem("e2eeSignedPrekeyPrivate");
+    const mySignedPrekeyPrivateB64 = localStorage.getItem(`e2ee_${userId}_SignedPrekeyPrivate`) || localStorage.getItem("e2eeSignedPrekeyPrivate");
     if (!mySignedPrekeyPrivateB64) {
-      console.log("E2EE: No signed prekey private key found in storage");
       return null;
     }
     const privateKeyBytes = Uint8Array.from(atob(mySignedPrekeyPrivateB64), c => c.charCodeAt(0));
@@ -297,46 +310,53 @@ export async function decryptMessageFromPeer(encryptedData, myUserId) {
     );
     return new TextDecoder().decode(decrypted);
   } catch (error) {
-    console.error("E2EE: Decryption failed:", error.message);
     return null;
   }
 }
 
 export async function publishKeys() {
-  console.log("E2EE: Starting key publication...");
   const deviceId = getOrCreateDeviceId();
+  const userId = getUserIdFromToken();
   
-  let identityPrivate = localStorage.getItem("e2eeIdentityPrivate");
-  let identityPublic = localStorage.getItem("e2eeIdentityPublic");
+  let identityPrivate = localStorage.getItem(`e2ee_${userId}_IdentityPrivate`) || localStorage.getItem("e2eeIdentityPrivate");
+  let identityPublic = localStorage.getItem(`e2ee_${userId}_IdentityPublic`) || localStorage.getItem("e2eeIdentityPublic");
   
   if (!identityPrivate || !identityPublic) {
-    console.log("E2EE: No identity keys found, generating new ones");
     const identity = await generateKeyPair();
     identityPrivate = identity.privateKey;
     identityPublic = identity.publicKey;
+    if (userId) {
+      localStorage.setItem(`e2ee_${userId}_IdentityPrivate`, identityPrivate);
+      localStorage.setItem(`e2ee_${userId}_IdentityPublic`, identityPublic);
+    }
     localStorage.setItem("e2eeIdentityPrivate", identityPrivate);
     localStorage.setItem("e2eeIdentityPublic", identityPublic);
   }
   
-  let signedPrekeyPrivate = localStorage.getItem("e2eeSignedPrekeyPrivate");
-  let signedPrekeyPublic = localStorage.getItem("e2eeSignedPrekeyPublic");
+  let signedPrekeyPrivate = localStorage.getItem(`e2ee_${userId}_SignedPrekeyPrivate`) || localStorage.getItem("e2eeSignedPrekeyPrivate");
+  let signedPrekeyPublic = localStorage.getItem(`e2ee_${userId}_SignedPrekeyPublic`) || localStorage.getItem("e2eeSignedPrekeyPublic");
   
   if (!signedPrekeyPrivate || !signedPrekeyPublic) {
-    console.log("E2EE: No signed prekey found, generating new one");
     const spk = await generateSignedPreKey();
     signedPrekeyPrivate = spk.privateKey;
     signedPrekeyPublic = spk.publicKey;
+    if (userId) {
+      localStorage.setItem(`e2ee_${userId}_SignedPrekeyPrivate`, signedPrekeyPrivate);
+      localStorage.setItem(`e2ee_${userId}_SignedPrekeyPublic`, signedPrekeyPublic);
+    }
     localStorage.setItem("e2eeSignedPrekeyPrivate", signedPrekeyPrivate);
     localStorage.setItem("e2eeSignedPrekeyPublic", signedPrekeyPublic);
   }
   
   const signature = await signWithIdentityKey(identityPrivate, signedPrekeyPublic);
   
-  let oneTimePrekeys = localStorage.getItem("e2eeOneTimePrekeys");
+  let oneTimePrekeys = localStorage.getItem(`e2ee_${userId}_OneTimePrekeys`) || localStorage.getItem("e2eeOneTimePrekeys");
   let prekeysList = [];
   if (!oneTimePrekeys) {
-    console.log("E2EE: No one-time prekeys found, generating new ones");
     prekeysList = await generateOneTimePreKeys(20);
+    if (userId) {
+      localStorage.setItem(`e2ee_${userId}_OneTimePrekeys`, JSON.stringify(prekeysList));
+    }
     localStorage.setItem("e2eeOneTimePrekeys", JSON.stringify(prekeysList));
   } else {
     prekeysList = JSON.parse(oneTimePrekeys);
@@ -364,7 +384,6 @@ export async function publishKeys() {
     });
     
     if (!response.ok) {
-      console.error("Failed to publish keys to server");
       return false;
     }
     
@@ -377,21 +396,13 @@ export async function publishKeys() {
       body: JSON.stringify({ public_key: identityPublic }),
     });
     
-    if (!publicKeyResponse.ok) {
-      console.error("Failed to upload public key to server");
-    } else {
-      console.log("E2EE: Public key uploaded to server");
-    }
-    
     return true;
   } catch (error) {
-    console.error("E2EE: Failed to publish keys:", error);
     return false;
   }
 }
 
 export async function fetchPreKeyBundle(userId) {
-  console.log("E2EE: Fetching prekey bundle for user:", userId);
   const token = localStorage.getItem("access_token");
   
   try {
@@ -400,7 +411,6 @@ export async function fetchPreKeyBundle(userId) {
     });
     return await response.json();
   } catch (error) {
-    console.error("E2EE: Failed to fetch prekey bundle:", error);
     return null;
   }
 }

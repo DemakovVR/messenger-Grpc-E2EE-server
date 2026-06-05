@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
     const username = localStorage.getItem("username");
     const email = localStorage.getItem("email");
 
-    if (token && userId) {
+    if (token && userId && userId !== "undefined") {
       setUser({ token, id: userId, username, email });
       grpcClient.connect(userId, token);
     }
@@ -29,27 +29,26 @@ export function AuthProvider({ children }) {
     localStorage.setItem("access_token", data.accessToken);
     localStorage.setItem("refresh_token", data.refreshToken);
     
-    let userId = data.userId;
+    let userId = data.userId || data.user_id;
     let userName = data.username || username;
     let userEmail = data.email || "";
     
     if (!userId) {
       try {
         const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-        userId = payload.userId;
-        userName = payload.username || username;
-        userEmail = payload.email || "";
-        localStorage.setItem("user_id", userId);
-        localStorage.setItem("username", userName);
-        localStorage.setItem("email", userEmail);
+        
+        userId = payload.user_id || payload.id || payload.userId;
+        
+        userName = data.username || payload.username || username;
+        userEmail = data.email || payload.email || ""; 
       } catch (e) {
         console.error("Failed to decode token", e);
       }
-    } else {
-      localStorage.setItem("user_id", userId);
-      localStorage.setItem("username", userName);
-      localStorage.setItem("email", userEmail);
     }
+
+    if (userId) localStorage.setItem("user_id", userId);
+    if (userName) localStorage.setItem("username", userName);
+    if (userEmail) localStorage.setItem("email", userEmail);
 
     setUser({
       token: data.accessToken,
@@ -58,7 +57,9 @@ export function AuthProvider({ children }) {
       email: userEmail,
     });
 
-    grpcClient.connect(userId, data.accessToken);
+    if (userId) {
+      grpcClient.connect(userId, data.accessToken);
+    }
 
     return data;
   };
@@ -83,7 +84,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("email");
 
     grpcClient.disconnect();
-
     setUser(null);
   }, []);
 
@@ -97,7 +97,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("access_token", newAccessToken);
     
     if (user) {
-      setUser({ ...user, token: newAccessToken });
+      setUser(prev => prev ? { ...prev, token: newAccessToken } : null);
     }
     
     grpcClient.updateToken(newAccessToken);
@@ -109,8 +109,26 @@ export function AuthProvider({ children }) {
     return await authApi.changePassword(oldPassword, newPassword);
   }, []);
 
+  // 3. Автоматическое обновление данных контекста при ручном запросе профиля
   const getProfile = useCallback(async () => {
-    return await authApi.getProfile();
+    const profileData = await authApi.getProfile();
+    if (profileData) {
+      const updatedName = profileData.username || profileData.userName;
+      const updatedEmail = profileData.email;
+
+      if (updatedName) localStorage.setItem("username", updatedName);
+      if (updatedEmail) localStorage.setItem("email", updatedEmail);
+
+      setUser(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          username: updatedName || prev.username,
+          email: updatedEmail || prev.email
+        };
+      });
+    }
+    return profileData;
   }, []);
 
   const updateProfile = useCallback(async (username, email) => {
@@ -120,7 +138,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("email", email);
     
     if (user) {
-      setUser({ ...user, username, email });
+      setUser(prev => prev ? { ...prev, username, email } : null);
     }
     
     return data;

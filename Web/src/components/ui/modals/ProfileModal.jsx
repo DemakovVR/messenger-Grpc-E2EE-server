@@ -6,8 +6,8 @@ import "../../../styles/ProfileModal.css";
 export default function ProfileModal({ onClose, onProfileUpdate }) {
   const { user, getProfile, updateProfile, deleteAccount } = useAuth();
   
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(user?.username || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -18,8 +18,10 @@ export default function ProfileModal({ onClose, onProfileUpdate }) {
     const loadProfile = async () => {
       try {
         const data = await getProfile();
-        setUsername(data.username || user?.username || "");
-        setEmail(data.email || user?.email || "");
+        if (data) {
+          setUsername(data.username || user?.username || "");
+          setEmail(data.email || user?.email || "");
+        }
       } catch (err) {
         console.error("Failed to load profile:", err);
         setUsername(user?.username || "");
@@ -27,7 +29,7 @@ export default function ProfileModal({ onClose, onProfileUpdate }) {
       }
     };
     loadProfile();
-  }, [getProfile, user]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,7 +105,7 @@ export default function ProfileModal({ onClose, onProfileUpdate }) {
               <div className="form-group">
                 <label>Email</label>
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Введите email"
@@ -151,7 +153,7 @@ export default function ProfileModal({ onClose, onProfileUpdate }) {
               className="delete-account-btn btn-full"
               onClick={() => setShowDeleteConfirm(true)}
             >
-              🗑️ Удалить аккаунт
+              🗑️  Удалить аккаунт
             </button>
           </div>
         )}

@@ -39,7 +39,7 @@ function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (chatId && user) {
+    if (chatId && user?.id) {
       const fetchChat = async () => {
         const token = localStorage.getItem("access_token");
         try {
@@ -75,7 +75,7 @@ function ChatPage() {
       };
       fetchChat();
     }
-  }, [chatId, user]);
+  }, [chatId, user?.id]);
 
   useEffect(() => {
     if (chatType === "group") {

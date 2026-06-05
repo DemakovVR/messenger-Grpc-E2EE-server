@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { decryptMessageFromPeer } from "../../../crypto/e2ee";
 import { grpcClient } from "../../../services/grpcClient";
+import { useAuth } from "../../../contexts/AuthContext";
 
 function MessageActions({ message, isOwn, onEdit, onDelete }) {
   const [showActions, setShowActions] = useState(false);
@@ -228,6 +229,19 @@ function MessageContentRender({ content, onEdit, onDelete, message, isOwn }) {
 export default function MessageList({ messages, currentUserId, peerUserId, users, chatType, groupCryptoKey, onDeleteMessage, onEditMessage }) {
   const messagesEndRef = useRef(null);
   const [decryptedMessages, setDecryptedMessages] = useState([]);
+  const { user: authUser } = useAuth();
+
+  const checkIfOwn = (senderId, senderName) => {
+    if (!senderId) return false;
+    const sId = String(senderId).toLowerCase();
+    
+    if (sId === String(currentUserId).toLowerCase()) return true;
+    if (authUser?.id && sId === String(authUser.id).toLowerCase()) return true;
+    if (authUser?.username && sId === String(authUser.username).toLowerCase()) return true;
+    if (authUser?.username && senderName && String(senderName).toLowerCase() === String(authUser.username).toLowerCase()) return true;
+    
+    return false;
+  };
 
   useEffect(() => {
     const decryptMessages = async () => {
@@ -249,43 +263,28 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
           let content = msg.encryptedContent || msg.encrypted_content || msg.content;
           let isDecrypted = false;
 
-          if (isEncrypted && !isGroupChat) {
-            try {
-              const encryptedData = JSON.parse(content);
-              if (senderId !== currentUserId) {
-                const decryptedContent = await decryptMessageFromPeer(encryptedData, currentUserId);
-                if (decryptedContent) {
-                  content = decryptedContent;
-                  isDecrypted = true;
-                } else {
-                  content = "[Зашифрованное сообщение]";
-                }
-              } else {
-                if (encryptedData.ciphertextForSelf) {
-                  const selfEncryptedData = {
-                    ciphertext: encryptedData.ciphertextForSelf,
-                    iv: encryptedData.ivForSelf,
-                    ephemeralPublicKey: encryptedData.ephemeralPublicKeyForSelf
-                  };
-                  const decryptedContent = await decryptMessageFromPeer(selfEncryptedData, currentUserId);
-                  if (decryptedContent) {
-                    content = decryptedContent;
-                    isDecrypted = true;
-                  } else {
-                    content = "[Ошибка расшифровки]";
-                  }
-                } else {
-                  content = "[Отправлено]";
-                }
-              }
-            } catch (e) {
-              content = senderId === currentUserId ? "[Отправлено]" : "[Зашифрованное сообщение]";
-            }
-          }
-
           let senderName = senderId?.slice(0, 8);
           if (users && users[senderId]) {
             senderName = users[senderId].username || users[senderId].display_name;
+          }
+
+          const isOwnMessage = checkIfOwn(senderId, senderName);
+
+          if (isEncrypted && !isGroupChat) {
+            try {
+              const encryptedData = JSON.parse(content);
+              
+              const decryptedContent = await decryptMessageFromPeer(encryptedData, currentUserId, senderId);
+              
+              if (decryptedContent) {
+                content = decryptedContent;
+                isDecrypted = true;
+              } else {
+                content = isOwnMessage ? "[Ошибка расшифровки]" : "[Зашифрованное сообщение]";
+              }
+            } catch (e) {
+              content = isOwnMessage ? "[Ошибка расшифровки]" : "[Зашифрованное сообщение]";
+            }
           }
 
           let sentAt = msg.sentAt || msg.createdAt || msg.sent_at || msg.created_at;
@@ -315,7 +314,7 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     };
 
     decryptMessages();
-  }, [messages, peerUserId, users, currentUserId, chatType]);
+  }, [messages, peerUserId, users, currentUserId, chatType, authUser]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -369,7 +368,7 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
   return (
     <div className="message-list">
       {activeMessages.map((msg) => {
-        const isOwn = msg.senderId === currentUserId;
+        const isOwn = checkIfOwn(msg.senderId, msg.senderName);
         const isGroupChat = chatType === "group";
 
         return (
