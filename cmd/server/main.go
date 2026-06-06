@@ -13,6 +13,7 @@ import (
 
 	"Server/configs"
 
+	auditpb "Server/gen/audit"
 	authpb "Server/gen/auth"
 	chatpb "Server/gen/chat"
 	contactpb "Server/gen/contact"
@@ -127,7 +128,7 @@ func main() {
 	messageServer := internalgrpc.NewMessageServer(messageService)
 	keysServer := internalgrpc.NewKeysServer(keysService)
 	fileServer := internalgrpc.NewFileServer(fileService)
-
+	auditServer := internalgrpc.NewAuditServer(auditService)
 	auditMiddleware := middleware.NewAuditMiddleware(auditRepo)
 
 	creds, err := tlsutil.LoadTLSCredentials(cfg.TLSCertFile, cfg.TLSKeyFile)
@@ -161,7 +162,7 @@ func main() {
 	messagepb.RegisterMessageServiceServer(grpcServer, messageServer)
 	keyspb.RegisterKeyServiceServer(grpcServer, keysServer)
 	filepb.RegisterFileServiceServer(grpcServer, fileServer)
-
+	auditpb.RegisterAuditServiceServer(grpcServer, auditServer)
 	if err := fileService.EnsureStorage(); err != nil {
 		logger.Log.Fatal("storage error", zap.Error(err))
 	}
@@ -212,6 +213,11 @@ func main() {
 		}
 
 		err = keyspb.RegisterKeyServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
+		if err != nil {
+			logger.Log.Fatal("gateway error", zap.Error(err))
+		}
+
+		err = auditpb.RegisterAuditServiceHandlerFromEndpoint(ctx, mux, "localhost:"+cfg.ServerPort, opts)
 		if err != nil {
 			logger.Log.Fatal("gateway error", zap.Error(err))
 		}

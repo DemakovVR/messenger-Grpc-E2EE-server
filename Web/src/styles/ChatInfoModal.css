@@ -9,6 +9,31 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.group-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.group-tab {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+
+}
+
+.group-tab.active {
+  color: #3b82f6;
+  border-bottom: 2px solid #3b82f6;
+}
+
 .participants-section {
   margin-bottom: 20px;
 }
@@ -71,14 +96,25 @@
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .search-result-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 8px 12px;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.result-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.result-email {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .add-user-btn {
@@ -86,16 +122,99 @@
   color: white;
   border: none;
   border-radius: 4px;
-  width: 24px;
+  width: 28px;
+  height: 28px;
   cursor: pointer;
 }
 
-.chatinfo-modal .remove-user-btn {
-  transition: opacity 0.2s ease;
+.no-results {
+  text-align: center;
+  padding: 16px;
+  color: #6b7280;
 }
 
-.chatinfo-modal .remove-user-btn:hover {
+.participants-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.participant-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.participant-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #111827;
+}
+
+.participant-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.creator-badge,
+.self-badge {
+  background-color: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.remove-user-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #ef4444;
+  padding: 4px 8px;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remove-user-btn:hover {
   opacity: 0.5;
+}
+
+.chat-logs {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.logs-table-container {
+  overflow-x: auto;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logs-table th,
+.logs-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.logs-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
 }
 
 .action-buttons {

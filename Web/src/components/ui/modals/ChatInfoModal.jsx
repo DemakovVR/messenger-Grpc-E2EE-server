@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { chatApi } from "../../../api/chatApi";
+import { authApi } from "../../../api/authApi";
 import { useAuth } from "../../../contexts/AuthContext";
+import { translateAuditLog } from "../../../utils/auditFormatter"; 
 import "../../../styles/ChatInfoModal.css";
 
 export default function ChatInfoModal({ chatId, chatType, chatName, chatCreatedBy, onClose, onUpdate }) {
@@ -9,18 +11,17 @@ export default function ChatInfoModal({ chatId, chatType, chatName, chatCreatedB
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [addingMode, setAddingMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("participants");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [chatLogs, setChatLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const isCreator = chatCreatedBy === user?.id;
   const isGroup = chatType === "group";
   const isPrivate = chatType === "private";
-
-  useEffect(() => {
-    loadChatInfo();
-  }, [chatId]);
+  const showLogsTab = isPrivate || (isGroup && isCreator);
 
   const loadChatInfo = async () => {
     setLoading(true);
@@ -36,6 +37,28 @@ export default function ChatInfoModal({ chatId, chatType, chatName, chatCreatedB
       setLoading(false);
     }
   };
+
+  const loadChatLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const data = await authApi.getChatLogs(chatId);
+      setChatLogs(data.logs || []);
+    } catch (err) {
+      setError("Не удалось загрузить журнал чата");
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadChatInfo();
+  }, [chatId]);
+
+  useEffect(() => {
+    if (activeTab === "logs" && showLogsTab && chatId) {
+      loadChatLogs();
+    }
+  }, [activeTab, chatId, showLogsTab]);
 
   const searchUsers = async () => {
     if (!searchQuery.trim()) return;
@@ -60,7 +83,7 @@ export default function ChatInfoModal({ chatId, chatType, chatName, chatCreatedB
       await loadChatInfo();
       if (onUpdate) onUpdate();
       setTimeout(() => setSuccess(""), 3000);
-      setAddingMode(false);
+      setActiveTab("participants");
       setSearchQuery("");
       setSearchResults([]);
     } catch (err) {
@@ -143,118 +166,125 @@ export default function ChatInfoModal({ chatId, chatType, chatName, chatCreatedB
             <strong>Название:</strong> {chatName || (isGroup ? "Группа" : "Личный чат")}
           </div>
 
-          <div className="participants-section">
-            <div className="participants-header">
-              <strong>Участники ({participants.length})</strong>
-              {isGroup && isCreator && !addingMode && (
-                <button className="add-participant-btn" onClick={() => setAddingMode(true)}>+ Добавить</button>
-              )}
-            </div>
-
-            {addingMode && (
-              <div className="add-participant-form">
-                <div className="search-container">
-                  <input
-                    type="text"
-                    placeholder="Поиск пользователей..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <button className="btn-search" onClick={searchUsers}>Найти</button>
-                  <button className="btn-cancel" onClick={() => { setAddingMode(false); setSearchResults([]); setSearchQuery(""); }}>Отмена</button>
-                </div>
-                {searchLoading && <div className="loading-text">Поиск...</div>}
-                {searchResults.length > 0 && (
-                  <div className="search-results">
-                    {searchResults.map(u => (
-                      <div key={u.id} className="search-result-item">
-                        <span>{u.username}</span>
-                        <button className="add-user-btn" onClick={() => addParticipants([u.id])}>+</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {searchResults.length === 0 && searchQuery && !searchLoading && (
-                  <div className="no-results">Пользователи не найдены</div>
-                )}
-              </div>
+          <div className="group-tabs">
+            <button className={`group-tab ${activeTab === "participants" ? "active" : ""}`} onClick={() => setActiveTab("participants")}>
+              Участники ({participants.length})
+            </button>
+            {isGroup && isCreator && (
+              <button className={`group-tab ${activeTab === "add" ? "active" : ""}`} onClick={() => setActiveTab("add")}>
+                Добавить участников
+              </button>
             )}
+            {showLogsTab && (
+              <button className={`group-tab ${activeTab === "logs" ? "active" : ""}`} onClick={() => setActiveTab("logs")}>
+                Журнал чата
+              </button>
+            )}
+          </div>
 
-            <div className="participants-list" style={{ maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          {activeTab === "participants" && (
+            <div className="participants-list">
               {participants.map(p => (
-                <div 
-                  key={p.id} 
-                  className="participant-row" 
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "10px 0",
-                    borderBottom: "1px solid #f0f0f0",
-                    width: "100%",
-                    boxSizing: "border-box",
-                    gap: "12px"
-                  }}
-                >
-                  <div 
-                    className="participant-info" 
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                      flex: 1,
-                      minWidth: 0,
-                      textAlign: "left"
-                    }}
-                  >
-                    <div 
-                      className="participant-name" 
-                      style={{
-                        fontWeight: 500,
-                        fontSize: "14px",
-                        color: "#111827",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
-                      }}
-                    >
-                      {p.username || p.display_name}
-                    </div>
-                    
-                    <div className="participant-badges" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <div key={p.id} className="participant-row">
+                  <div className="participant-info">
+                    <div className="participant-name">{p.username || p.display_name}</div>
+                    <div className="participant-badges">
                       {p.id === chatCreatedBy ? (
-                        <span className="creator-badge" style={badgeStyle}>создатель</span>
+                        <span className="creator-badge" style={badgeStyle}>Создатель</span>
                       ) : (
-                        <span className="member-badge" style={badgeStyle}>участник</span>
+                        <span className="member-badge" style={badgeStyle}>Участник</span>
                       )}
                       {p.id === user?.id && <span className="self-badge" style={badgeStyle}>Вы</span>}
                     </div>
                   </div>
-
                   {isGroup && isCreator && p.id !== user?.id && (
-                    <button 
-                      className="remove-user-btn" 
-                      onClick={() => removeParticipant(p.id, p.username)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "18px",
-                        color: "#ef4444",
-                        padding: "4px 8px",
-                        flexShrink: 0,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      🗑️
-                    </button>
+                    <button className="remove-user-btn" onClick={() => removeParticipant(p.id, p.username)}>🗑️</button>
                   )}
                 </div>
               ))}
             </div>
-          </div>
+          )}
+
+          {activeTab === "add" && isGroup && isCreator && (
+            <div className="add-participants">
+              <div className="search-container">
+                <input
+                  type="text"
+                  placeholder="Поиск пользователей..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button className="btn-search" onClick={searchUsers}>Найти</button>
+                <button className="btn-cancel" onClick={() => { setActiveTab("participants"); setSearchQuery(""); setSearchResults([]); }}>Отмена</button>
+              </div>
+              {searchLoading && <div className="loading-text">Поиск...</div>}
+              {searchResults.length > 0 && (
+                <div className="search-results">
+                  {searchResults.map(u => (
+                    <div key={u.id} className="search-result-item">
+                      <div>
+                        <div className="result-name">{u.username}</div>
+                        <div className="result-email">{u.email}</div>
+                      </div>
+                      <button className="add-user-btn" onClick={() => addParticipants([u.id])}>+</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {searchResults.length === 0 && searchQuery && !searchLoading && (
+                <div className="no-results">Пользователи не найдены</div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "logs" && showLogsTab && (
+            <div className="chat-logs">
+              {logsLoading ? (
+                <div className="loading-text">Загрузка...</div>
+              ) : chatLogs.length === 0 ? (
+                <div className="no-results">Нет записей</div>
+              ) : (
+                <div className="logs-table-container">
+                  <table className="logs-table">
+                    <thead>
+                      <tr>
+                        <th>Дата и время</th>
+                        <th>Автор</th>
+                        <th>Действие</th>
+                        <th>Статус</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chatLogs.map(rawLog => {
+                        const log = translateAuditLog(rawLog);
+                        return (
+                          <tr key={rawLog.id}>
+                            <td style={{ whiteSpace: "nowrap" }}>{log.time}</td>
+                            <td style={{ fontWeight: "bold" }}>
+                              {rawLog.actorUsername || rawLog.username || rawLog.user?.username || "Система"}
+                            </td>
+                            <td>
+                              <div className="log-action-name">{log.action}</div>
+                              {log.error && (
+                                <div className="log-error-details" style={{ fontSize: "11px", color: "#dc2626", marginTop: "2px" }}>
+                                  {log.error}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <span className={`status-badge ${log.statusBg}`} style={{ padding: "2px 6px", borderRadius: "4px", fontSize: "11px" }}>
+                                {log.status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="action-buttons">
             {isGroup && !isCreator && (

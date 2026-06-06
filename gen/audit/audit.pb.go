@@ -118,6 +118,7 @@ type AuditLog struct {
 	Action        string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
 	Details       string                 `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ActorUsername string                 `protobuf:"bytes,7,opt,name=actor_username,json=actorUsername,proto3" json:"actor_username,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -190,6 +191,13 @@ func (x *AuditLog) GetDetails() string {
 func (x *AuditLog) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *AuditLog) GetActorUsername() string {
+	if x != nil {
+		return x.ActorUsername
 	}
 	return ""
 }
@@ -290,7 +298,7 @@ const file_proto_audit_proto_rawDesc = "" +
 	"\x12GetUserLogsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"-\n" +
 	"\x12GetChatLogsRequest\x12\x17\n" +
-	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\x9d\x01\n" +
+	"\achat_id\x18\x01 \x01(\tR\x06chatId\"\xc4\x01\n" +
 	"\bAuditLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x17\n" +
@@ -298,7 +306,8 @@ const file_proto_audit_proto_rawDesc = "" +
 	"\x06action\x18\x04 \x01(\tR\x06action\x12\x18\n" +
 	"\adetails\x18\x05 \x01(\tR\adetails\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\tR\tcreatedAt\":\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12%\n" +
+	"\x0eactor_username\x18\a \x01(\tR\ractorUsername\":\n" +
 	"\x13GetUserLogsResponse\x12#\n" +
 	"\x04logs\x18\x01 \x03(\v2\x0f.audit.AuditLogR\x04logs\":\n" +
 	"\x13GetChatLogsResponse\x12#\n" +

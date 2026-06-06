@@ -35,6 +35,7 @@ message AuditLog {
   string action = 4;
   string details = 5;
   string created_at = 6;
+  string actor_username = 7;
 }
 
 message GetUserLogsResponse {

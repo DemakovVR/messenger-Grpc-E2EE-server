@@ -2,12 +2,17 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
+	"Server/internal/logger"
 	"Server/internal/repository"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 )
 
 type AuditMiddleware struct {
@@ -18,6 +23,13 @@ func NewAuditMiddleware(r *repository.AuditRepository) *AuditMiddleware {
 	return &AuditMiddleware{
 		auditRepo: r,
 	}
+}
+
+type AuditLogDetails struct {
+	Duration string `json:"duration"`
+	Status   string `json:"status"`
+	Error    string `json:"error,omitempty"`
+	ClientIP string `json:"client_ip,omitempty"`
 }
 
 func (m *AuditMiddleware) Unary() grpc.UnaryServerInterceptor {
@@ -32,21 +44,73 @@ func (m *AuditMiddleware) Unary() grpc.UnaryServerInterceptor {
 
 		resp, err := handler(ctx, req)
 
-		var userID uuid.UUID
-		if v := ctx.Value(UserIDKey); v != nil {
-			userID, _ = v.(uuid.UUID)
+		duration := time.Since(start).String()
+
+		statusCode := "OK"
+		var errorMessage string
+		if err != nil {
+			if st, ok := status.FromError(err); ok {
+				statusCode = st.Code().String()
+			} else {
+				statusCode = "UnknownError"
+			}
+			errorMessage = err.Error()
 		}
 
-		action := info.FullMethod
-		details := time.Since(start).String()
+		clientIP := "unknown"
+		if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
+			clientIP = p.Addr.String()
+		}
 
-		_ = m.auditRepo.CreateLog(
-			ctx,
-			userID,
-			nil,
-			action,
-			&details,
-		)
+		logDetails := AuditLogDetails{
+			Duration: duration,
+			Status:   statusCode,
+			Error:    errorMessage,
+			ClientIP: clientIP,
+		}
+
+		detailsBytes, jsonErr := json.Marshal(logDetails)
+		var detailsStr string
+		if jsonErr == nil {
+			detailsStr = string(detailsBytes)
+		} else {
+			detailsStr = "{" + `"duration":"` + duration + `"` + "}"
+		}
+
+		var userID uuid.UUID
+		if v := ctx.Value(UserIDKey); v != nil {
+			switch val := v.(type) {
+			case uuid.UUID:
+				userID = val
+			case string:
+				if parsed, err := uuid.Parse(val); err == nil {
+					userID = parsed
+				}
+			}
+		}
+
+		var chatID *uuid.UUID
+		type chatRequest interface {
+			GetChatId() string
+		}
+		if cr, ok := req.(chatRequest); ok && cr.GetChatId() != "" {
+			if parsedChatID, err := uuid.Parse(cr.GetChatId()); err == nil {
+				chatID = &parsedChatID
+			}
+		}
+
+		if userID != uuid.Nil {
+			logErr := m.auditRepo.CreateLog(
+				ctx,
+				userID,
+				chatID,
+				info.FullMethod,
+				&detailsStr,
+			)
+			if logErr != nil {
+				logger.Log.Error("Failed to save audit log", zap.Error(logErr))
+			}
+		}
 
 		return resp, err
 	}

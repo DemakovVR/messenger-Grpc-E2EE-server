@@ -4,6 +4,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AppLayout from "./components/ui/layouts/AppLayout";
 import ChatPage from "./pages/ChatPage";
+import UserAuditPage from "./pages/UserAuditPage";
+
 
 function ChatsPage() {
   return <div className="flex-1 flex items-center justify-center text-gray-500 text-base"></div>;
@@ -33,6 +35,10 @@ export const router = createBrowserRouter([
       {
         path: "chat/:chatId",
         element: <ChatPage />,
+      },
+      {
+        path: "audit",
+        element: <UserAuditPage />,
       },
     ],
   },

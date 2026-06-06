@@ -55,4 +55,15 @@ export const authApi = {
     return res.data;
   },
 
+  getUserLogs: async () => {
+  const userId = localStorage.getItem("user_id");
+  const res = await httpClient.get(`/audit/user/${userId}`);
+  return res.data;
+},
+
+  getChatLogs: async (chatId) => {
+  const res = await httpClient.get(`/audit/chat/${chatId}`);
+  return res.data;
+},
+
 };

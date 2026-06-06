@@ -13,6 +13,7 @@ function AppLayout() {
   const { logout, user } = useAuth();
   const { chats, loading, fetchChats } = useChats();
   const navigate = useNavigate();
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -34,7 +35,12 @@ function AppLayout() {
     navigate(`/app/chat/${chatId}`);
   };
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleMenu = () => {
+    if (menuOpen) {
+      navigate("/app");
+    }
+    setMenuOpen(!menuOpen);
+  };
 
   return (
     <div className="app">
@@ -45,6 +51,7 @@ function AppLayout() {
             + Новый чат
           </button>
         )}
+        
         {!menuOpen ? (
           <div className="chat-list">
             {loading && <div className="chat-list-loading">Loading...</div>}
@@ -76,6 +83,10 @@ function AppLayout() {
               <div className="user-email">{user?.email || ""}</div>
             </div>
             <div className="menu-items">
+              <button className="menu-item" onClick={() => navigate("/app/audit")}>
+                <span className="menu-icon">📋</span>
+                <span className="menu-text">История действий</span>
+              </button>
               <button className="menu-item" onClick={() => setShowContactsModal(true)}>
                 <span className="menu-icon">📇</span>
                 <span className="menu-text">Контакты</span>
@@ -95,6 +106,7 @@ function AppLayout() {
             </div>
           </div>
         )}
+
         <div className="sidebar-footer">
           <button onClick={toggleMenu} className="menu-toggle-btn">
             {menuOpen ? (
