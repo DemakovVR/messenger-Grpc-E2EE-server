@@ -1,4 +1,3 @@
-// Словарь перевода gRPC методов на человеческий язык
 const actionTitles = {
     // AuthService
     '/auth.AuthService/Register': 'Регистрация пользователя',
@@ -36,6 +35,7 @@ const actionTitles = {
 
     // MessageService
     '/message.MessageService/SendMessage': 'Отправка сообщения',
+    '/message.MessageService/SendReply': 'Ответ на сообщение',
     '/message.MessageService/GetMessages': 'Просмотр истории сообщений',
     '/message.MessageService/ConnectMessages': 'Подключение к стриму сообщений',
     '/message.MessageService/DeleteMessage': 'Удаление сообщения',
@@ -69,10 +69,6 @@ function getStatusInfo(status) {
     };
 }
 
-/**
- * Транслирует сырой лог от бэкенда в удобный формат для UI
- * @param {Object} log - Сырой объект лога из gRPC ответа
- */
 export function translateAuditLog(log) {
     const humanReadableAction = actionTitles[log.action] || log.action;
     

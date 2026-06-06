@@ -48,7 +48,6 @@ export default function UserAuditPage() {
                 </tr>
               ) : (
                 logs.map((rawLog) => {
-                  // Безопасное извлечение объекта details
                   let detailsObj = {};
                   try {
                     detailsObj = typeof rawLog.details === "string" 
@@ -58,7 +57,6 @@ export default function UserAuditPage() {
                     console.warn("Ошибка парсинга details:", e);
                   }
 
-                  // Подготовка данных для форматировщика
                   const log = translateAuditLog({
                     ...rawLog,
                     details: detailsObj

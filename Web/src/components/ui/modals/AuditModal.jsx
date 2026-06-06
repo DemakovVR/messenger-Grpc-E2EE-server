@@ -4,7 +4,7 @@ import { GetUserLogsRequest } from '../../gen/audit/audit_pb';
 import { translateAuditLog } from "../../../utils/auditFormatter";
 
 export default function AuditModal({ isOpen, onClose, userId }) {
-    const [rawLogsList, setRawLogsList] = useState([]); // Храним чистые данные от бэкенда
+    const [rawLogsList, setRawLogsList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -25,7 +25,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
 
                 const response = await grpcClient.getUserLogs(request, {});
 
-                // Получаем массив логов (учитываем особенности генерации gRPC-web)
                 const fetchedLogs = typeof response.getLogsList === 'function' 
                     ? response.getLogsList() 
                     : (response.logs || []);
@@ -49,7 +48,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-5xl rounded-lg bg-white p-6 shadow-xl dark:bg-zinc-900 flex flex-col max-h-[85vh]">
                 
-                {/* Хедер модального окна */}
                 <div className="flex items-center justify-between border-b pb-3 dark:border-zinc-800">
                     <h3 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
                         🛡️ Журнал безопасности и действий
@@ -62,7 +60,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
                     </button>
                 </div>
 
-                {/* Таблица со скроллом */}
                 <div className="mt-4 overflow-y-auto flex-1 min-h-[300px] border dark:border-zinc-800 rounded">
                     {isLoading && (
                         <div className="flex h-full min-h-[300px] items-center justify-center text-zinc-500">
@@ -96,10 +93,8 @@ export default function AuditModal({ isOpen, onClose, userId }) {
                                 </thead>
                                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-900">
                                     {rawLogsList.map((item) => {
-                                        // 1. Приводим gRPC сущность к нормальному JS-объекту
                                         const rawLog = typeof item.toObject === 'function' ? item.toObject() : item;
 
-                                        // 2. Извлекаем детали (это может быть JSON-строка)
                                         let detailsObj = rawLog.details || item.getDetails?.();
                                         if (typeof detailsObj === 'string') {
                                             try {
@@ -109,7 +104,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
                                             }
                                         }
 
-                                        // 3. Формируем структуру, которую ОЖИДАЕТ ваш auditFormatter.js
                                         const preparedLog = {
                                             id: rawLog.id || item.getId?.(),
                                             action: rawLog.action || item.getAction?.(),
@@ -117,7 +111,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
                                             createdAt: rawLog.createdAt || item.getCreatedAt?.()
                                         };
 
-                                        // 4. Пропускаем через транслятор (работает точно так же, как в ChatInfoModal)
                                         const log = translateAuditLog(preparedLog);
 
                                         return (
@@ -153,7 +146,6 @@ export default function AuditModal({ isOpen, onClose, userId }) {
                     )}
                 </div>
 
-                {/* Подвал */}
                 <div className="mt-4 border-t pt-3 flex justify-end dark:border-zinc-800">
                     <button
                         onClick={onClose}

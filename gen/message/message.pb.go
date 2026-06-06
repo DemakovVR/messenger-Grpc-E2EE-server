@@ -63,6 +63,7 @@ type SendMessageRequest struct {
 	ChatId           string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	EncryptedContent string                 `protobuf:"bytes,2,opt,name=encrypted_content,json=encryptedContent,proto3" json:"encrypted_content,omitempty"`
 	IsEncrypted      bool                   `protobuf:"varint,3,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
+	ReplyToMessageId string                 `protobuf:"bytes,4,opt,name=reply_to_message_id,json=replyToMessageId,proto3" json:"reply_to_message_id,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -116,6 +117,13 @@ func (x *SendMessageRequest) GetIsEncrypted() bool {
 		return x.IsEncrypted
 	}
 	return false
+}
+
+func (x *SendMessageRequest) GetReplyToMessageId() string {
+	if x != nil {
+		return x.ReplyToMessageId
+	}
+	return ""
 }
 
 type SendMessageResponse struct {
@@ -233,6 +241,7 @@ type MessageResponse struct {
 	CreatedAt        string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	IsEdited         bool                   `protobuf:"varint,8,opt,name=is_edited,json=isEdited,proto3" json:"is_edited,omitempty"`
 	IsDeleted        bool                   `protobuf:"varint,9,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
+	ReplyTo          *MessageResponse       `protobuf:"bytes,10,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -328,6 +337,13 @@ func (x *MessageResponse) GetIsDeleted() bool {
 		return x.IsDeleted
 	}
 	return false
+}
+
+func (x *MessageResponse) GetReplyTo() *MessageResponse {
+	if x != nil {
+		return x.ReplyTo
+	}
+	return nil
 }
 
 type GetMessagesResponse struct {
@@ -519,18 +535,19 @@ var File_proto_message_proto protoreflect.FileDescriptor
 const file_proto_message_proto_rawDesc = "" +
 	"\n" +
 	"\x13proto/message.proto\x12\amessage\x1a\x1cgoogle/api/annotations.proto\"\x10\n" +
-	"\x0eConnectRequest\"}\n" +
+	"\x0eConnectRequest\"\xac\x01\n" +
 	"\x12SendMessageRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12+\n" +
 	"\x11encrypted_content\x18\x02 \x01(\tR\x10encryptedContent\x12!\n" +
-	"\fis_encrypted\x18\x03 \x01(\bR\visEncrypted\"4\n" +
+	"\fis_encrypted\x18\x03 \x01(\bR\visEncrypted\x12-\n" +
+	"\x13reply_to_message_id\x18\x04 \x01(\tR\x10replyToMessageId\"4\n" +
 	"\x13SendMessageResponse\x12\x1d\n" +
 	"\n" +
 	"message_id\x18\x01 \x01(\tR\tmessageId\"[\n" +
 	"\x12GetMessagesRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\x9b\x02\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\xd0\x02\n" +
 	"\x0fMessageResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\achat_id\x18\x02 \x01(\tR\x06chatId\x12\x1b\n" +
@@ -542,7 +559,9 @@ const file_proto_message_proto_rawDesc = "" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1b\n" +
 	"\tis_edited\x18\b \x01(\bR\bisEdited\x12\x1d\n" +
 	"\n" +
-	"is_deleted\x18\t \x01(\bR\tisDeleted\"K\n" +
+	"is_deleted\x18\t \x01(\bR\tisDeleted\x123\n" +
+	"\breply_to\x18\n" +
+	" \x01(\v2\x18.message.MessageResponseR\areplyTo\"K\n" +
 	"\x13GetMessagesResponse\x124\n" +
 	"\bmessages\x18\x01 \x03(\v2\x18.message.MessageResponseR\bmessages\"5\n" +
 	"\x14DeleteMessageRequest\x12\x1d\n" +
@@ -586,22 +605,23 @@ var file_proto_message_proto_goTypes = []any{
 	(*Empty)(nil),                // 8: message.Empty
 }
 var file_proto_message_proto_depIdxs = []int32{
-	4, // 0: message.GetMessagesResponse.messages:type_name -> message.MessageResponse
-	1, // 1: message.MessageService.SendMessage:input_type -> message.SendMessageRequest
-	3, // 2: message.MessageService.GetMessages:input_type -> message.GetMessagesRequest
-	0, // 3: message.MessageService.ConnectMessages:input_type -> message.ConnectRequest
-	6, // 4: message.MessageService.DeleteMessage:input_type -> message.DeleteMessageRequest
-	7, // 5: message.MessageService.EditMessage:input_type -> message.EditMessageRequest
-	2, // 6: message.MessageService.SendMessage:output_type -> message.SendMessageResponse
-	5, // 7: message.MessageService.GetMessages:output_type -> message.GetMessagesResponse
-	4, // 8: message.MessageService.ConnectMessages:output_type -> message.MessageResponse
-	8, // 9: message.MessageService.DeleteMessage:output_type -> message.Empty
-	8, // 10: message.MessageService.EditMessage:output_type -> message.Empty
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: message.MessageResponse.reply_to:type_name -> message.MessageResponse
+	4, // 1: message.GetMessagesResponse.messages:type_name -> message.MessageResponse
+	1, // 2: message.MessageService.SendMessage:input_type -> message.SendMessageRequest
+	3, // 3: message.MessageService.GetMessages:input_type -> message.GetMessagesRequest
+	0, // 4: message.MessageService.ConnectMessages:input_type -> message.ConnectRequest
+	6, // 5: message.MessageService.DeleteMessage:input_type -> message.DeleteMessageRequest
+	7, // 6: message.MessageService.EditMessage:input_type -> message.EditMessageRequest
+	2, // 7: message.MessageService.SendMessage:output_type -> message.SendMessageResponse
+	5, // 8: message.MessageService.GetMessages:output_type -> message.GetMessagesResponse
+	4, // 9: message.MessageService.ConnectMessages:output_type -> message.MessageResponse
+	8, // 10: message.MessageService.DeleteMessage:output_type -> message.Empty
+	8, // 11: message.MessageService.EditMessage:output_type -> message.Empty
+	7, // [7:12] is the sub-list for method output_type
+	2, // [2:7] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_message_proto_init() }

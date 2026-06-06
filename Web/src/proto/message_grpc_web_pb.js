@@ -40,7 +40,6 @@ export { proto };
  * @struct
  * @final
  */
-
 proto.message.MessageServiceClient =
     function(hostname, credentials, options) {
   if (!options) options = {};

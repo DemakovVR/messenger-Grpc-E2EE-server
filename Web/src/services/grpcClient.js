@@ -62,6 +62,22 @@ class GrpcClientService {
         const chatId = message.getChatId();
         const callback = this.subscribers.get(chatId);
         if (callback) {
+          const replyToMessage = message.getReplyTo();
+          let replyTo = null;
+          if (replyToMessage) {
+            replyTo = {
+              id: replyToMessage.getId(),
+              chatId: replyToMessage.getChatId(),
+              senderId: replyToMessage.getSenderId(),
+              encryptedContent: replyToMessage.getEncryptedContent(),
+              isEncrypted: replyToMessage.getIsEncrypted(),
+              sentAt: replyToMessage.getSentAt(),
+              createdAt: replyToMessage.getCreatedAt(),
+              isEdited: replyToMessage.getIsEdited(),
+              isDeleted: replyToMessage.getIsDeleted(),
+            };
+          }
+
           callback({
             id: message.getId(),
             chatId: message.getChatId(),
@@ -70,6 +86,7 @@ class GrpcClientService {
             isEncrypted: message.getIsEncrypted(),
             sentAt: message.getSentAt(),
             createdAt: message.getCreatedAt(),
+            replyTo: replyTo,
           });
         }
       });

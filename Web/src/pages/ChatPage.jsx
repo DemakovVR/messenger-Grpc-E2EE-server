@@ -11,12 +11,16 @@ function ChatPage() {
   const { chatId } = useParams();
   const { user } = useAuth();
   const { setChatTitle, setCurrentChatId, setCurrentChatType, setCurrentChatCreatedBy } = useOutletContext();
+  
   const { messages, loading, sendMessage, uploadFile, deleteMessage, editMessage } = useMessages(chatId);
+  
   const [peerUserId, setPeerUserId] = useState(null);
   const [chatUsers, setChatUsers] = useState({});
   const [chatType, setChatType] = useState(null);
   const [chatName, setChatName] = useState("");
   const [createdBy, setCreatedBy] = useState(null);
+  
+  const [replyToMessage, setReplyToMessage] = useState(null);
 
   useEffect(() => {
     const initE2EE = async () => { await publishKeys(); };
@@ -64,6 +68,7 @@ function ChatPage() {
         }
       };
       fetchChat();
+      setReplyToMessage(null);
     }
   }, [chatId, user?.id, setCurrentChatCreatedBy]);
 
@@ -72,8 +77,6 @@ function ChatPage() {
       setChatTitle(chatName || "Групповой чат");
     } else if (chatType === "private" && peerUserId && chatUsers[peerUserId]) {
       setChatTitle(chatUsers[peerUserId].username || "Личный чат");
-    } else if (chatType === "private") {
-      setChatTitle("Личный чат");
     } else {
       setChatTitle("Чат");
     }
@@ -83,14 +86,28 @@ function ChatPage() {
     }
   }, [chatType, chatName, peerUserId, chatUsers, chatId, setChatTitle, setCurrentChatId, setCurrentChatType]);
 
-  const handleSendMessage = async (content, isEncrypted) => {
-    try { await sendMessage(content, isEncrypted); }
-    catch (err) { console.error("Send failed:", err); throw err; }
+  const handleSendMessage = async (content, isEncrypted, replyToId = null) => {
+    try { 
+      await sendMessage(content, isEncrypted, replyToId); 
+      setReplyToMessage(null);
+    }
+    catch (err) { 
+      console.error("Send failed:", err); 
+      throw err; 
+    }
   };
 
   const handleDeleteMessage = async (messageId) => {
-    try { await deleteMessage(messageId); }
-    catch (err) { console.error("Delete failed:", err); alert("Ошибка удаления сообщения"); }
+    try { 
+      await deleteMessage(messageId); 
+      if (String(replyToMessage?.id) === String(messageId)) {
+        setReplyToMessage(null);
+      }
+    }
+    catch (err) { 
+      console.error("Delete failed:", err); 
+      alert("Ошибка удаления сообщения"); 
+    }
   };
 
   const handleEditMessage = async (messageId, newContent, wasEncrypted) => {
@@ -126,6 +143,7 @@ function ChatPage() {
         chatType={chatType}
         onDeleteMessage={handleDeleteMessage}
         onEditMessage={handleEditMessage}
+        onReplyMessage={(msg) => setReplyToMessage(msg)}
       />
       <MessageInput
         chatId={chatId}
@@ -134,6 +152,8 @@ function ChatPage() {
         uploadFile={uploadFile}
         disabled={false}
         chatType={chatType}
+        replyToMessage={replyToMessage}
+        onClearReply={() => setReplyToMessage(null)}
       />
     </div>
   );

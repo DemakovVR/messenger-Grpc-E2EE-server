@@ -8,11 +8,6 @@ export function useMessages(chatId) {
   const [error, setError] = useState(null);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const abortControllerRef = useRef(null);
-  const messagesRef = useRef(messages);
-
-  useEffect(() => {
-    messagesRef.current = messages;
-  }, [messages]);
 
   useEffect(() => {
     setMessages([]);
@@ -51,27 +46,23 @@ export function useMessages(chatId) {
   useEffect(() => {
     if (!chatId) return;
 
-const handleNewMessage = (newMessage) => {
-  const msgChatId = newMessage.chatId || newMessage.chat_id;
-  const currentChatId = chatId;
+    const handleNewMessage = (newMessage) => {
+      const msgChatId = newMessage.chatId || newMessage.chat_id;
+      if (String(msgChatId) === String(chatId)) {
+        setMessages((prev) => {
+          const exists = prev.some((m) => String(m.id) === String(newMessage.id));
+          const isMsgDeleted = newMessage.isDeleted || newMessage.is_deleted;
 
-  if (String(msgChatId) === String(currentChatId)) {
-    setMessages((prev) => {
-      const exists = prev.some((m) => String(m.id) === String(newMessage.id));
-      const isMsgDeleted = newMessage.isDeleted || newMessage.is_deleted;
+          if (exists) {
+            if (isMsgDeleted) return prev.filter((m) => String(m.id) !== String(newMessage.id));
+            return prev.map((m) => String(m.id) === String(newMessage.id) ? newMessage : m);
+          }
 
-      if (exists) {
-        if (isMsgDeleted) {
-          return prev.filter((m) => String(m.id) !== String(newMessage.id));
-        }
-        return prev.map((m) => String(m.id) === String(newMessage.id) ? newMessage : m);
+          if (isMsgDeleted) return prev;
+          return [...prev, newMessage];
+        });
       }
-
-      if (isMsgDeleted) return prev;
-      return [...prev, newMessage];
-    });
-  }
-};
+    };
 
     grpcClient.subscribe(chatId, handleNewMessage);
     setRealtimeConnected(grpcClient.isConnected());
@@ -89,10 +80,11 @@ const handleNewMessage = (newMessage) => {
     };
   }, [chatId]);
 
-  const sendMessage = async (encryptedContent, isEncrypted) => {
+  const sendMessage = async (encryptedContent, isEncrypted, replyToMessageId = null) => {
     try {
-      const data = await chatApi.sendMessage(chatId, encryptedContent, isEncrypted);
-      await fetchMessages();
+      const data = await chatApi.sendMessage(chatId, encryptedContent, isEncrypted, replyToMessageId);
+      
+      await fetchMessages(); 
       return data.messageId;
     } catch (err) {
       throw err;

@@ -1,7 +1,7 @@
 .user-audit-page {
   padding: 24px;
   background-color: #f9fafb;
-  height: 100vh; /* Используем всю высоту экрана */
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -10,15 +10,15 @@
   margin-bottom: 20px;
   font-size: 20px;
   color: #111827;
-  flex-shrink: 0; /* Заголовок не должен сжиматься */
+  flex-shrink: 0;
 }
 
 .audit-table-container {
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  overflow-y: auto; /* Включаем вертикальный скролл */
-  flex: 1; /* Контейнер занимает всё оставшееся место */
+  overflow-y: auto;
+  flex: 1;
   position: relative;
 }
 
@@ -29,7 +29,7 @@
 }
 
 .audit-table thead th {
-  position: sticky; /* Фиксация заголовка при прокрутке */
+  position: sticky;
   top: 0;
   background-color: #f9fafb;
   z-index: 1;

@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"log"
+	"time"
 
 	messagepb "Server/gen/message"
 	"Server/internal/middleware"
@@ -15,16 +15,11 @@ import (
 
 type MessageServer struct {
 	messagepb.UnimplementedMessageServiceServer
-
 	messageService *service.MessageService
 }
 
-func NewMessageServer(
-	messageService *service.MessageService,
-) *MessageServer {
-	return &MessageServer{
-		messageService: messageService,
-	}
+func NewMessageServer(messageService *service.MessageService) *MessageServer {
+	return &MessageServer{messageService: messageService}
 }
 
 func (s *MessageServer) SendMessage(
@@ -38,10 +33,27 @@ func (s *MessageServer) SendMessage(
 	}
 
 	userIDStr := ctx.Value(middleware.UserIDKey).(string)
-
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
+	}
+
+	var replyToID *uuid.UUID
+	var replyToProto *messagepb.MessageResponse
+	if req.ReplyToMessageId != "" {
+		if parsed, err := uuid.Parse(req.ReplyToMessageId); err == nil {
+			replyToID = &parsed
+			if parent, err := s.messageService.GetMessageByID(ctx, *replyToID); err == nil {
+				replyToProto = &messagepb.MessageResponse{
+					Id:               parent.ID.String(),
+					ChatId:           parent.ChatID.String(),
+					SenderId:         parent.SenderID.String(),
+					EncryptedContent: parent.EncryptedContent,
+					IsEncrypted:      parent.IsEncrypted,
+					SentAt:           parent.SentAt.Format(time.RFC3339),
+				}
+			}
+		}
 	}
 
 	messageID, err := s.messageService.SendMessage(
@@ -50,8 +62,8 @@ func (s *MessageServer) SendMessage(
 		userID,
 		req.EncryptedContent,
 		req.IsEncrypted,
+		replyToID,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +81,7 @@ func (s *MessageServer) SendMessage(
 				userID.String(),
 				req.EncryptedContent,
 				req.IsEncrypted,
+				replyToProto,
 			)
 		}
 	}
@@ -102,6 +115,31 @@ func (s *MessageServer) GetMessages(
 	var result []*messagepb.MessageResponse
 
 	for _, msg := range messages {
+		var replyToProto *messagepb.MessageResponse
+
+		if msg.ReplyToID != nil {
+			parentContent := ""
+			if msg.ParentContent != nil {
+				parentContent = *msg.ParentContent
+			}
+			parentSenderID := ""
+			if msg.ParentSenderID != nil {
+				parentSenderID = msg.ParentSenderID.String()
+			}
+			parentIsEncrypted := false
+			if msg.ParentIsEncrypted != nil {
+				parentIsEncrypted = *msg.ParentIsEncrypted
+			}
+
+			replyToProto = &messagepb.MessageResponse{
+				Id:               msg.ReplyToID.String(),
+				ChatId:           msg.ChatID.String(),
+				SenderId:         parentSenderID,
+				EncryptedContent: parentContent,
+				IsEncrypted:      parentIsEncrypted,
+			}
+		}
+
 		result = append(result, &messagepb.MessageResponse{
 			Id:               msg.ID.String(),
 			ChatId:           msg.ChatID.String(),
@@ -112,6 +150,7 @@ func (s *MessageServer) GetMessages(
 			IsDeleted:        msg.IsDeleted,
 			SentAt:           msg.SentAt.Format("2006-01-02 15:04:05"),
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02 15:04:05"),
+			ReplyTo:          replyToProto,
 		})
 	}
 
@@ -120,47 +159,25 @@ func (s *MessageServer) GetMessages(
 	}, nil
 }
 
-func (s *MessageServer) ConnectMessages(
-	req *messagepb.ConnectRequest,
-	stream messagepb.MessageService_ConnectMessagesServer,
-) error {
-	log.Printf("ConnectMessages called")
-
+func (s *MessageServer) ConnectMessages(req *messagepb.ConnectRequest, stream messagepb.MessageService_ConnectMessagesServer) error {
 	val := stream.Context().Value(middleware.UserIDKey)
 	if val == nil {
-		log.Printf("UserID not found in context (nil)")
 		return status.Errorf(codes.Unauthenticated, "user ID missing in context")
 	}
-
-	userIDStr, ok := val.(string)
-	if !ok {
-		log.Printf("UserID in context is not a string, type is %T", val)
-		return status.Errorf(codes.Unauthenticated, "invalid user ID format")
-	}
-
-	log.Printf("UserID from context: %s", userIDStr)
-
+	userIDStr := val.(string)
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		log.Printf("Failed to parse userID: %v", err)
-		return status.Errorf(codes.InvalidArgument, "invalid user ID format: %v", err)
+		return status.Errorf(codes.InvalidArgument, "invalid user ID format")
 	}
 
 	ch := s.messageService.Subscribe(userID)
-	log.Printf("Subscribed user %s, channel created", userID)
-
-	defer func() {
-		s.messageService.Unsubscribe(userID, ch)
-		log.Printf("Unsubscribed user %s", userID)
-	}()
+	defer s.messageService.Unsubscribe(userID, ch)
 
 	for {
 		select {
 		case <-stream.Context().Done():
-			log.Printf("Stream context done for user %s", userID)
 			return nil
 		case msg := <-ch:
-			log.Printf("Sending message to user %s: %+v", userID, msg)
 			if err := stream.Send(msg); err != nil {
 				return err
 			}
@@ -168,17 +185,12 @@ func (s *MessageServer) ConnectMessages(
 	}
 }
 
-func (s *MessageServer) DeleteMessage(
-	ctx context.Context,
-	req *messagepb.DeleteMessageRequest,
-) (*messagepb.Empty, error) {
-
+func (s *MessageServer) DeleteMessage(ctx context.Context, req *messagepb.DeleteMessageRequest) (*messagepb.Empty, error) {
 	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
 	}
-
 	messageID, err := uuid.Parse(req.MessageId)
 	if err != nil {
 		return nil, err
@@ -191,65 +203,40 @@ func (s *MessageServer) DeleteMessage(
 
 	participants, err := s.messageService.GetChatParticipants(ctx, chatID)
 	if err == nil {
-		for _, participantID := range participants {
-			if participantID == userID {
+		for _, pID := range participants {
+			if pID == userID {
 				continue
 			}
-			s.messageService.PublishDeletion(
-				participantID,
-				messageID.String(),
-				chatID.String(),
-				userID.String(),
-			)
+			s.messageService.PublishDeletion(pID, messageID.String(), chatID.String(), userID.String())
 		}
 	}
-
 	return &messagepb.Empty{}, nil
 }
 
-func (s *MessageServer) EditMessage(
-	ctx context.Context,
-	req *messagepb.EditMessageRequest,
-) (*messagepb.Empty, error) {
-
+func (s *MessageServer) EditMessage(ctx context.Context, req *messagepb.EditMessageRequest) (*messagepb.Empty, error) {
 	userIDStr := ctx.Value(middleware.UserIDKey).(string)
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return nil, err
 	}
-
 	messageID, err := uuid.Parse(req.MessageId)
 	if err != nil {
 		return nil, err
 	}
 
-	chatID, err := s.messageService.EditMessage(
-		ctx,
-		messageID,
-		userID,
-		req.EncryptedContent,
-		req.IsEncrypted,
-	)
+	chatID, err := s.messageService.EditMessage(ctx, messageID, userID, req.EncryptedContent, req.IsEncrypted)
 	if err != nil {
 		return nil, err
 	}
 
 	participants, err := s.messageService.GetChatParticipants(ctx, chatID)
 	if err == nil {
-		for _, participantID := range participants {
-			if participantID == userID {
+		for _, pID := range participants {
+			if pID == userID {
 				continue
 			}
-			s.messageService.PublishEdit(
-				participantID,
-				messageID.String(),
-				chatID.String(),
-				userID.String(),
-				req.EncryptedContent,
-				req.IsEncrypted,
-			)
+			s.messageService.PublishEdit(pID, messageID.String(), chatID.String(), userID.String(), req.EncryptedContent, req.IsEncrypted)
 		}
 	}
-
 	return &messagepb.Empty{}, nil
 }

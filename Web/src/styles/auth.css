@@ -15,11 +15,18 @@
   max-width: 28rem;
 }
 
+:root {
+  --gradient: linear-gradient(135deg, #4c5cff 0%, #8b5cf6 100%);
+}
+
 .authCard h1 {
-  font-size: 1.5rem;
+  font-size: 20px;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #1f2937;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .authCard p {

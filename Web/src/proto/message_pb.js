@@ -360,7 +360,8 @@ proto.message.SendMessageRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
 chatId: jspb.Message.getFieldWithDefault(msg, 1, ""),
 encryptedContent: jspb.Message.getFieldWithDefault(msg, 2, ""),
-isEncrypted: jspb.Message.getBooleanFieldWithDefault(msg, 3, false)
+isEncrypted: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+replyToMessageId: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -409,6 +410,10 @@ proto.message.SendMessageRequest.deserializeBinaryFromReader = function(msg, rea
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setIsEncrypted(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setReplyToMessageId(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -456,6 +461,13 @@ proto.message.SendMessageRequest.serializeBinaryToWriter = function(message, wri
   if (f) {
     writer.writeBool(
       3,
+      f
+    );
+  }
+  f = message.getReplyToMessageId();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -513,6 +525,24 @@ proto.message.SendMessageRequest.prototype.getIsEncrypted = function() {
  */
 proto.message.SendMessageRequest.prototype.setIsEncrypted = function(value) {
   return jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional string reply_to_message_id = 4;
+ * @return {string}
+ */
+proto.message.SendMessageRequest.prototype.getReplyToMessageId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.message.SendMessageRequest} returns this
+ */
+proto.message.SendMessageRequest.prototype.setReplyToMessageId = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -874,7 +904,10 @@ senderId: jspb.Message.getFieldWithDefault(msg, 3, ""),
 encryptedContent: jspb.Message.getFieldWithDefault(msg, 4, ""),
 isEncrypted: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
 sentAt: jspb.Message.getFieldWithDefault(msg, 6, ""),
-createdAt: jspb.Message.getFieldWithDefault(msg, 7, "")
+createdAt: jspb.Message.getFieldWithDefault(msg, 7, ""),
+isEdited: jspb.Message.getBooleanFieldWithDefault(msg, 8, false),
+isDeleted: jspb.Message.getBooleanFieldWithDefault(msg, 9, false),
+replyTo: (f = msg.getReplyTo()) && proto.message.MessageResponse.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -938,6 +971,19 @@ proto.message.MessageResponse.deserializeBinaryFromReader = function(msg, reader
     case 7:
       var value = /** @type {string} */ (reader.readString());
       msg.setCreatedAt(value);
+      break;
+    case 8:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsEdited(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsDeleted(value);
+      break;
+    case 10:
+      var value = new proto.message.MessageResponse;
+      reader.readMessage(value,proto.message.MessageResponse.deserializeBinaryFromReader);
+      msg.setReplyTo(value);
       break;
     default:
       reader.skipField();
@@ -1015,6 +1061,28 @@ proto.message.MessageResponse.serializeBinaryToWriter = function(message, writer
     writer.writeString(
       7,
       f
+    );
+  }
+  f = message.getIsEdited();
+  if (f) {
+    writer.writeBool(
+      8,
+      f
+    );
+  }
+  f = message.getIsDeleted();
+  if (f) {
+    writer.writeBool(
+      9,
+      f
+    );
+  }
+  f = message.getReplyTo();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      proto.message.MessageResponse.serializeBinaryToWriter
     );
   }
 };
@@ -1143,6 +1211,79 @@ proto.message.MessageResponse.prototype.getCreatedAt = function() {
  */
 proto.message.MessageResponse.prototype.setCreatedAt = function(value) {
   return jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional bool is_edited = 8;
+ * @return {boolean}
+ */
+proto.message.MessageResponse.prototype.getIsEdited = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 8, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.message.MessageResponse} returns this
+ */
+proto.message.MessageResponse.prototype.setIsEdited = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 8, value);
+};
+
+
+/**
+ * optional bool is_deleted = 9;
+ * @return {boolean}
+ */
+proto.message.MessageResponse.prototype.getIsDeleted = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 9, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.message.MessageResponse} returns this
+ */
+proto.message.MessageResponse.prototype.setIsDeleted = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 9, value);
+};
+
+
+/**
+ * optional MessageResponse reply_to = 10;
+ * @return {?proto.message.MessageResponse}
+ */
+proto.message.MessageResponse.prototype.getReplyTo = function() {
+  return /** @type{?proto.message.MessageResponse} */ (
+    jspb.Message.getWrapperField(this, proto.message.MessageResponse, 10));
+};
+
+
+/**
+ * @param {?proto.message.MessageResponse|undefined} value
+ * @return {!proto.message.MessageResponse} returns this
+*/
+proto.message.MessageResponse.prototype.setReplyTo = function(value) {
+  return jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.message.MessageResponse} returns this
+ */
+proto.message.MessageResponse.prototype.clearReplyTo = function() {
+  return this.setReplyTo(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.message.MessageResponse.prototype.hasReplyTo = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

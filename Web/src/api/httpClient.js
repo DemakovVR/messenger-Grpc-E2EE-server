@@ -6,7 +6,6 @@ const httpClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  httpsAgent: null,
   withCredentials: false,
 });
 
@@ -15,11 +14,8 @@ let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
   failedQueue = [];
 };
@@ -37,43 +33,53 @@ httpClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log("[Interceptor] Перехвачена ошибка 401 для:", originalRequest.url);
-      
-      if (isRefreshing) {
-        console.log("[Interceptor] Токен уже обновляется, добавляем запрос в очередь:", originalRequest.url);
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-        .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return httpClient(originalRequest);
-        });
-      }
+    const isAuthRequest = originalRequest.url.includes('/auth/login') || 
+                          originalRequest.url.includes('/auth/refresh');
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-      console.log("[Interceptor] Запускаем процесс обновления токена...");
-
-      const refreshToken = localStorage.getItem("refresh_token");
-      try {
-        const { data } = await axios.post("/api/auth/refresh", { refreshToken });
-        const newAccessToken = data.accessToken;
-        console.log("[Interceptor] Токен успешно обновлен! Новый access_token записан.");
-        
-        localStorage.setItem("access_token", newAccessToken);
-        grpcClient.updateToken(newAccessToken);
-        
-        processQueue(null, newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        
-        console.log("[Interceptor] Повторяем исходный запрос:", originalRequest.url);
-        return httpClient(originalRequest);
-      } catch (refreshError) {
-        console.error("[Interceptor] Ошибка обновления токена, принудительный логаут", refreshError);
-      }
+    if (error.response?.status !== 401 || isAuthRequest || originalRequest._retry) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+      .then((token) => {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return httpClient(originalRequest);
+      })
+      .catch((err) => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    if (!refreshToken) {
+      isRefreshing = false;
+      return Promise.reject(error);
+    }
+
+    try {
+      const { data } = await axios.post("/api/auth/refresh", { refreshToken });
+      const newAccessToken = data.accessToken;
+      
+      localStorage.setItem("access_token", newAccessToken);
+      grpcClient.updateToken(newAccessToken);
+      
+      processQueue(null, newAccessToken);
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+      
+      isRefreshing = false;
+      return httpClient(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      isRefreshing = false;
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      return Promise.reject(refreshError);
+    }
   }
 );
 

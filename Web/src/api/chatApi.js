@@ -32,14 +32,18 @@ export const chatApi = {
     return res.data;
   },
 
-  sendMessage: async (chatId, encryptedContent, isEncrypted) => {
-    const res = await httpClient.post("/messages", {
-      chatId: chatId,
-      encryptedContent: encryptedContent,
-      isEncrypted: isEncrypted,
-    });
-    return res.data;
-  },
+sendMessage: async (chatId, encryptedContent, isEncrypted, replyToMessageId = null) => {
+  const payload = {
+    chatId: chatId,
+    encryptedContent: encryptedContent,
+    isEncrypted: isEncrypted,
+  };
+  if (replyToMessageId) {
+    payload.replyToMessageId = replyToMessageId;
+  }
+  const res = await httpClient.post("/messages", payload);
+  return res.data;
+},
 
   deleteMessage: async (messageId) => {
     const res = await httpClient.delete(`/messages/${messageId}`);
