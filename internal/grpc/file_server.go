@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -100,6 +101,7 @@ func (s *FileServer) DownloadFile(
 			return errors.New("permission denied: absolute paths are not allowed")
 		}
 	}
+	log.Printf("DownloadFile request for: %s", req.FileUrl)
 
 	file, err := os.Open(req.FileUrl)
 	if err != nil {

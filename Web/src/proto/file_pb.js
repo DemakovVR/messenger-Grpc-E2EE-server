@@ -259,10 +259,10 @@ proto.file.UploadFileRequest.prototype.setFileName = function(value) {
 
 /**
  * optional bytes chunk = 2;
- * @return {!(string|Uint8Array)}
+ * @return {string}
  */
 proto.file.UploadFileRequest.prototype.getChunk = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
@@ -673,10 +673,10 @@ proto.file.DownloadFileResponse.serializeBinaryToWriter = function(message, writ
 
 /**
  * optional bytes chunk = 1;
- * @return {!(string|Uint8Array)}
+ * @return {string}
  */
 proto.file.DownloadFileResponse.prototype.getChunk = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 

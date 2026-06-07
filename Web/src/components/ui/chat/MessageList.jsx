@@ -20,7 +20,7 @@ const getReplySnippet = (content) => {
   if (typeof content === "string" && content.trim().startsWith("{")) {
     try {
       const fileData = JSON.parse(content);
-      if (fileData && (fileData.is_file || fileData.file_url || fileData.file_name || fileData.fileName)) {
+      if (fileData && (fileData.is_file || fileData.isFile || fileData.file_url || fileData.fileUrl || fileData.file_name || fileData.fileName)) {
         const rawFileName = fileData.file_name || fileData.fileName || "";
         return `📄 Файл: ${getCleanFileName(rawFileName)}`;
       }
@@ -134,17 +134,17 @@ function MessageContentRender({ content, onEdit, onDelete, onReply, message, isO
   if (typeof content === "string" && content.trim().startsWith("{")) {
     try {
       const fileData = JSON.parse(content);
-      if (fileData && (fileData.is_file || fileData.file_url || fileData.file_name || fileData.fileName)) {
+      if (fileData && (fileData.is_file || fileData.isFile || fileData.file_url || fileData.fileUrl || fileData.file_name || fileData.fileName)) {
         const rawFileName = fileData.file_name || fileData.fileName || "";
         const displayName = getCleanFileName(rawFileName);
-        const fileUrl = fileData.file_url || rawFileName;
-
+        const fileUrl = fileData.file_url || fileData.fileUrl || rawFileName;
+        const backendFileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1) || rawFileName;
         const handleDownload = async () => {
           if (downloading) return;
           setDownloading(true);
           setProgress(0);
           try {
-            const localBlobUrl = await grpcClient.downloadFile(fileUrl, (count) => {
+            const localBlobUrl = await grpcClient.downloadFile(backendFileName, (count) => {
               setProgress(Math.min(count, 100));
             });
             const link = document.createElement("a");
@@ -195,7 +195,8 @@ function MessageContentRender({ content, onEdit, onDelete, onReply, message, isO
       setDownloading(true);
       setProgress(0);
       try {
-        const localBlobUrl = await grpcClient.downloadFile(content, (count) => {
+        const backendFileName = content.substring(content.lastIndexOf('/') + 1);
+        const localBlobUrl = await grpcClient.downloadFile(backendFileName, (count) => {
           setProgress(count);
         });
         const link = document.createElement("a");
@@ -423,11 +424,13 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
           }
 
           let sentAt = msg.sentAt || msg.createdAt || msg.sent_at || msg.created_at;
-          let validDate = true;
-          try {
-            if (new Date(sentAt).toString() === "Invalid Date") validDate = false;
-          } catch {
-            validDate = false;
+          let validDate = false;
+          if (sentAt) {
+            if (typeof sentAt === 'object' && 'seconds' in sentAt) {
+              validDate = true;
+            } else if (!isNaN(new Date(sentAt).getTime())) {
+              validDate = true;
+            }
           }
 
           return {
@@ -461,21 +464,56 @@ export default function MessageList({ messages, currentUserId, peerUserId, users
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [decryptedMessages]);
 
-  const formatTime = (dateString) => {
-    if (!dateString) return "";
+  const formatTime = (dateInput) => {
+    if (!dateInput) return "";
     try {
-      const parts = dateString.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-      if (parts) {
-        let hours = parseInt(parts[4], 10) + 4;
-        const minutes = parts[5];
-        if (hours >= 24) hours -= 24;
-        return `${hours.toString().padStart(2, '0')}:${minutes}`;
+      let date;
+
+      if (typeof dateInput === 'object' && 'seconds' in dateInput) {
+        date = new Date(Number(dateInput.seconds) * 1000);
+      } 
+      else if (dateInput instanceof Date) {
+        date = new Date(dateInput.getTime());
+      } 
+      else if (typeof dateInput === "string") {
+        const parts = dateInput.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+        if (parts) {
+          const year = parseInt(parts[1], 10);
+          const month = parseInt(parts[2], 10) - 1;
+          const day = parseInt(parts[3], 10);
+          const hours = parseInt(parts[4], 10);
+          const minutes = parseInt(parts[5], 10);
+          const seconds = parseInt(parts[6], 10);
+          
+          date = new Date(year, month, day, hours, minutes, seconds);
+          date.setHours(date.getHours() + 4);
+        } else {
+          date = new Date(dateInput);
+        }
+      } else {
+        date = new Date(dateInput);
       }
-      const date = new Date(dateString);
+
       if (isNaN(date.getTime())) return "";
-      date.setHours(date.getHours() + 4);
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } catch {
+
+      const now = new Date();
+      const isThisYear = date.getFullYear() === now.getFullYear();
+
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+
+      if (isThisYear) {
+        return `${day}.${month} ${timeStr}`;
+      } else {
+        const year = date.getFullYear();
+        return `${day}.${month}.${year} ${timeStr}`; 
+      }
+    } catch (e) {
+      console.error("Ошибка форматирования даты:", e);
       return "";
     }
   };
