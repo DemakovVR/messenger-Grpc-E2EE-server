@@ -47,7 +47,7 @@ func (r *RateLimiter) Allow(userID string) bool {
 
 	client.Count++
 
-	return client.Count <= 1000
+	return client.Count <= 50000
 }
 
 func (r *RateLimiter) startCleanupWorker(interval time.Duration) {

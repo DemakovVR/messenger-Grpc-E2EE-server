@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>E2EE Benchmark – SecureTalk</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: right; }
+        th { background: #e0e0e0; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; }
+        button { padding: 10px 20px; font-size: 16px; margin: 20px 0; cursor: pointer; }
+        .note { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Тестирование производительности E2EE (Web Crypto API)</h1>
+    <div class="note">
+        <strong>Примечание:</strong> Тест выполняется локально, без вызовов сервера. Генерируются ключи для двух виртуальных пользователей,
+        сообщения шифруются и дешифруются с использованием ECDH (P-256) + AES-GCM. Размер сообщения ограничен 100 КБ, так как для очень больших сообщений (200+ КБ) возникают ограничения браузерного стека.
+    </div>
+    <button id="runBtn">Запустить тест</button>
+    <div id="results"></div>
+
+    <script type="module">
+        async function generateSignedPreKey() {
+            const keyPair = await crypto.subtle.generateKey(
+                { name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey", "deriveBits"]
+            );
+            const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
+            const privateKey = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+            return {
+                privateKey: btoa(String.fromCharCode(...new Uint8Array(privateKey))),
+                publicKey: btoa(String.fromCharCode(...new Uint8Array(publicKey))),
+                cryptoKeyPair: keyPair
+            };
+        }
+
+        async function encryptMessage(peerPublicKeyB64, message, myPrivateKeyB64) {
+            const ephemeral = await crypto.subtle.generateKey(
+                { name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey", "deriveBits"]
+            );
+            const ephemeralPublic = await crypto.subtle.exportKey("spki", ephemeral.publicKey);
+            const ephemeralPublicB64 = btoa(String.fromCharCode(...new Uint8Array(ephemeralPublic)));
+
+            const peerPublicBytes = Uint8Array.from(atob(peerPublicKeyB64), c => c.charCodeAt(0));
+            const peerPublicCrypto = await crypto.subtle.importKey(
+                "spki", peerPublicBytes, { name: "ECDH", namedCurve: "P-256" }, false, []
+            );
+
+            const sharedBits = await crypto.subtle.deriveBits(
+                { name: "ECDH", public: peerPublicCrypto }, ephemeral.privateKey, 256
+            );
+            const sharedSecret = await crypto.subtle.digest("SHA-256", sharedBits);
+            const aesKey = await crypto.subtle.importKey(
+                "raw", sharedSecret, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+            );
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encoded = new TextEncoder().encode(message);
+            const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, aesKey, encoded);
+
+            return {
+                ciphertext: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
+                iv: btoa(String.fromCharCode(...iv)),
+                ephemeralPublicKey: ephemeralPublicB64
+            };
+        }
+
+        async function decryptMessage(encryptedData, myPrivateKeyB64) {
+            const { ciphertext, iv, ephemeralPublicKey } = encryptedData;
+            const privateBytes = Uint8Array.from(atob(myPrivateKeyB64), c => c.charCodeAt(0));
+            const privateCrypto = await crypto.subtle.importKey(
+                "pkcs8", privateBytes, { name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]
+            );
+            const ephemPublicBytes = Uint8Array.from(atob(ephemeralPublicKey), c => c.charCodeAt(0));
+            const ephemPublicCrypto = await crypto.subtle.importKey(
+                "spki", ephemPublicBytes, { name: "ECDH", namedCurve: "P-256" }, false, []
+            );
+
+            const sharedBits = await crypto.subtle.deriveBits(
+                { name: "ECDH", public: ephemPublicCrypto }, privateCrypto, 256
+            );
+            const sharedSecret = await crypto.subtle.digest("SHA-256", sharedBits);
+            const aesKey = await crypto.subtle.importKey(
+                "raw", sharedSecret, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+            );
+            const ivBytes = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
+            const ciphertextBytes = Uint8Array.from(atob(ciphertext), c => c.charCodeAt(0));
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: ivBytes }, aesKey, ciphertextBytes
+            );
+            return new TextDecoder().decode(decrypted);
+        }
+
+        async function runBenchmark() {
+            const output = document.getElementById('results');
+            output.innerHTML = 'Генерация ключей... (может занять несколько секунд)';
+
+            const alice = await generateSignedPreKey();
+            const bob = await generateSignedPreKey();
+
+            const testMessages = [
+                { label: "10 байт", text: "Hello E2EE" },
+                { label: "100 байт", text: "A".repeat(100) },
+                { label: "1 КБ", text: "A".repeat(1024) },
+                { label: "10 КБ", text: "A".repeat(10 * 1024) },
+                { label: "100 КБ", text: "A".repeat(100 * 1024) }
+            ];
+
+            const results = [];
+
+            for (const msg of testMessages) {
+                try {
+                    let start = performance.now();
+                    const encrypted = await encryptMessage(bob.publicKey, msg.text, alice.privateKey);
+                    const encryptTime = performance.now() - start;
+
+                    start = performance.now();
+                    const decrypted = await decryptMessage(encrypted, bob.privateKey);
+                    const decryptTime = performance.now() - start;
+
+                    const success = (decrypted === msg.text);
+                    results.push({
+                        label: msg.label,
+                        size: msg.text.length,
+                        encrypt_ms: encryptTime.toFixed(2),
+                        decrypt_ms: decryptTime.toFixed(2),
+                        success
+                    });
+                } catch (err) {
+                    console.error(`Ошибка при ${msg.label}:`, err);
+                    results.push({
+                        label: msg.label,
+                        size: msg.text.length,
+                        encrypt_ms: "ошибка",
+                        decrypt_ms: "ошибка",
+                        success: false
+                    });
+                }
+            }
+
+            let html = '<table><thead><tr><th>Размер сообщения</th><th>Байт</th><th>Шифрование (мс)</th><th>Дешифрование (мс)</th><th>Корректно</th></tr></thead><tbody>';
+            for (const r of results) {
+                html += `<tr>
+                    <td>${r.label}</td>
+                    <td>${r.size}</td>
+                    <td>${r.encrypt_ms}</td>
+                    <td>${r.decrypt_ms}</td>
+                    <td class="${r.success ? 'success' : 'error'}">${r.success ? '✓' : '✗'}</td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+            output.innerHTML = html;
+        }
+
+        document.getElementById('runBtn').onclick = runBenchmark;
+    </script>
+</body>
+</html>

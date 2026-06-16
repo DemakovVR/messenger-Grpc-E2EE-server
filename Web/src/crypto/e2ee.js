@@ -402,6 +402,11 @@ export async function publishKeys() {
   }
 }
 
+if (typeof window !== 'undefined') {
+    window.encryptMessageForPeer = encryptMessageForPeer;
+    window.decryptMessageFromPeer = decryptMessageFromPeer;
+}
+
 export async function fetchPreKeyBundle(userId) {
   const token = localStorage.getItem("access_token");
   

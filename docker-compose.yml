@@ -17,6 +17,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M 
 
   envoy:
     image: envoyproxy/envoy:v1.28.0
