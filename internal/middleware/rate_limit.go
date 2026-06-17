@@ -1,16 +1,15 @@
 package middleware
 
 import (
+	"Server/internal/contextkeys"
 	"context"
 	"errors"
-
-	"Server/internal/service"
 
 	"google.golang.org/grpc"
 )
 
 func RateLimitInterceptor(
-	limiter *service.RateLimiter,
+	limiter *RateLimiter,
 ) grpc.UnaryServerInterceptor {
 
 	return func(
@@ -21,7 +20,7 @@ func RateLimitInterceptor(
 	) (interface{}, error) {
 
 		userID, _ := ctx.Value(
-			UserIDKey,
+			contextkeys.UserIDKey,
 		).(string)
 
 		if userID != "" {

@@ -1,12 +1,12 @@
 const actionTitles = {
-    // AuthService
+    //AuthService
     '/auth.AuthService/Register': 'Регистрация пользователя',
     '/auth.AuthService/Login': 'Вход в систему',
     '/auth.AuthService/RefreshToken': 'Обновление access-токена',
     '/auth.AuthService/Logout': 'Выход из системы',
     '/auth.AuthService/ChangePassword': 'Смена пароля',
 
-    // UserService
+    //UserService
     '/auth.UserService/GetProfile': 'Запрос профиля',
     '/auth.UserService/UpdateProfile': 'Обновление профиля',
     '/auth.UserService/GetPublicKey': 'Получение публичного ключа',
@@ -14,7 +14,7 @@ const actionTitles = {
     '/auth.UserService/GetPublicProfile': 'Просмотр публичного профиля',
     '/auth.UserService/DeleteAccount': 'Удаление аккаунта',
 
-    // ContactService
+    //ContactService
     '/contact.ContactService/SearchUsers': 'Поиск пользователей',
     '/contact.ContactService/AddContact': 'Добавление контакта',
     '/contact.ContactService/GetContacts': 'Загрузка списка контактов',
@@ -23,7 +23,7 @@ const actionTitles = {
     '/contact.ContactService/GetBlockedUsers': 'Запрос списка заблокированных',
     '/contact.ContactService/UnblockContact': 'Разблокировка пользователя',
 
-    // ChatService
+    //ChatService
     '/chat.ChatService/CreatePrivateChat': 'Создание личного чата',
     '/chat.ChatService/CreateGroupChat': 'Создание группового чата',
     '/chat.ChatService/GetChats': 'Загрузка списка чатов',
@@ -33,7 +33,7 @@ const actionTitles = {
     '/chat.ChatService/RemoveParticipants': 'Удаление участников из группы',
     '/chat.ChatService/LeaveGroup': 'Выход из группы',
 
-    // MessageService
+    //MessageService
     '/message.MessageService/SendMessage': 'Отправка сообщения',
     '/message.MessageService/SendReply': 'Ответ на сообщение',
     '/message.MessageService/GetMessages': 'Просмотр истории сообщений',
@@ -41,17 +41,17 @@ const actionTitles = {
     '/message.MessageService/DeleteMessage': 'Удаление сообщения',
     '/message.MessageService/EditMessage': 'Редактирование сообщения',
 
-    // FileService
+    //FileService
     '/file.FileService/UploadFile': 'Загрузка файла',
     '/file.FileService/DownloadFile': 'Скачивание файла',
 
-    // KeyService
+    //KeyService
     '/keys.KeyService/UploadKeys': 'Синхронизация ключей шифрования',
     '/keys.KeyService/GetPreKeyBundle': 'Запрос предключей',
     '/keys.KeyService/UploadOneTimeKeys': 'Загрузка одноразовых ключей',
     '/keys.KeyService/RotateSignedPreKey': 'Ротация подписанного предключа',
 
-    // AuditService
+    //AuditService
     '/audit.AuditService/GetUserLogs': 'Просмотр журнала безопасности',
     '/audit.AuditService/GetChatLogs': 'Запрос истории логов чата',
 };

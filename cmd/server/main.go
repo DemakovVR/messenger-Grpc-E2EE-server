@@ -20,11 +20,18 @@ import (
 	filepb "Server/gen/file"
 	keyspb "Server/gen/keys"
 	messagepb "Server/gen/message"
-	internalgrpc "Server/internal/grpc"
+
+	"Server/internal/audit"
+	"Server/internal/auth"
+	"Server/internal/chat"
+	"Server/internal/contact"
+	repository "Server/internal/database"
+	"Server/internal/file"
+	"Server/internal/keys"
 	"Server/internal/logger"
+	"Server/internal/message"
 	"Server/internal/middleware"
-	"Server/internal/repository"
-	"Server/internal/service"
+
 	tlsutil "Server/internal/tls"
 	stdruntime "runtime"
 
@@ -92,20 +99,20 @@ func main() {
 
 	logger.Log.Info("Database connected")
 
-	userRepo := repository.NewUserRepository(db)
-	contactRepo := repository.NewContactRepository(db)
-	chatRepo := repository.NewChatRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-	keysRepo := repository.NewKeysRepository(db)
-	fileRepo := repository.NewFileRepository(db)
-	auditRepo := repository.NewAuditRepository(db)
-	refreshRepo := repository.NewRefreshRepository(db)
+	userRepo := auth.NewUserRepository(db)
+	contactRepo := contact.NewContactRepository(db)
+	chatRepo := chat.NewChatRepository(db)
+	messageRepo := message.NewMessageRepository(db)
+	keysRepo := keys.NewKeysRepository(db)
+	fileRepo := file.NewFileRepository(db)
+	auditRepo := audit.NewAuditRepository(db)
+	refreshRepo := auth.NewRefreshRepository(db)
 
-	auditService := service.NewAuditService(auditRepo)
-	refreshService := service.NewRefreshService()
-	rateLimiter := service.NewRateLimiter()
+	auditService := audit.NewAuditService(auditRepo)
+	refreshService := auth.NewRefreshService()
+	rateLimiter := middleware.NewRateLimiter()
 
-	authService := service.NewAuthService(
+	authService := auth.NewAuthService(
 		userRepo,
 		refreshRepo,
 		auditService,
@@ -113,22 +120,22 @@ func main() {
 		cfg.JWTSecret,
 	)
 
-	userService := service.NewUserService(userRepo, refreshRepo)
-	contactService := service.NewContactService(contactRepo)
-	chatService := service.NewChatService(chatRepo)
-	connectionManager := service.NewConnectionManager()
-	messageService := service.NewMessageService(messageRepo, connectionManager)
-	keysService := service.NewKeysService(keysRepo)
-	fileService := service.NewFileService(fileRepo)
+	userService := auth.NewUserService(userRepo, refreshRepo)
+	contactService := contact.NewContactService(contactRepo)
+	chatService := chat.NewChatService(chatRepo)
+	connectionManager := message.NewConnectionManager()
+	messageService := message.NewMessageService(messageRepo, connectionManager, auditService)
+	keysService := keys.NewKeysService(keysRepo)
+	fileService := file.NewFileService(fileRepo)
 
-	authServer := internalgrpc.NewAuthServer(authService, userService)
-	userServer := internalgrpc.NewUserServer(userService)
-	contactServer := internalgrpc.NewContactServer(contactService)
-	chatServer := internalgrpc.NewChatServer(chatService)
-	messageServer := internalgrpc.NewMessageServer(messageService)
-	keysServer := internalgrpc.NewKeysServer(keysService)
-	fileServer := internalgrpc.NewFileServer(fileService)
-	auditServer := internalgrpc.NewAuditServer(auditService)
+	authServer := auth.NewAuthServer(authService, userService)
+	userServer := auth.NewUserServer(userService)
+	contactServer := contact.NewContactServer(contactService)
+	chatServer := chat.NewChatServer(chatService)
+	messageServer := message.NewMessageServer(messageService)
+	keysServer := keys.NewKeysServer(keysService)
+	fileServer := file.NewFileServer(fileService)
+	auditServer := audit.NewAuditServer(auditService)
 	auditMiddleware := middleware.NewAuditMiddleware(auditRepo)
 
 	creds, err := tlsutil.LoadTLSCredentials(cfg.TLSCertFile, cfg.TLSKeyFile)

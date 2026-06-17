@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"Server/internal/auth"
+	"Server/internal/contextkeys"
 	"context"
 	"strings"
-
-	"Server/internal/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -30,7 +30,7 @@ func AuthInterceptor(jwtSecret string) grpc.UnaryServerInterceptor {
 		if err != nil {
 			return nil, err
 		}
-		newCtx := context.WithValue(ctx, UserIDKey, userID)
+		newCtx := context.WithValue(ctx, contextkeys.UserIDKey, userID)
 		return handler(newCtx, req)
 	}
 }
@@ -44,7 +44,7 @@ func AuthStreamInterceptor(jwtSecret string) grpc.StreamServerInterceptor {
 		if err != nil {
 			return err
 		}
-		newCtx := context.WithValue(ss.Context(), UserIDKey, userID)
+		newCtx := context.WithValue(ss.Context(), contextkeys.UserIDKey, userID)
 		newStream := &wrappedStream{ss, newCtx}
 		return handler(srv, newStream)
 	}

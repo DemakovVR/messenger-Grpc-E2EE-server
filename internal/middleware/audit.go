@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
+	"Server/internal/audit"
+	"Server/internal/contextkeys"
 	"Server/internal/logger"
-	"Server/internal/repository"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -16,10 +17,10 @@ import (
 )
 
 type AuditMiddleware struct {
-	auditRepo *repository.AuditRepository
+	auditRepo *audit.AuditRepository
 }
 
-func NewAuditMiddleware(r *repository.AuditRepository) *AuditMiddleware {
+func NewAuditMiddleware(r *audit.AuditRepository) *AuditMiddleware {
 	return &AuditMiddleware{
 		auditRepo: r,
 	}
@@ -78,7 +79,7 @@ func (m *AuditMiddleware) Unary() grpc.UnaryServerInterceptor {
 		}
 
 		var userID uuid.UUID
-		if v := ctx.Value(UserIDKey); v != nil {
+		if v := ctx.Value(contextkeys.UserIDKey); v != nil {
 			switch val := v.(type) {
 			case uuid.UUID:
 				userID = val

@@ -95,14 +95,14 @@ sendMessage: async (chatId, encryptedContent, isEncrypted, replyToMessageId = nu
 
   addParticipants: async (chatId, userIds) => {
     const res = await httpClient.post(`/chats/${chatId}/participants`, {
-      userId: userIds,
+      userIds: userIds,
     });
     return res.data;
   },
 
   removeParticipants: async (chatId, userIds) => {
     const res = await httpClient.post(`/chats/${chatId}/participants/remove`, {
-      userId: userIds,
+      userIds: userIds,
     });
     return res.data;
   },
